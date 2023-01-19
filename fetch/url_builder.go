@@ -3,6 +3,8 @@ package fetch
 import (
 	"net/http"
 	"strconv"
+
+	"github.com/joshprzybyszewski/masyu/model"
 )
 
 const (
@@ -14,7 +16,7 @@ var (
 )
 
 func buildURL(
-	i Iterator,
+	i model.Iterator,
 ) string {
 	return baseURL + `?size=` + strconv.Itoa(int(i))
 }

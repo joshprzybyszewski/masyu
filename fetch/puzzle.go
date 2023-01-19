@@ -2,18 +2,20 @@ package fetch
 
 import (
 	"fmt"
+
+	"github.com/joshprzybyszewski/masyu/model"
 )
 
 func Puzzle(
-	i Iterator,
+	i model.Iterator,
 ) (input, error) {
 	if !i.Valid() {
 		return input{}, fmt.Errorf("invalid iterator!")
 	}
 
 	puzz := input{
-		size:       i.size(),
-		difficulty: i.difficulty(),
+		size:       i.GetSize(),
+		difficulty: i.GetDifficulty(),
 	}
 
 	url := buildURL(i)

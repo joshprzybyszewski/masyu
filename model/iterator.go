@@ -1,9 +1,4 @@
-package fetch
-
-const (
-	MinIterator = 0
-	MaxIterator = 18
-)
+package model
 
 type Iterator int
 
@@ -11,7 +6,7 @@ func (i Iterator) Valid() bool {
 	return MinIterator <= i && i <= MaxIterator
 }
 
-func (i Iterator) size() size {
+func (i Iterator) GetSize() Size {
 	if i < MinIterator || i > MaxIterator {
 		return invalidSize
 	}
@@ -47,7 +42,7 @@ func (i Iterator) size() size {
 	return invalidSize
 }
 
-func (i Iterator) difficulty() difficulty {
+func (i Iterator) GetDifficulty() Difficulty {
 	if i < MinIterator || i > MaxIterator {
 		return invalidDifficulty
 	}
@@ -56,5 +51,5 @@ func (i Iterator) difficulty() difficulty {
 		return easy
 	}
 
-	return difficulty((i - 1) % 3)
+	return Difficulty((i - 1) % 3)
 }
