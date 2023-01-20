@@ -53,6 +53,14 @@ func (r *rule) checkDefault(
 		na++
 		dir |= 1 << 3
 	}
+	if nl >= 3 {
+		// this is an error state.
+		// Either right or down must be a line.
+		// Write an avoid over them both to trigger an invalid state.
+		s.avoidVer(r.row, r.col)
+		s.avoidHor(r.row, r.col)
+		return
+	}
 
 	if nl != 2 && nl+na != 3 {
 		return
