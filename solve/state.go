@@ -69,8 +69,6 @@ func (s *state) isValid() bool {
 		}
 	}
 
-	// TODO check that it's a single continuous path.
-
 	return true
 }
 
@@ -192,57 +190,37 @@ func (s *state) checkBlack(
 func (s *state) checkWhite(
 	r, c int,
 ) {
-	l, a := s.horAt(r, c)
-	if l {
+	l1, a1 := s.horAt(r, c)
+	l2, a2 := s.horAt(r, c-1)
+	if l1 || l2 {
 		s.lineHor(r, c-1)
+		s.lineHor(r, c)
 		s.avoidVer(r-1, c)
 		s.avoidVer(r, c)
 		// TODO check past the ends of the two-length line
 		// if it continues or it's an avoid, then we can know to do more.
 		return
-	} else if a {
-		s.lineVer(r, c)
-		s.lineVer(r-1, c)
+	} else if a1 || a2 {
 		s.avoidHor(r, c-1)
+		s.avoidHor(r, c)
+		s.lineVer(r-1, c)
+		s.lineVer(r, c)
 		return
 	}
 
-	l, a = s.verAt(r, c)
-	if l {
+	l1, a1 = s.verAt(r-1, c)
+	l2, a2 = s.verAt(r, c)
+	if l1 || l2 {
 		s.lineVer(r-1, c)
+		s.lineVer(r, c)
 		s.avoidHor(r, c-1)
 		s.avoidHor(r, c)
 		return
-	} else if a {
-		s.lineHor(r, c-1)
-		s.lineHor(r, c)
-		s.avoidVer(r-1, c)
-		return
-	}
-
-	l, a = s.horAt(r, c-1)
-	if l {
-		s.lineHor(r, c)
+	} else if a1 || a2 {
 		s.avoidVer(r-1, c)
 		s.avoidVer(r, c)
-		return
-	} else if a {
-		s.avoidHor(r, c)
-		s.lineVer(r, c)
-		s.lineVer(r-1, c)
-		return
-	}
-
-	l, a = s.verAt(r-1, c)
-	if l {
-		s.lineVer(r, c)
-		s.avoidHor(r, c-1)
-		s.avoidHor(r, c)
-		return
-	} else if a {
 		s.lineHor(r, c-1)
 		s.lineHor(r, c)
-		s.avoidVer(r, c)
 		return
 	}
 }
