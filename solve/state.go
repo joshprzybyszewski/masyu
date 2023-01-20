@@ -66,6 +66,7 @@ func (s *state) initialize() {
 
 	s.settleNodes()
 	if !s.isValid() {
+		fmt.Printf("error state:\n%s\n\n", s)
 		panic(`dev error`)
 	}
 
@@ -116,30 +117,54 @@ func (s *state) checkBlack(
 ) {
 	rl, ra := s.horAt(r, c)
 	if rl {
+		s.lineHor(r, c+1)
 		s.avoidHor(r, c-1)
+		s.avoidVer(r-1, c+1)
+		s.avoidVer(r, c+1)
 	} else if ra {
 		s.lineHor(r, c-1)
+		s.lineHor(r, c-2)
+		s.avoidVer(r-1, c-1)
+		s.avoidVer(r, c-1)
 	}
 
 	dl, da := s.verAt(r, c)
 	if dl {
+		s.lineVer(r+1, c)
 		s.avoidVer(r-1, c)
+		s.avoidHor(r+1, c-1)
+		s.avoidHor(r+1, c)
 	} else if da {
 		s.lineVer(r-1, c)
+		s.lineVer(r-2, c)
+		s.avoidHor(r-1, c)
+		s.avoidHor(r-1, c-1)
 	}
 
 	ll, la := s.horAt(r, c-1)
 	if ll {
+		s.lineHor(r, c-2)
 		s.avoidHor(r, c)
+		s.avoidVer(r-1, c-1)
+		s.avoidVer(r, c-1)
 	} else if la {
 		s.lineHor(r, c)
+		s.lineHor(r, c+1)
+		s.avoidVer(r-1, c+1)
+		s.avoidVer(r, c+1)
 	}
 
 	ul, ua := s.verAt(r-1, c)
 	if ul {
+		s.lineVer(r-2, c)
 		s.avoidVer(r, c)
+		s.avoidHor(r-1, c-1)
+		s.avoidHor(r-1, c)
 	} else if ua {
 		s.lineVer(r, c)
+		s.lineVer(r+1, c)
+		s.avoidHor(r+1, c-1)
+		s.avoidHor(r+1, c)
 	}
 }
 
