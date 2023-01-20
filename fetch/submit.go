@@ -80,10 +80,6 @@ func buildHallOfFameSubmission(
 		return nil, fmt.Errorf(`something was wrong`)
 	}
 
-	if input.param != solParams {
-		fmt.Printf("ITS ACTUALLY DIFFERENT\n")
-	}
-
 	formData := url.Values{}
 	formData.Add(`solparams`, solParams)
 	formData.Add(`robot`, `1`)

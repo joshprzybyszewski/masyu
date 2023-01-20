@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	useKnown = false
+	useKnown = true
 )
 
 func main() {

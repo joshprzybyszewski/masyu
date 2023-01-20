@@ -240,6 +240,11 @@ func (s *state) checkWhite(
 		s.lineHor(r, c)
 		s.avoidVer(r-1, c)
 		s.avoidVer(r, c)
+		if c < 2 {
+			// error state
+			s.lineVer(r, c)
+			return
+		}
 		l1, a1 = s.horAt(r, c-2)
 		if l1 {
 			s.avoidHor(r, c+1)
@@ -254,6 +259,11 @@ func (s *state) checkWhite(
 		s.avoidHor(r, c)
 		s.lineVer(r-1, c)
 		s.lineVer(r, c)
+		if r < 2 {
+			// error state
+			s.lineHor(r, c)
+			return
+		}
 		l1, a1 = s.verAt(r-2, c)
 		if l1 {
 			s.avoidVer(r+1, c)

@@ -6,6 +6,10 @@ import (
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
+const (
+	maxAttempts = 100000
+)
+
 func solve(
 	s state,
 ) (model.Solution, error) {
@@ -17,11 +21,8 @@ func solve(
 	pending = append(pending, s)
 	attempts := 0
 
-	for len(pending) > 0 {
+	for len(pending) > 0 && attempts < maxAttempts {
 		attempts++
-		if attempts > 10000 {
-			break
-		}
 		s := pending[0]
 		s.settleNodes()
 		sol, solved, valid := s.toSolution()
@@ -60,5 +61,5 @@ func solve(
 		pending = pending[1:]
 	}
 
-	return model.Solution{}, fmt.Errorf("did not find solution")
+	return model.Solution{}, fmt.Errorf("did not find solution in %d attempts", attempts)
 }
