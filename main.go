@@ -25,5 +25,5 @@ func main() {
 		iter.GetSize(),
 		ns,
 	)
-	fmt.Printf("sol: %+v\n", sol)
+	fmt.Printf("Solution: %+v\n", sol)
 }

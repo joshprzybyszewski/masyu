@@ -39,6 +39,19 @@ func newState(
 	return s
 }
 
+func (s *state) isValid() bool {
+	for i := 0; i <= int(s.size); i++ {
+		if s.horizontalAvoids[i]&s.horizontalLines[i] != 0 {
+			return false
+		}
+		if s.verticalLines[i]&s.verticalAvoids[i] != 0 {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (s *state) initialize() {
 	avoid := uint64(1 | (1 << s.size))
 	for i := 1; i <= int(s.size); i++ {
@@ -49,145 +62,247 @@ func (s *state) initialize() {
 	s.verticalAvoids[0] = 0xFFFFFFFFFFFFFFFF
 	s.horizontalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
 	s.verticalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
-	fmt.Printf("state:\n%s\n", s)
+	fmt.Printf("state BEFORE settle:\n%s\n", s)
 
 	s.settleNodes()
+	if !s.isValid() {
+		panic(`dev error`)
+	}
 
-	fmt.Printf("state:\n%s\n", s)
+	fmt.Printf("state AFTER settle:\n%s\n", s)
 }
 
 func (s *state) settleNodes() {
-	for s.checkNodes() {
-		fmt.Printf("state:\n%s\n\n", s)
+	prevhorizontalLines := s.horizontalLines
+	prevhorizontalAvoids := s.horizontalAvoids
+
+	prevverticalLines := s.verticalLines
+	prevverticalAvoids := s.verticalAvoids
+
+	i := 0
+	for {
+		i++
+
+		s.checkNodes()
+		s.checkPins()
+		fmt.Printf("state %d:\n%s\n\n", i, s)
+
+		if prevhorizontalLines == s.horizontalLines &&
+			prevhorizontalAvoids == s.horizontalAvoids &&
+			prevverticalLines == s.verticalLines &&
+			prevverticalAvoids == s.verticalAvoids {
+			break
+		}
+
+		prevhorizontalLines = s.horizontalLines
+		prevhorizontalAvoids = s.horizontalAvoids
+		prevverticalLines = s.verticalLines
+		prevverticalAvoids = s.verticalAvoids
 	}
 }
 
-func (s *state) checkNodes() bool {
-	changed := false
-
+func (s *state) checkNodes() {
 	for _, n := range s.nodes {
 		if n.IsBlack {
-			changed = changed || s.checkBlack(n.Row, n.Col)
+			s.checkBlack(n.Row, n.Col)
 		} else {
-			changed = changed || s.checkWhite(n.Row, n.Col)
+			s.checkWhite(n.Row, n.Col)
 		}
 	}
-
-	return changed
 }
 
 func (s *state) checkBlack(
 	r, c int,
-) bool {
-	changed := false
+) {
 	rl, ra := s.horAt(r, c)
 	if rl {
-		changed = changed || s.avoidHor(r, c-1)
+		s.avoidHor(r, c-1)
 	} else if ra {
-		changed = changed || s.lineHor(r, c-1)
+		s.lineHor(r, c-1)
 	}
 
 	dl, da := s.verAt(r, c)
 	if dl {
-		changed = changed || s.avoidVer(r-1, c)
+		s.avoidVer(r-1, c)
 	} else if da {
-		changed = changed || s.lineVer(r-1, c)
+		s.lineVer(r-1, c)
 	}
 
 	ll, la := s.horAt(r, c-1)
 	if ll {
-		changed = changed || s.avoidHor(r, c)
+		s.avoidHor(r, c)
 	} else if la {
-		changed = changed || s.lineHor(r, c)
+		s.lineHor(r, c)
 	}
 
 	ul, ua := s.verAt(r-1, c)
 	if ul {
-		changed = changed || s.avoidVer(r, c)
+		s.avoidVer(r, c)
 	} else if ua {
-		changed = changed || s.lineVer(r, c)
+		s.lineVer(r, c)
 	}
-
-	return changed
 }
 
 func (s *state) checkWhite(
 	r, c int,
-) bool {
-	changed := false
+) {
+	l, a := s.horAt(r, c)
+	if l {
+		s.lineHor(r, c-1)
+		s.avoidVer(r-1, c)
+		s.avoidVer(r, c)
+		return
+	} else if a {
+		s.lineVer(r, c)
+		s.lineVer(r-1, c)
+		s.avoidHor(r, c-1)
+		return
+	}
+
+	l, a = s.verAt(r, c)
+	if l {
+		s.lineVer(r-1, c)
+		s.avoidHor(r, c-1)
+		s.avoidHor(r, c)
+		return
+	} else if a {
+		s.lineHor(r, c-1)
+		s.lineHor(r, c)
+		s.avoidVer(r-1, c)
+		return
+	}
+
+	l, a = s.horAt(r, c-1)
+	if l {
+		s.lineHor(r, c)
+		s.avoidVer(r-1, c)
+		s.avoidVer(r, c)
+		return
+	} else if a {
+		s.avoidHor(r, c)
+		s.lineVer(r, c)
+		s.lineVer(r-1, c)
+		return
+	}
+
+	l, a = s.verAt(r-1, c)
+	if l {
+		s.lineVer(r, c)
+		s.avoidHor(r, c-1)
+		s.avoidHor(r, c)
+		return
+	} else if a {
+		s.lineHor(r, c-1)
+		s.lineHor(r, c)
+		s.avoidVer(r, c)
+		return
+	}
+}
+
+func (s *state) checkPins() {
+	for r := 1; r <= int(s.size); r++ {
+		for c := 1; c <= int(s.size); c++ {
+			s.checkPin(r, c)
+		}
+	}
+}
+
+func (s *state) checkPin(r, c int) {
 	rl, ra := s.horAt(r, c)
-	if rl {
-		changed = changed || s.lineHor(r, c-1)
-	} else if ra {
-		changed = changed || s.avoidHor(r, c-1)
-	}
-
 	dl, da := s.verAt(r, c)
-	if dl {
-		changed = changed || s.lineVer(r-1, c)
-	} else if da {
-		changed = changed || s.avoidVer(r-1, c)
-	}
-
 	ll, la := s.horAt(r, c-1)
-	if ll {
-		changed = changed || s.lineHor(r, c)
-	} else if la {
-		changed = changed || s.avoidHor(r, c)
-	}
-
 	ul, ua := s.verAt(r-1, c)
+
+	var nl, na, dir uint8
+	if rl {
+		nl++
+		dir |= 1
+	}
+	if ra {
+		na++
+		dir |= 1
+	}
+	if dl {
+		nl++
+		dir |= 1 << 1
+	}
+	if da {
+		na++
+		dir |= 1 << 1
+	}
+	if ll {
+		nl++
+		dir |= 1 << 2
+	}
+	if la {
+		na++
+		dir |= 1 << 2
+	}
 	if ul {
-		changed = changed || s.lineVer(r, c)
-	} else if ua {
-		changed = changed || s.avoidVer(r, c)
+		nl++
+		dir |= 1 << 3
+	}
+	if ua {
+		na++
+		dir |= 1 << 3
 	}
 
-	return changed
+	if nl != 2 && nl+na != 3 {
+		return
+	}
+
+	if dir&1 == 0 {
+		if nl == 1 {
+			s.lineHor(r, c)
+		} else {
+			s.avoidHor(r, c)
+		}
+	}
+	if dir&(1<<1) == 0 {
+		if nl == 1 {
+			s.lineVer(r, c)
+		} else {
+			s.avoidVer(r, c)
+		}
+	}
+	if dir&(1<<2) == 0 {
+		if nl == 1 {
+			s.lineHor(r, c-1)
+		} else {
+			s.avoidHor(r, c-1)
+		}
+	}
+	if dir&(1<<3) == 0 {
+		if nl == 1 {
+			s.lineVer(r-1, c)
+		} else {
+			s.avoidVer(r-1, c)
+		}
+	}
 }
 
 func (s *state) horAt(r, c int) (bool, bool) {
 	return s.horizontalLines[r]&(1<<c) != 0, s.horizontalAvoids[r]&(1<<c) != 0
 }
 
-func (s *state) avoidHor(r, c int) bool {
-	l, a := s.horAt(r, c)
-	if l || a {
-		return false
-	}
+func (s *state) avoidHor(r, c int) {
 	s.horizontalAvoids[r] |= (1 << c)
-	return true
 }
 
-func (s *state) lineHor(r, c int) bool {
-	l, a := s.horAt(r, c)
-	if l || a {
-		return false
-	}
+func (s *state) lineHor(r, c int) {
 	s.horizontalLines[r] |= (1 << c)
-	return true
 }
 
 func (s *state) verAt(r, c int) (bool, bool) {
 	return s.verticalLines[c]&(1<<r) != 0, s.verticalAvoids[c]&(1<<r) != 0
 }
 
-func (s *state) avoidVer(r, c int) bool {
-	l, a := s.verAt(r, c)
-	if l || a {
-		return false
-	}
+func (s *state) avoidVer(r, c int) {
 	s.verticalAvoids[c] |= (1 << r)
-	return true
 }
 
-func (s *state) lineVer(r, c int) bool {
-	l, a := s.verAt(r, c)
-	if l || a {
-		return false
-	}
+func (s *state) lineVer(r, c int) {
 	s.verticalLines[c] |= (1 << r)
-	return true
 }
 
 func (s *state) String() string {
@@ -200,7 +315,9 @@ func (s *state) String() string {
 			sb.WriteByte(s.getNode(r, c))
 			sb.WriteByte(' ')
 			isLine, isAvoid = s.horAt(r, c)
-			if isLine {
+			if isLine && isAvoid {
+				sb.WriteByte('@')
+			} else if isLine {
 				sb.WriteByte('-')
 			} else if isAvoid {
 				sb.WriteByte('X')
@@ -213,7 +330,9 @@ func (s *state) String() string {
 
 		for c := 0; c <= int(s.size+1); c++ {
 			isLine, isAvoid = s.verAt(r, c)
-			if isLine {
+			if isLine && isAvoid {
+				sb.WriteByte('@')
+			} else if isLine {
 				sb.WriteByte('|')
 			} else if isAvoid {
 				sb.WriteByte('X')
