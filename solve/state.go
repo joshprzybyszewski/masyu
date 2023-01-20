@@ -45,14 +45,18 @@ func (s *state) toSolution() (*Solution, bool) {
 	}
 
 	// TODO check that it's a single continuous path.
-	return nil, false
+	// return nil, false
 
-	// return &Solution{
-	// 	size: s.size,
+	sol := Solution{
+		size: s.size,
+	}
 
-	// 	// hor: s.horizontalLines << 1,
-	// 	// ver s.verticalLines << 1,
-	// }, true
+	for i := 0; i < int(s.size); i++ {
+		sol.hor[i] = (s.horizontalLines[i+1]) >> 1
+		sol.ver[i] = (s.verticalLines[i+1]) >> 1
+	}
+
+	return &sol, true
 }
 
 func (s *state) isValid() bool {
