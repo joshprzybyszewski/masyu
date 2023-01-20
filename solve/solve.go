@@ -7,12 +7,17 @@ import (
 )
 
 const (
-	maxAttempts = 5000
+	maxAttempts = 1_000_000
+)
+
+var (
+	depth = 0
 )
 
 func solve(
 	s state,
 ) (model.Solution, error) {
+	depth = 0
 
 	sol, ok := solveDFS(s)
 	if !ok {
@@ -24,8 +29,11 @@ func solve(
 func solveDFS(
 	s state,
 ) (model.Solution, bool) {
+	if depth > maxAttempts {
+		return model.Solution{}, false
+	}
+	depth++
 
-	s.checkNodes()
 	sol, eop, solved, valid := s.toSolution()
 	if solved {
 		return sol, true

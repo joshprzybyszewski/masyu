@@ -153,10 +153,6 @@ func (s *state) initialize() {
 	}
 }
 
-func (s *state) checkNodes() {
-	return
-}
-
 func (s *state) horAt(r, c model.Dimension) (bool, bool) {
 	return s.horizontalLines[r]&c.Bit() != 0, s.horizontalAvoids[r]&c.Bit() != 0
 }

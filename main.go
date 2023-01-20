@@ -38,7 +38,7 @@ func main() {
 			}
 			err := compete(iter)
 			if err != nil {
-				panic(err)
+				// panic(err)
 			}
 
 			for numGCs := 0; numGCs < 3; numGCs++ {
@@ -55,7 +55,6 @@ func compete(iter model.Iterator) error {
 	if *fetchNewPuzzles {
 		input, err = fetch.Update(iter)
 	}
-	t0 := time.Now()
 
 	if err != nil {
 		return err
@@ -63,19 +62,20 @@ func compete(iter model.Iterator) error {
 
 	ns := input.ToNodes()
 
+	t0 := time.Now()
 	sol, err := solve.FromNodes(
 		iter.GetSize(),
 		ns,
 	)
+	defer func(dur time.Duration) {
+		fmt.Printf("Input: %s\n", input)
+		fmt.Printf("Solution:\n%s\n", sol.Pretty(ns))
+		fmt.Printf("Duration: %s\n\n\n", dur)
+	}(time.Since(t0))
+
 	if err != nil {
 		return err
 	}
-
-	defer func(t1 time.Time) {
-		fmt.Printf("Duration: %s\n", t1.Sub(t0))
-		fmt.Printf("Input: %s\n", input)
-		fmt.Printf("Solution:\n%s\n\n\n", sol.Pretty(ns))
-	}(time.Now())
 
 	return fetch.Submit(
 		&input,
