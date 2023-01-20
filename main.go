@@ -13,6 +13,11 @@ import (
 )
 
 var (
+	iterStart     = flag.Int("start", int(model.MinIterator), "if set, this will override the iterators starting value")
+	iterFinish    = flag.Int("finish", int(model.MaxIterator), "if set, this will override the iterators final value")
+	skipLarge     = flag.Bool("skipbig", true, "if set, this won't attempt the largest puzzles")
+	numIterations = flag.Int("numIterations", 1, "set this value to run through the puzzles many times")
+
 	fetchNewPuzzles = flag.Bool("refresh", true, "if set, then it will fetch new puzzles")
 
 	shouldProfile = flag.Bool("profile", false, "if set, will produce a profile output")
@@ -25,20 +30,22 @@ func main() {
 		defer profile.Start()()
 	}
 
-	for iter := model.Iterator(10); iter < model.Iterator(12); iter++ {
-		// for iter := model.MinIterator; iter < model.MaxIterator; iter++ {
-		if iter >= 13 && iter <= 15 {
-			// These are the massive ones
-			continue
-		}
-		err := compete(iter)
-		if err != nil {
-			panic(err)
-		}
+	for i := 0; i < *numIterations; i++ {
+		for iter := model.Iterator(*iterStart); iter <= model.Iterator(*iterFinish); iter++ {
+			if *skipLarge && iter >= 13 && iter <= 15 {
+				// These are the massive ones
+				continue
+			}
+			err := compete(iter)
+			if err != nil {
+				panic(err)
+			}
 
-		time.Sleep(100 * time.Millisecond)
-		runtime.GC()
-		time.Sleep(100 * time.Millisecond)
+			for numGCs := 0; numGCs < 3; numGCs++ {
+				time.Sleep(100 * time.Millisecond)
+				runtime.GC()
+			}
+		}
 	}
 }
 
@@ -65,9 +72,9 @@ func compete(iter model.Iterator) error {
 	}
 
 	defer func(t1 time.Time) {
-		fmt.Printf("Input: %s\n", input)
-		fmt.Printf("Solution:\n%s\n", sol.Pretty(ns))
 		fmt.Printf("Duration: %s\n", t1.Sub(t0))
+		fmt.Printf("Input: %s\n", input)
+		fmt.Printf("Solution:\n%s\n\n\n", sol.Pretty(ns))
 	}(time.Now())
 
 	return fetch.Submit(
