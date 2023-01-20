@@ -1,7 +1,6 @@
 package solve
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/joshprzybyszewski/masyu/model"
@@ -149,8 +148,6 @@ func (s *state) initialize() {
 		}
 	}
 
-	fmt.Printf("FINSIHED INITIALIZE\n")
-
 	if !s.isValid() {
 		panic(`dev error`)
 	}
@@ -171,7 +168,6 @@ func (s *state) avoidHor(r, c model.Dimension) {
 		return
 	}
 	s.horizontalAvoids[r] |= b
-	fmt.Printf("%s\n", s)
 	if s.horizontalLines[r]&b == 0 {
 		// still valid; check the rules
 		s.rules.checkHorizontal(r, c, s)
@@ -185,7 +181,6 @@ func (s *state) lineHor(r, c model.Dimension) {
 		return
 	}
 	s.horizontalLines[r] |= b
-	fmt.Printf("%s\n", s)
 	if s.horizontalAvoids[r]&b == 0 {
 		// still valid; check the rules
 		s.rules.checkHorizontal(r, c, s)
@@ -203,7 +198,6 @@ func (s *state) avoidVer(r, c model.Dimension) {
 		return
 	}
 	s.verticalAvoids[c] |= b
-	fmt.Printf("%s\n", s)
 	if s.verticalLines[c]&b == 0 {
 		// still valid; check the rules
 		s.rules.checkVertical(r, c, s)
@@ -217,7 +211,6 @@ func (s *state) lineVer(r, c model.Dimension) {
 		return
 	}
 	s.verticalLines[c] |= b
-	fmt.Printf("%s\n", s)
 	if s.verticalAvoids[c]&b == 0 {
 		// still valid; check the rules
 		s.rules.checkVertical(r, c, s)
