@@ -6,25 +6,25 @@ import (
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
-func Puzzle(
-	i model.Iterator,
+func Update(
+	iter model.Iterator,
 ) (input, error) {
-	if !i.Valid() {
+	if !iter.Valid() {
 		return input{}, fmt.Errorf("invalid iterator!")
 	}
 
 	puzz := input{
-		iter:       i,
-		size:       i.GetSize(),
-		difficulty: i.GetDifficulty(),
+		iter:       iter,
+		size:       iter.GetSize(),
+		difficulty: iter.GetDifficulty(),
 	}
 
-	url := buildURL(i)
 	header := buildHeader()
+	data := buildNewPuzzleData(iter, header)
 
-	resp, err := get(url, header)
+	resp, err := post(baseURL, header, data)
 	if err != nil {
-		return input{}, err
+		return puzz, err
 	}
 
 	populateInput(

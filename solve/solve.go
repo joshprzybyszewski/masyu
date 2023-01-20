@@ -15,8 +15,13 @@ func solve(
 
 	var pending []state
 	pending = append(pending, s)
+	attempts := 0
 
 	for len(pending) > 0 {
+		attempts++
+		if attempts > 10000 {
+			break
+		}
 		s := pending[0]
 		s.settleNodes()
 		sol, solved, valid := s.toSolution()
@@ -34,6 +39,7 @@ func solve(
 						s2 = s
 						s2.avoidHor(r, c)
 						pending = append(pending, s2)
+						goto AFTER
 					}
 
 					l, a = s.verAt(r, c)
@@ -44,9 +50,11 @@ func solve(
 						s2 = s
 						s2.avoidVer(r, c)
 						pending = append(pending, s2)
+						goto AFTER
 					}
 				}
 			}
+		AFTER:
 		}
 
 		pending = pending[1:]
