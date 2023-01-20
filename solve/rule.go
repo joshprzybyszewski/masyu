@@ -14,6 +14,8 @@ const (
 	whiteR1RuleKind
 	whiteU1RuleKind
 	whiteD1RuleKind
+	whiteAdvancedHorizontalRuleKind
+	whiteAdvancedVerticalRuleKind
 )
 
 type rule struct {
@@ -45,5 +47,9 @@ func (r *rule) check(
 		r.checkWhiteU1(s)
 	case whiteD1RuleKind:
 		r.checkWhiteD1(s)
+	case whiteAdvancedHorizontalRuleKind:
+		r.checkAdvancedHorizontalWhite(s)
+	case whiteAdvancedVerticalRuleKind:
+		r.checkAdvancedVerticalWhite(s)
 	}
 }

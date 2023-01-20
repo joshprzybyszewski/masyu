@@ -104,7 +104,30 @@ func (r *rules) addWhiteNode(
 		&down,
 	)
 
+	ah := newAdvancedHorizontalWhite(row, col)
+
+	if col > 1 {
+		r.horizontals[row][col-2] = append(r.horizontals[row][col-2],
+			&ah,
+		)
+	}
+	r.horizontals[row][col+1] = append(r.horizontals[row][col+1],
+		&ah,
+	)
+
+	av := newAdvancedVerticalWhite(row, col)
+	if row > 1 {
+		r.verticals[row-2][col] = append(r.verticals[row-2][col],
+			&av,
+		)
+	}
+	r.verticals[row+1][col] = append(r.verticals[row+1][col],
+		&av,
+	)
+
 	// TODO advanced white
-	// if both len=2 from a white node are lines,
+	// if a line next to a white node and it's next spot are lines,
+	//   then we must avoid the other side
+	// if both spots that are not adjacent but len=2 from a white node are lines,
 	//   then it cannot go that direction (since it must turn one way on at least one side).
 }
