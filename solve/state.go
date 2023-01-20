@@ -190,37 +190,45 @@ func (s *state) checkBlack(
 func (s *state) checkWhite(
 	r, c int,
 ) {
-	l1, a1 := s.horAt(r, c)
-	l2, a2 := s.horAt(r, c-1)
-	if l1 || l2 {
-		s.lineHor(r, c-1)
-		s.lineHor(r, c)
-		s.avoidVer(r-1, c)
-		s.avoidVer(r, c)
-		// TODO check past the ends of the two-length line
-		// if it continues or it's an avoid, then we can know to do more.
-		return
-	} else if a1 || a2 {
-		s.avoidHor(r, c-1)
-		s.avoidHor(r, c)
-		s.lineVer(r-1, c)
-		s.lineVer(r, c)
-		return
-	}
+	l1, a1 := s.horAt(r, c-1)
+	l2, a2 := s.horAt(r, c)
+	hl := l1 || l2
+	vl := a1 || a2
 
 	l1, a1 = s.verAt(r-1, c)
 	l2, a2 = s.verAt(r, c)
-	if l1 || l2 {
-		s.lineVer(r-1, c)
-		s.lineVer(r, c)
-		s.avoidHor(r, c-1)
-		s.avoidHor(r, c)
-		return
-	} else if a1 || a2 {
-		s.avoidVer(r-1, c)
-		s.avoidVer(r, c)
+	hl = hl || a1 || a2
+	vl = vl || l1 || l2
+
+	if hl {
 		s.lineHor(r, c-1)
 		s.lineHor(r, c)
+		s.avoidVer(r-1, c)
+		s.avoidVer(r, c)
+		l1, a1 = s.horAt(r, c-2)
+		if l1 {
+			s.avoidHor(r, c+1)
+		} else if !a1 {
+			l2, _ = s.horAt(r, c+1)
+			if l2 {
+				s.avoidHor(r, c-2)
+			}
+		}
+		return
+	} else if vl {
+		s.avoidHor(r, c-1)
+		s.avoidHor(r, c)
+		s.lineVer(r-1, c)
+		s.lineVer(r, c)
+		l1, a1 = s.verAt(r-2, c)
+		if l1 {
+			s.avoidVer(r+1, c)
+		} else if !a1 {
+			l2, _ = s.verAt(r+1, c)
+			if l2 {
+				s.avoidVer(r-2, c)
+			}
+		}
 		return
 	}
 }
