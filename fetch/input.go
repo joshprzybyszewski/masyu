@@ -1,6 +1,10 @@
 package fetch
 
-import "github.com/joshprzybyszewski/masyu/model"
+import (
+	"fmt"
+
+	"github.com/joshprzybyszewski/masyu/model"
+)
 
 type input struct {
 	id    string
@@ -8,6 +12,10 @@ type input struct {
 	task  string
 
 	iter model.Iterator
+}
+
+func (i input) String() string {
+	return fmt.Sprintf("Puzzle %s (Size: %d, Difficulty: %s)", i.id, i.iter.GetSize(), i.iter.GetDifficulty())
 }
 
 func (i input) ToNodes() []model.Node {

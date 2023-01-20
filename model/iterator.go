@@ -51,5 +51,5 @@ func (i Iterator) GetDifficulty() Difficulty {
 		return easy
 	}
 
-	return Difficulty((i - 1) % 3)
+	return Difficulty((i-1)%3) + 1
 }
