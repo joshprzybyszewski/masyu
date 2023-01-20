@@ -11,3 +11,32 @@ type input struct {
 	size       model.Size
 	difficulty model.Difficulty
 }
+
+func (i input) ToNodes() []model.Node {
+	var r, c int
+	max := int(i.size)
+	output := make([]model.Node, 0, len(i.task)/2)
+
+	for _, b := range i.task {
+		if b == 'B' || b == 'W' {
+			output = append(output, model.Node{
+				Coord: model.Coord{
+					Row: r,
+					Col: c,
+				},
+				IsBlack: b == 'B',
+			})
+		} else {
+			c += int(b - 'a')
+		}
+
+		c++
+
+		if c >= max {
+			r += (c / max)
+			c %= max
+		}
+	}
+
+	return output
+}

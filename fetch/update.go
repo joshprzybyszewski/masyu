@@ -2,6 +2,11 @@ package fetch
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/joshprzybyszewski/masyu/model"
 )
@@ -33,4 +38,22 @@ func Update(
 	)
 
 	return puzz, nil
+}
+
+func buildNewPuzzleData(
+	iter model.Iterator,
+	header http.Header,
+) io.Reader {
+
+	formData := url.Values{}
+	formData.Add(`size`, strconv.Itoa(int(iter)))
+	formData.Add(`robot`, `1`)
+	formData.Add(`new`, `	New Puzzle   `)
+
+	encodedVals := formData.Encode()
+
+	header.Add("Content-Type", "application/x-www-form-urlencoded")
+	header.Add("Content-Length", strconv.Itoa(len(encodedVals)))
+
+	return strings.NewReader(encodedVals)
 }
