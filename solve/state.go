@@ -44,8 +44,9 @@ func (s *state) toSolution() (*Solution, bool) {
 		return nil, false
 	}
 
-	// TODO check that it's a single continuous path.
-	// return nil, false
+	if !s.isValidPath() {
+		return nil, true
+	}
 
 	sol := Solution{
 		size: s.size,
@@ -57,6 +58,45 @@ func (s *state) toSolution() (*Solution, bool) {
 	}
 
 	return &sol, true
+}
+
+func (s *state) isValidPath() bool {
+	var horizontalLines [model.MaxPointsPerLine]uint64
+	var verticalLines [model.MaxPointsPerLine]uint64
+
+	start := s.nodes[0].Coord
+	cur := start
+	prev := cur
+	var l bool
+	for {
+		if l, _ = s.horAt(cur.Row, cur.Col); l && prev.Col != cur.Col+1 {
+			prev = cur
+			horizontalLines[cur.Row] |= (1 << cur.Col)
+			cur.Col++
+		} else if l, _ = s.horAt(cur.Row, cur.Col-1); l && prev.Col != cur.Col-1 {
+			prev = cur
+			horizontalLines[cur.Row] |= (1 << (cur.Col - 1))
+			cur.Col--
+		} else if l, _ = s.verAt(cur.Row, cur.Col); l && prev.Row != cur.Row+1 {
+			prev = cur
+			verticalLines[cur.Col] |= (1 << cur.Row)
+			cur.Row++
+		} else if l, _ = s.verAt(cur.Row-1, cur.Col); l && prev.Row != cur.Row-1 {
+			prev = cur
+			verticalLines[cur.Col] |= (1 << (cur.Row - 1))
+			cur.Row--
+		} else {
+			return false
+		}
+		if cur == start {
+			break
+		}
+	}
+	if cur == prev || cur != start {
+		return false
+	}
+
+	return horizontalLines == s.horizontalLines && verticalLines == s.verticalLines
 }
 
 func (s *state) isValid() bool {
@@ -214,7 +254,6 @@ func (s *state) checkWhite(
 				s.avoidHor(r, c-2)
 			}
 		}
-		return
 	} else if vl {
 		s.avoidHor(r, c-1)
 		s.avoidHor(r, c)
@@ -229,7 +268,6 @@ func (s *state) checkWhite(
 				s.avoidVer(r-2, c)
 			}
 		}
-		return
 	}
 }
 

@@ -1,7 +1,6 @@
 package model
 
 type Node struct {
-	Row     int
-	Col     int
+	Coord
 	IsBlack bool
 }
