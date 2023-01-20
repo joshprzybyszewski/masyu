@@ -20,6 +20,10 @@ const (
 	blackD2RuleKind
 	whiteAdvancedHorizontalRuleKind
 	whiteAdvancedVerticalRuleKind
+	blackLBranchRuleKind
+	blackRBranchRuleKind
+	blackUBranchRuleKind
+	blackDBranchRuleKind
 	whiteInvertHorizontalRuleKind
 	whiteInvertVerticalRuleKind
 )
@@ -65,6 +69,14 @@ func (r *rule) check(
 		r.checkAdvancedHorizontalWhite(s)
 	case whiteAdvancedVerticalRuleKind:
 		r.checkAdvancedVerticalWhite(s)
+	case blackLBranchRuleKind:
+		r.checkBlackLBranch(s)
+	case blackRBranchRuleKind:
+		r.checkBlackRBranch(s)
+	case blackUBranchRuleKind:
+		r.checkBlackUBranch(s)
+	case blackDBranchRuleKind:
+		r.checkBlackDBranch(s)
 	case whiteInvertHorizontalRuleKind:
 		r.checkInvertHorizontalWhite(s)
 	case whiteInvertVerticalRuleKind:

@@ -82,6 +82,7 @@ func (r *rules) addBlackNode(
 		&down,
 	)
 
+	// Look at extended "avoids"
 	if col > 1 {
 		left2 := newBlackL2Rule(row, col)
 		r.horizontals[row][col-2] = append(r.horizontals[row][col-2],
@@ -103,7 +104,35 @@ func (r *rules) addBlackNode(
 		&down2,
 	)
 
-	// TODO add advanced rules
+	// Look at branches off the adjacencies.
+	leftBranch := newBlackLBranchRule(row, col)
+	r.verticals[row-1][col-1] = append(r.verticals[row-1][col-1],
+		&leftBranch,
+	)
+	r.verticals[row][col-1] = append(r.verticals[row][col-1],
+		&leftBranch,
+	)
+	rightBranch := newBlackRBranchRule(row, col)
+	r.verticals[row-1][col+1] = append(r.verticals[row-1][col+1],
+		&rightBranch,
+	)
+	r.verticals[row][col+1] = append(r.verticals[row][col+1],
+		&rightBranch,
+	)
+	upBranch := newBlackUBranchRule(row, col)
+	r.horizontals[row-1][col] = append(r.horizontals[row-1][col],
+		&upBranch,
+	)
+	r.horizontals[row-1][col-1] = append(r.horizontals[row-1][col-1],
+		&upBranch,
+	)
+	downBranch := newBlackDBranchRule(row, col)
+	r.horizontals[row+1][col] = append(r.horizontals[row+1][col],
+		&downBranch,
+	)
+	r.horizontals[row+1][col-1] = append(r.horizontals[row+1][col-1],
+		&downBranch,
+	)
 }
 
 func (r *rules) addWhiteNode(

@@ -2,10 +2,6 @@ package solve
 
 import "github.com/joshprzybyszewski/masyu/model"
 
-// TODO add advanced black node rules:
-// if there is a line branching off the adjacent path,
-//   then the adjacent path is avoided.
-
 func newBlackL1Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {

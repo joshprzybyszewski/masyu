@@ -224,6 +224,13 @@ func (s *state) lineVer(r, c model.Dimension) {
 	}
 }
 
+const (
+	confusedSpace       byte = '@'
+	horizontalLineSpace byte = '-'
+	verticalLineSpace   byte = '|'
+	avoidSpace          byte = 'X'
+)
+
 func (s *state) String() string {
 	var sb strings.Builder
 
@@ -235,11 +242,11 @@ func (s *state) String() string {
 			sb.WriteByte(' ')
 			isLine, isAvoid = s.horAt(model.Dimension(r), model.Dimension(c))
 			if isLine && isAvoid {
-				sb.WriteByte('@')
+				sb.WriteByte(confusedSpace)
 			} else if isLine {
-				sb.WriteByte('-')
+				sb.WriteByte(horizontalLineSpace)
 			} else if isAvoid {
-				sb.WriteByte('X')
+				sb.WriteByte(avoidSpace)
 			} else {
 				sb.WriteByte(' ')
 			}
@@ -250,11 +257,11 @@ func (s *state) String() string {
 		for c := 0; c <= int(s.size+1); c++ {
 			isLine, isAvoid = s.verAt(model.Dimension(r), model.Dimension(c))
 			if isLine && isAvoid {
-				sb.WriteByte('@')
+				sb.WriteByte(confusedSpace)
 			} else if isLine {
-				sb.WriteByte('|')
+				sb.WriteByte(verticalLineSpace)
 			} else if isAvoid {
-				sb.WriteByte('X')
+				sb.WriteByte(avoidSpace)
 			} else {
 				sb.WriteByte(' ')
 			}
