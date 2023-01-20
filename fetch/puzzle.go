@@ -22,9 +22,7 @@ func Puzzle(
 	}
 
 	puzz := input{
-		iter:       i,
-		size:       i.GetSize(),
-		difficulty: i.GetDifficulty(),
+		iter: i,
 	}
 
 	url := buildURL(i)

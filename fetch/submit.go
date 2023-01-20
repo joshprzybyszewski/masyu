@@ -37,7 +37,7 @@ func Submit(
 		return err
 	}
 
-	return nil
+	return store(input, sol)
 }
 
 func buildSubmissionData(

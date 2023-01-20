@@ -19,9 +19,7 @@ func Update(
 	}
 
 	puzz := input{
-		iter:       iter,
-		size:       iter.GetSize(),
-		difficulty: iter.GetDifficulty(),
+		iter: iter,
 	}
 
 	header := buildHeader()

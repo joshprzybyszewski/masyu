@@ -7,14 +7,12 @@ type input struct {
 	param string
 	task  string
 
-	iter       model.Iterator
-	size       model.Size
-	difficulty model.Difficulty
+	iter model.Iterator
 }
 
 func (i input) ToNodes() []model.Node {
 	var r, c model.Dimension
-	max := model.Dimension(i.size)
+	max := model.Dimension(i.iter.GetSize())
 	output := make([]model.Node, 0, len(i.task)/2)
 
 	for _, b := range i.task {
