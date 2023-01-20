@@ -12,11 +12,11 @@ type Solution struct {
 func (s *Solution) String() string {
 	var sb strings.Builder
 
-	for r := 0; r < int(s.Size); r++ {
-		for c := 0; c < int(s.Size); c++ {
+	for r := Dimension(0); r < Dimension(s.Size); r++ {
+		for c := Dimension(0); c < Dimension(s.Size); c++ {
 			sb.WriteByte('*')
 			sb.WriteByte(' ')
-			if s.Horizontals[r]&(1<<c) != 0 {
+			if s.Horizontals[r]&c.Bit() != 0 {
 				sb.WriteByte('-')
 			} else {
 				sb.WriteByte(' ')
@@ -25,8 +25,8 @@ func (s *Solution) String() string {
 		}
 		sb.WriteByte('\n')
 
-		for c := 0; c < int(s.Size); c++ {
-			if s.Verticals[c]&(1<<r) != 0 {
+		for c := Dimension(0); c < Dimension(s.Size); c++ {
+			if s.Verticals[c]&r.Bit() != 0 {
 				sb.WriteByte('|')
 			} else {
 				sb.WriteByte(' ')
@@ -39,6 +39,57 @@ func (s *Solution) String() string {
 	}
 
 	return sb.String()
+}
+
+func (s *Solution) Pretty(
+	nodes []Node,
+) string {
+	var sb strings.Builder
+
+	for r := Dimension(0); r < Dimension(s.Size); r++ {
+		for c := Dimension(0); c < Dimension(s.Size); c++ {
+			sb.WriteByte(getNodeChar(nodes, r, c, s.Size))
+			sb.WriteByte(' ')
+			if s.Horizontals[r]&c.Bit() != 0 {
+				sb.WriteByte('-')
+			} else {
+				sb.WriteByte(' ')
+			}
+			sb.WriteByte(' ')
+		}
+		sb.WriteByte('\n')
+
+		for c := Dimension(0); c < Dimension(s.Size); c++ {
+			if s.Verticals[c]&r.Bit() != 0 {
+				sb.WriteByte('|')
+			} else {
+				sb.WriteByte(' ')
+			}
+			sb.WriteByte(' ')
+			sb.WriteByte(' ')
+			sb.WriteByte(' ')
+		}
+		sb.WriteByte('\n')
+	}
+
+	return sb.String()
+}
+
+func getNodeChar(
+	nodes []Node,
+	r, c Dimension,
+	size Size,
+) byte {
+	for _, n := range nodes {
+		if n.Row != r || n.Col != c {
+			continue
+		}
+		if n.IsBlack {
+			return 'B'
+		}
+		return 'W'
+	}
+	return '*'
 }
 
 func (s *Solution) ToAnswer() string {

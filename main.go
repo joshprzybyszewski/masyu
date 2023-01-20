@@ -55,7 +55,7 @@ func compete(iter model.Iterator) error {
 
 	defer func(t1 time.Time) {
 		fmt.Printf("Input: %s\n", input)
-		fmt.Printf("Solution:\n%s\n", &sol)
+		fmt.Printf("Solution:\n%s\n", sol.Pretty(ns))
 		fmt.Printf("Duration: %s\n", t1.Sub(t0))
 	}(time.Now())
 
