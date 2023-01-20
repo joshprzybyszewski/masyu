@@ -13,8 +13,8 @@ type input struct {
 }
 
 func (i input) ToNodes() []model.Node {
-	var r, c int
-	max := int(i.size)
+	var r, c model.Dimension
+	max := model.Dimension(i.size)
 	output := make([]model.Node, 0, len(i.task)/2)
 
 	for _, b := range i.task {
@@ -27,7 +27,7 @@ func (i input) ToNodes() []model.Node {
 				IsBlack: b == 'B',
 			})
 		} else {
-			c += int(b - 'a')
+			c += model.Dimension(b - 'a')
 		}
 
 		c++

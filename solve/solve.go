@@ -25,7 +25,7 @@ func solveDFS(
 	s state,
 ) (model.Solution, bool) {
 
-	s.settleNodes()
+	s.checkNodes()
 	sol, eop, solved, valid := s.toSolution()
 	if solved {
 		return sol, true
