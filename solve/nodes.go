@@ -6,5 +6,8 @@ func FromNodes(
 	size model.Size,
 	ns []model.Node,
 ) Solution {
-	return Solution{}
+
+	return solve(
+		newState(size, ns),
+	)
 }

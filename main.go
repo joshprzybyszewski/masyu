@@ -4,10 +4,13 @@ import (
 	"fmt"
 
 	"github.com/joshprzybyszewski/masyu/fetch"
+	"github.com/joshprzybyszewski/masyu/model"
+	"github.com/joshprzybyszewski/masyu/solve"
 )
 
 func main() {
-	input, err := fetch.Puzzle(0)
+	iter := model.Iterator(0)
+	input, err := fetch.Puzzle(iter)
 
 	if err != nil {
 		panic(err)
@@ -17,4 +20,10 @@ func main() {
 
 	ns := input.ToNodes()
 	fmt.Printf("input.Convert(): %+v\n", ns)
+
+	sol := solve.FromNodes(
+		iter.GetSize(),
+		ns,
+	)
+	fmt.Printf("sol: %+v\n", sol)
 }
