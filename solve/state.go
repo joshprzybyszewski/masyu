@@ -39,6 +39,22 @@ func newState(
 	return s
 }
 
+func (s *state) toSolution() (*Solution, bool) {
+	if !s.isValid() {
+		return nil, false
+	}
+
+	// TODO check that it's a single continuous path.
+	return nil, false
+
+	// return &Solution{
+	// 	size: s.size,
+
+	// 	// hor: s.horizontalLines << 1,
+	// 	// ver s.verticalLines << 1,
+	// }, true
+}
+
 func (s *state) isValid() bool {
 	for i := 0; i <= int(s.size); i++ {
 		if s.horizontalAvoids[i]&s.horizontalLines[i] != 0 {
@@ -48,6 +64,8 @@ func (s *state) isValid() bool {
 			return false
 		}
 	}
+
+	// TODO check that it's a single continuous path.
 
 	return true
 }
@@ -86,7 +104,6 @@ func (s *state) settleNodes() {
 
 		s.checkNodes()
 		s.checkPins()
-		fmt.Printf("state %d:\n%s\n\n", i, s)
 
 		if prevhorizontalLines == s.horizontalLines &&
 			prevhorizontalAvoids == s.horizontalAvoids &&
@@ -176,6 +193,8 @@ func (s *state) checkWhite(
 		s.lineHor(r, c-1)
 		s.avoidVer(r-1, c)
 		s.avoidVer(r, c)
+		// TODO check past the ends of the two-length line
+		// if it continues or it's an avoid, then we can know to do more.
 		return
 	} else if a {
 		s.lineVer(r, c)
