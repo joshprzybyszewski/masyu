@@ -1,7 +1,6 @@
 package solve
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/joshprzybyszewski/masyu/model"
@@ -122,15 +121,11 @@ func (s *state) initialize() {
 	s.verticalAvoids[0] = 0xFFFFFFFFFFFFFFFF
 	s.horizontalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
 	s.verticalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
-	fmt.Printf("state BEFORE settle:\n%s\n", s)
 
 	s.settleNodes()
 	if !s.isValid() {
-		fmt.Printf("error state:\n%s\n\n", s)
 		panic(`dev error`)
 	}
-
-	fmt.Printf("state AFTER settle:\n%s\n", s)
 }
 
 func (s *state) settleNodes() {

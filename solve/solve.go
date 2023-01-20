@@ -18,7 +18,6 @@ func solve(
 
 	for len(pending) > 0 {
 		s := pending[0]
-		fmt.Printf("processing:\n%s\n", &s)
 		s.settleNodes()
 		sol, solved, valid := s.toSolution()
 		if solved {
