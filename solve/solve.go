@@ -1,10 +1,14 @@
 package solve
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/joshprzybyszewski/masyu/model"
+)
 
 func solve(
 	s state,
-) Solution {
+) (model.Solution, error) {
 
 	var l, a bool
 	var s2 state
@@ -16,10 +20,9 @@ func solve(
 		s := pending[0]
 		fmt.Printf("processing:\n%s\n", &s)
 		s.settleNodes()
-		solved, valid := s.toSolution()
-		if solved != nil {
-			fmt.Printf("found solution:\n%s\n", &s)
-			return *solved
+		sol, solved, valid := s.toSolution()
+		if solved {
+			return sol, nil
 		} else if valid {
 			for r := 1; r <= int(s.size); r++ {
 				for c := 1; c <= int(s.size); c++ {
@@ -50,11 +53,5 @@ func solve(
 		pending = pending[1:]
 	}
 
-	fmt.Printf("did not find solution:\n%s\n", &s)
-	return Solution{
-		size: s.size,
-
-		// hor: s.horizontalLines << 1,
-		// ver s.verticalLines << 1,
-	}
+	return model.Solution{}, fmt.Errorf("did not find solution")
 }

@@ -7,6 +7,7 @@ type input struct {
 	param string
 	task  string
 
+	iter       model.Iterator
 	size       model.Size
 	difficulty model.Difficulty
 }

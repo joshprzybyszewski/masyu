@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	baseURL = `https://www.puzzle-masyu.com/`
+	baseURL       = `https://www.puzzle-masyu.com/`
+	hallOfFameURL = baseURL + `hallsubmit.php`
 )
 
 var (

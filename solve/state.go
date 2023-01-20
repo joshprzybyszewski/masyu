@@ -39,25 +39,25 @@ func newState(
 	return s
 }
 
-func (s *state) toSolution() (*Solution, bool) {
+func (s *state) toSolution() (model.Solution, bool, bool) {
 	if !s.isValid() {
-		return nil, false
+		return model.Solution{}, false, false
 	}
 
 	if !s.isValidPath() {
-		return nil, true
+		return model.Solution{}, false, true
 	}
 
-	sol := Solution{
-		size: s.size,
+	sol := model.Solution{
+		Size: s.size,
 	}
 
 	for i := 0; i < int(s.size); i++ {
-		sol.hor[i] = (s.horizontalLines[i+1]) >> 1
-		sol.ver[i] = (s.verticalLines[i+1]) >> 1
+		sol.Horizontals[i] = (s.horizontalLines[i+1]) >> 1
+		sol.Verticals[i] = (s.verticalLines[i+1]) >> 1
 	}
 
-	return &sol, true
+	return sol, true, true
 }
 
 func (s *state) isValidPath() bool {

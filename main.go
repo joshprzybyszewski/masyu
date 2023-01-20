@@ -1,29 +1,37 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/joshprzybyszewski/masyu/fetch"
 	"github.com/joshprzybyszewski/masyu/model"
 	"github.com/joshprzybyszewski/masyu/solve"
 )
 
 func main() {
-	iter := model.Iterator(0)
+	for iter := model.MinIterator; iter <= model.MaxIterator; iter++ {
+		compete(iter)
+		break
+	}
+}
+
+func compete(iter model.Iterator) error {
 	input, err := fetch.Puzzle(iter)
 
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	fmt.Printf("input: %+v\n", input)
-
 	ns := input.ToNodes()
-	fmt.Printf("input.Convert(): %+v\n", ns)
 
-	sol := solve.FromNodes(
+	sol, err := solve.FromNodes(
 		iter.GetSize(),
 		ns,
 	)
-	fmt.Printf("Solution:\n%s\n", &sol)
+	if err != nil {
+		return err
+	}
+
+	return fetch.Submit(
+		&input,
+		&sol,
+	)
 }

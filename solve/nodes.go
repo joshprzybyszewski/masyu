@@ -5,7 +5,7 @@ import "github.com/joshprzybyszewski/masyu/model"
 func FromNodes(
 	size model.Size,
 	ns []model.Node,
-) Solution {
+) (model.Solution, error) {
 
 	return solve(
 		newState(size, ns),

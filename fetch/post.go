@@ -9,7 +9,8 @@ func post(
 	url string,
 	header http.Header,
 	data io.Reader,
-) ([]byte, http.Header, error) {
+) ([]byte, error) {
 
-	return doRequest(`POST`, url, header, data)
+	b, _, err := doRequest(`POST`, url, header, data)
+	return b, err
 }
