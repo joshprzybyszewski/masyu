@@ -20,7 +20,11 @@ func store(
 		return nil
 	}
 
-	f, err := os.Create(getInputFilname(input.iter))
+	f, err := os.OpenFile(
+		getInputFilname(input.iter),
+		os.O_APPEND|os.O_WRONLY|os.O_CREATE,
+		0666,
+	)
 	if err != nil {
 		return err
 	}

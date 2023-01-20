@@ -1,21 +1,32 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"runtime"
 	"time"
 
 	"github.com/joshprzybyszewski/masyu/fetch"
 	"github.com/joshprzybyszewski/masyu/model"
+	"github.com/joshprzybyszewski/masyu/profile"
 	"github.com/joshprzybyszewski/masyu/solve"
 )
 
 var (
-	useKnown = false
+	fetchNewPuzzles = flag.Bool("refresh", true, "if set, then it will fetch new puzzles")
+
+	shouldProfile = flag.Bool("profile", false, "if set, will produce a profile output")
 )
 
 func main() {
-	for iter := model.MinIterator; iter < model.MaxIterator; iter++ {
+	flag.Parse()
+
+	if *shouldProfile {
+		defer profile.Start()()
+	}
+
+	for iter := model.Iterator(10); iter < model.Iterator(12); iter++ {
+		// for iter := model.MinIterator; iter < model.MaxIterator; iter++ {
 		if iter >= 13 && iter <= 15 {
 			// These are the massive ones
 			continue
@@ -34,7 +45,7 @@ func main() {
 func compete(iter model.Iterator) error {
 
 	input, err := fetch.Puzzle(iter)
-	if !useKnown {
+	if *fetchNewPuzzles {
 		input, err = fetch.Update(iter)
 	}
 	t0 := time.Now()

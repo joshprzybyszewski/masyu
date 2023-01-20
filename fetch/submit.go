@@ -17,6 +17,9 @@ func Submit(
 	input *input,
 	sol *model.Solution,
 ) error {
+	if input == nil || input.param == `` {
+		return nil
+	}
 
 	header := buildHeader()
 	data := buildSubmissionData(input, sol, header)
