@@ -3,8 +3,6 @@ package solve
 import "github.com/joshprzybyszewski/masyu/model"
 
 // TODO add advanced black node rules:
-// if the non-adjacent path that is avoided,
-//   then the adjacent path is avoided.
 // if there is a line branching off the adjacent path,
 //   then the adjacent path is avoided.
 

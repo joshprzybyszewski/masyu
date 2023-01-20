@@ -81,6 +81,28 @@ func (r *rules) addBlackNode(
 	r.verticals[row][col] = append(r.verticals[row][col],
 		&down,
 	)
+
+	if col > 1 {
+		left2 := newBlackL2Rule(row, col)
+		r.horizontals[row][col-2] = append(r.horizontals[row][col-2],
+			&left2,
+		)
+	}
+	right2 := newBlackR2Rule(row, col)
+	r.horizontals[row][col+1] = append(r.horizontals[row][col+1],
+		&right2,
+	)
+	if row > 1 {
+		up2 := newBlackU2Rule(row, col)
+		r.verticals[row-2][col] = append(r.verticals[row-2][col],
+			&up2,
+		)
+	}
+	down2 := newBlackD2Rule(row, col)
+	r.verticals[row+1][col] = append(r.verticals[row+1][col],
+		&down2,
+	)
+
 	// TODO add advanced rules
 }
 

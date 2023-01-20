@@ -14,6 +14,10 @@ const (
 	whiteR1RuleKind
 	whiteU1RuleKind
 	whiteD1RuleKind
+	blackL2RuleKind
+	blackR2RuleKind
+	blackU2RuleKind
+	blackD2RuleKind
 	whiteAdvancedHorizontalRuleKind
 	whiteAdvancedVerticalRuleKind
 	whiteInvertHorizontalRuleKind
@@ -49,6 +53,14 @@ func (r *rule) check(
 		r.checkWhiteU1(s)
 	case whiteD1RuleKind:
 		r.checkWhiteD1(s)
+	case blackL2RuleKind:
+		r.checkBlackL2(s)
+	case blackR2RuleKind:
+		r.checkBlackR2(s)
+	case blackU2RuleKind:
+		r.checkBlackU2(s)
+	case blackD2RuleKind:
+		r.checkBlackD2(s)
 	case whiteAdvancedHorizontalRuleKind:
 		r.checkAdvancedHorizontalWhite(s)
 	case whiteAdvancedVerticalRuleKind:
