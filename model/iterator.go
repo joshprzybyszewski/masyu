@@ -26,17 +26,17 @@ func (i Iterator) GetSize() Size {
 	if i <= 12 {
 		return twenty
 	}
-	if i <= 15 {
-		return twentyfive
-	}
-	if i == 16 {
+	if i == 13 {
 		return daily
 	}
-	if i == 17 {
+	if i == 14 {
 		return weekly
 	}
-	if i == 18 {
+	if i == 15 {
 		return monthly
+	}
+	if i <= 18 {
+		return twentyfive
 	}
 
 	return invalidSize
@@ -47,8 +47,11 @@ func (i Iterator) GetDifficulty() Difficulty {
 		return invalidDifficulty
 	}
 
-	if i == 0 || i >= 16 {
+	if i == 0 || (i >= 13 && i <= 15) {
 		return easy
+	}
+	if i > 15 {
+		return Difficulty(i - 15)
 	}
 
 	return Difficulty((i-1)%3) + 1

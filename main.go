@@ -11,11 +11,15 @@ import (
 )
 
 var (
-	useKnown = true
+	useKnown = false
 )
 
 func main() {
 	for iter := model.MinIterator; iter < model.MaxIterator; iter++ {
+		if iter >= 13 && iter <= 15 {
+			// These are the massive ones
+			continue
+		}
 		err := compete(iter)
 		if err != nil {
 			panic(err)
