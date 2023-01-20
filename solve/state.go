@@ -38,13 +38,18 @@ func newState(
 	return s
 }
 
-func (s *state) toSolution() (model.Solution, bool, bool) {
+func (s *state) toSolution() (model.Solution, model.Coord, bool, bool) {
 	if !s.isValid() {
-		return model.Solution{}, false, false
+		return model.Solution{}, model.Coord{}, false, false
 	}
 
-	if !s.isValidPath() {
-		return model.Solution{}, false, true
+	eop, isValid, complete := s.isValidPath()
+	if !isValid {
+		return model.Solution{}, model.Coord{}, false, false
+	}
+
+	if !complete {
+		return model.Solution{}, eop, false, true
 	}
 
 	sol := model.Solution{
@@ -56,10 +61,10 @@ func (s *state) toSolution() (model.Solution, bool, bool) {
 		sol.Verticals[i] = (s.verticalLines[i+1]) >> 1
 	}
 
-	return sol, true, true
+	return sol, model.Coord{}, true, true
 }
 
-func (s *state) isValidPath() bool {
+func (s *state) isValidPath() (model.Coord, bool, bool) {
 	var horizontalLines [model.MaxPointsPerLine]uint64
 	var verticalLines [model.MaxPointsPerLine]uint64
 
@@ -85,17 +90,21 @@ func (s *state) isValidPath() bool {
 			verticalLines[cur.Col] |= (1 << (cur.Row - 1))
 			cur.Row--
 		} else {
-			return false
+			return cur, true, false
 		}
 		if cur == start {
 			break
 		}
 	}
 	if cur == prev || cur != start {
-		return false
+		return cur, true, false
 	}
 
-	return horizontalLines == s.horizontalLines && verticalLines == s.verticalLines
+	if horizontalLines != s.horizontalLines || verticalLines != s.verticalLines {
+		return model.Coord{}, false, false
+	}
+
+	return model.Coord{}, true, true
 }
 
 func (s *state) isValid() bool {

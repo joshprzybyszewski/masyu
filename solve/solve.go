@@ -7,59 +7,83 @@ import (
 )
 
 const (
-	maxAttempts = 100000
+	maxAttempts = 5000
 )
 
 func solve(
 	s state,
 ) (model.Solution, error) {
 
-	var l, a bool
-	var s2 state
+	sol, ok := solveDFS(s)
+	if !ok {
+		return model.Solution{}, fmt.Errorf("did not find solution")
+	}
+	return sol, nil
+}
 
-	var pending []state
-	pending = append(pending, s)
-	attempts := 0
+func solveDFS(
+	s state,
+) (model.Solution, bool) {
 
-	for len(pending) > 0 && attempts < maxAttempts {
-		attempts++
-		s := pending[0]
-		s.settleNodes()
-		sol, solved, valid := s.toSolution()
-		if solved {
-			return sol, nil
-		} else if valid {
-			for r := 1; r <= int(s.size); r++ {
-				for c := 1; c <= int(s.size); c++ {
-					l, a = s.horAt(r, c)
-					if !l && !a {
-						s2 = s
-						s2.lineHor(r, c)
-						pending = append(pending, s2)
-
-						s2 = s
-						s2.avoidHor(r, c)
-						pending = append(pending, s2)
-						goto AFTER
-					}
-
-					l, a = s.verAt(r, c)
-					if !l && !a {
-						s2 = s
-						s2.lineVer(r, c)
-						pending = append(pending, s2)
-						s2 = s
-						s2.avoidVer(r, c)
-						pending = append(pending, s2)
-						goto AFTER
-					}
-				}
-			}
-		AFTER:
-		}
-
-		pending = pending[1:]
+	s.settleNodes()
+	sol, eop, solved, valid := s.toSolution()
+	if solved {
+		return sol, true
+	}
+	if !valid {
+		return model.Solution{}, false
 	}
 
-	return model.Solution{}, fmt.Errorf("did not find solution in %d attempts", attempts)
+	l, a := s.horAt(eop.Row, eop.Col)
+	if !l && !a {
+		s2 := s
+		s2.lineHor(eop.Row, eop.Col)
+		sol, ok := solveDFS(s2)
+		if ok {
+			return sol, true
+		}
+
+		s.avoidHor(eop.Row, eop.Col)
+		return solveDFS(s)
+	}
+
+	l, a = s.verAt(eop.Row, eop.Col)
+	if !l && !a {
+		s2 := s
+		s2.lineVer(eop.Row, eop.Col)
+		sol, ok := solveDFS(s2)
+		if ok {
+			return sol, true
+		}
+
+		s.avoidVer(eop.Row, eop.Col)
+		return solveDFS(s)
+	}
+
+	l, a = s.horAt(eop.Row, eop.Col-1)
+	if !l && !a {
+		s2 := s
+		s2.lineHor(eop.Row, eop.Col-1)
+		sol, ok := solveDFS(s2)
+		if ok {
+			return sol, true
+		}
+		s.avoidHor(eop.Row, eop.Col-1)
+		return solveDFS(s)
+	}
+
+	l, a = s.verAt(eop.Row-1, eop.Col)
+	if !l && !a {
+		s2 := s
+		s2.lineVer(eop.Row-1, eop.Col)
+		sol, ok := solveDFS(s2)
+		if ok {
+			return sol, true
+		}
+
+		s.avoidVer(eop.Row-1, eop.Col)
+		return solveDFS(s)
+	}
+
+	return model.Solution{}, false
 }
