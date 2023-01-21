@@ -105,21 +105,20 @@ func (s *state) checkPath() (bool, bool) {
 	start := s.nodes[0].Coord
 	cur := start
 	prev := cur
-	var l bool
 	for {
-		if l, _ = s.horAt(cur.Row, cur.Col); l && prev.Col != cur.Col+1 {
+		if prev.Col != cur.Col+1 && s.horizontalLines[cur.Row]&(cur.Col).Bit() != 0 {
 			prev = cur
 			horizontalLines[cur.Row] |= (1 << cur.Col)
 			cur.Col++
-		} else if l, _ = s.horAt(cur.Row, cur.Col-1); l && prev.Col != cur.Col-1 {
+		} else if prev.Col != cur.Col-1 && s.horizontalLines[cur.Row]&(cur.Col-1).Bit() != 0 {
 			prev = cur
 			horizontalLines[cur.Row] |= (1 << (cur.Col - 1))
 			cur.Col--
-		} else if l, _ = s.verAt(cur.Row, cur.Col); l && prev.Row != cur.Row+1 {
+		} else if prev.Row != cur.Row+1 && s.verticalLines[cur.Col]&(cur.Row).Bit() != 0 {
 			prev = cur
 			verticalLines[cur.Col] |= (1 << cur.Row)
 			cur.Row++
-		} else if l, _ = s.verAt(cur.Row-1, cur.Col); l && prev.Row != cur.Row-1 {
+		} else if prev.Row != cur.Row-1 && s.verticalLines[cur.Col]&(cur.Row-1).Bit() != 0 {
 			prev = cur
 			verticalLines[cur.Col] |= (1 << (cur.Row - 1))
 			cur.Row--
