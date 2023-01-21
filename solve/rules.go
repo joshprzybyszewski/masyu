@@ -6,7 +6,7 @@ import (
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
-type pendingPath struct {
+type path struct {
 	model.Coord
 	IsHorizontal bool
 }
@@ -17,14 +17,18 @@ type rules struct {
 	horizontals [model.MaxPointsPerLine][model.MaxPointsPerLine][]*rule
 	verticals   [model.MaxPointsPerLine][model.MaxPointsPerLine][]*rule
 
-	pendingPath []pendingPath
+	// unknowns describes the paths that aren't initialized known.
+	// They should exist in a sorted manner, where the first one has the most
+	// rules associated with it, and so on. This can be used to find "the most
+	// interesting space to investigate next."
+	unknowns []path
 }
 
 func newRules(
 	size model.Size,
 ) *rules {
 	r := rules{
-		pendingPath: make([]pendingPath, 0, 2*int(size)*int(size-1)),
+		unknowns: make([]path, 0, 2*int(size)*int(size-1)),
 	}
 
 	r.addDefault(size)
@@ -65,7 +69,7 @@ func (r *rules) initializePending(
 		for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
 
 			if l, a = s.horAt(row, col); !l && !a {
-				r.pendingPath = append(r.pendingPath, pendingPath{
+				r.unknowns = append(r.unknowns, path{
 					Coord: model.Coord{
 						Row: row,
 						Col: col,
@@ -75,7 +79,7 @@ func (r *rules) initializePending(
 			}
 
 			if l, a = s.verAt(row, col); !l && !a {
-				r.pendingPath = append(r.pendingPath, pendingPath{
+				r.unknowns = append(r.unknowns, path{
 					Coord: model.Coord{
 						Row: row,
 						Col: col,
@@ -90,17 +94,17 @@ func (r *rules) initializePending(
 	var dri, dci, drj, dcj, tmp int
 	is := int(s.size)
 
-	sort.Slice(r.pendingPath, func(i, j int) bool {
-		if r.pendingPath[i].IsHorizontal {
-			ni = len(r.horizontals[r.pendingPath[i].Row][r.pendingPath[i].Col])
+	sort.Slice(r.unknowns, func(i, j int) bool {
+		if r.unknowns[i].IsHorizontal {
+			ni = len(r.horizontals[r.unknowns[i].Row][r.unknowns[i].Col])
 		} else {
-			ni = len(r.verticals[r.pendingPath[i].Row][r.pendingPath[i].Col])
+			ni = len(r.verticals[r.unknowns[i].Row][r.unknowns[i].Col])
 		}
 
-		if r.pendingPath[j].IsHorizontal {
-			nj = len(r.horizontals[r.pendingPath[j].Row][r.pendingPath[j].Col])
+		if r.unknowns[j].IsHorizontal {
+			nj = len(r.horizontals[r.unknowns[j].Row][r.unknowns[j].Col])
 		} else {
-			nj = len(r.verticals[r.pendingPath[j].Row][r.pendingPath[j].Col])
+			nj = len(r.verticals[r.unknowns[j].Row][r.unknowns[j].Col])
 		}
 
 		if ni != nj {
@@ -109,21 +113,21 @@ func (r *rules) initializePending(
 
 		// There are the same number of rules for this segment.
 		// Prioritize a segment that is closer to the outer wall
-		dri = int(r.pendingPath[i].Row) - 1
-		if tmp = is - int(r.pendingPath[i].Row); tmp < dri {
+		dri = int(r.unknowns[i].Row) - 1
+		if tmp = is - int(r.unknowns[i].Row); tmp < dri {
 			dri = tmp
 		}
-		dci = int(r.pendingPath[i].Col) - 1
-		if tmp = is - int(r.pendingPath[i].Col); tmp < dci {
+		dci = int(r.unknowns[i].Col) - 1
+		if tmp = is - int(r.unknowns[i].Col); tmp < dci {
 			dci = tmp
 		}
 
-		drj = int(r.pendingPath[j].Row) - 1
-		if tmp = is - int(r.pendingPath[j].Row); tmp < drj {
+		drj = int(r.unknowns[j].Row) - 1
+		if tmp = is - int(r.unknowns[j].Row); tmp < drj {
 			drj = tmp
 		}
-		dcj = int(r.pendingPath[j].Col) - 1
-		if tmp = is - int(r.pendingPath[j].Col); tmp < dcj {
+		dcj = int(r.unknowns[j].Col) - 1
+		if tmp = is - int(r.unknowns[j].Col); tmp < dcj {
 			dcj = tmp
 		}
 		ni = dri + dci
@@ -134,19 +138,18 @@ func (r *rules) initializePending(
 
 		// They are equally close to the outer wall.
 		// Prioritize the one in the top left.
-		if r.pendingPath[i].Row != r.pendingPath[j].Row {
-			return r.pendingPath[i].Row < r.pendingPath[j].Row
+		if r.unknowns[i].Row != r.unknowns[j].Row {
+			return r.unknowns[i].Row < r.unknowns[j].Row
 		}
-		if r.pendingPath[i].Col != r.pendingPath[j].Col {
-			return r.pendingPath[i].Col < r.pendingPath[j].Col
+		if r.unknowns[i].Col != r.unknowns[j].Col {
+			return r.unknowns[i].Col < r.unknowns[j].Col
 		}
 
 		// Check horizontal first.
-		return r.pendingPath[i].IsHorizontal
+		return r.unknowns[i].IsHorizontal
 	})
 }
 
-// TODO instead of calling all checks, what if we stored off the pending paths to check?
 func (r *rules) checkHorizontal(
 	row, col model.Dimension,
 	s *state,

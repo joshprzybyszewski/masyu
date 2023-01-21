@@ -7,10 +7,11 @@ import (
 )
 
 type state struct {
-	rules *rules
-	nodes []model.Node
+	collector *ruleCheckCollector
+	nodes     []model.Node
 
-	size model.Size
+	size           model.Size
+	lastLinePlaced model.Coord
 
 	horizontalLines  [model.MaxPointsPerLine]uint64
 	horizontalAvoids [model.MaxPointsPerLine]uint64
@@ -23,10 +24,14 @@ func newState(
 	size model.Size,
 	ns []model.Node,
 ) state {
+
+	r := newRules(size)
+	rcc := newRuleCheckCollector(r)
+
 	s := state{
-		nodes: make([]model.Node, len(ns)),
-		size:  size,
-		rules: newRules(size),
+		nodes:     make([]model.Node, len(ns)),
+		size:      size,
+		collector: &rcc,
 	}
 
 	// offset all of the input nodes by positive one
@@ -36,14 +41,15 @@ func newState(
 		s.nodes[i].Col++
 
 		if ns[i].IsBlack {
-			s.rules.addBlackNode(s.nodes[i].Row, s.nodes[i].Col)
+			r.addBlackNode(s.nodes[i].Row, s.nodes[i].Col)
 		} else {
-			s.rules.addWhiteNode(s.nodes[i].Row, s.nodes[i].Col)
+			r.addWhiteNode(s.nodes[i].Row, s.nodes[i].Col)
 		}
 	}
+	s.lastLinePlaced = s.nodes[0].Coord
 
 	s.initialize()
-	s.rules.initializePending(&s)
+	r.initializePending(&s)
 
 	return s
 }
@@ -61,18 +67,24 @@ func (s *state) initialize() {
 
 	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
 		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
-			s.rules.checkHorizontal(row, col, s)
-			s.rules.checkVertical(row, col, s)
+			s.collector.checkHorizontal(row, col)
+			s.collector.checkVertical(row, col)
 		}
 	}
+	s.settle()
 
 	if !s.isValid() {
 		panic(`state initialization is not valid?`)
 	}
+}
 
+func (s *state) settle() {
+	s.collector.runAllChecks(s)
 }
 
 func (s *state) toSolution() (model.Solution, bool, bool) {
+	s.settle()
+
 	if !s.isValid() {
 		return model.Solution{}, false, false
 	}
@@ -99,49 +111,35 @@ func (s *state) toSolution() (model.Solution, bool, bool) {
 }
 
 func (s *state) checkPath() (bool, bool) {
+	// TODO find a way to make this faster
 	var horizontalLines [model.MaxPointsPerLine]uint64
 	var verticalLines [model.MaxPointsPerLine]uint64
 
-	var start, cur, prev model.Coord
+	start := s.lastLinePlaced
+	cur := start
+	prev := cur
 
-	for _, node := range s.nodes {
-		start = node.Coord
-		cur = start
-		prev = cur
-
-		for i := 0; i <= int(s.size+1); i++ {
-			horizontalLines[i] = 0
-			verticalLines[i] = 0
+	for {
+		if prev.Col != cur.Col+1 && s.horizontalLines[cur.Row]&(cur.Col).Bit() != 0 {
+			prev = cur
+			horizontalLines[cur.Row] |= (cur.Col.Bit())
+			cur.Col++
+		} else if prev.Row != cur.Row+1 && s.verticalLines[cur.Col]&(cur.Row).Bit() != 0 {
+			prev = cur
+			verticalLines[cur.Col] |= (cur.Row.Bit())
+			cur.Row++
+		} else if prev.Col != cur.Col-1 && s.horizontalLines[cur.Row]&(cur.Col-1).Bit() != 0 {
+			prev = cur
+			horizontalLines[cur.Row] |= ((cur.Col - 1).Bit())
+			cur.Col--
+		} else if prev.Row != cur.Row-1 && s.verticalLines[cur.Col]&(cur.Row-1).Bit() != 0 {
+			prev = cur
+			verticalLines[cur.Col] |= ((cur.Row - 1).Bit())
+			cur.Row--
+		} else {
+			// we aren't able to move in any of the four directions
+			break
 		}
-
-		for {
-			if prev.Col != cur.Col+1 && s.horizontalLines[cur.Row]&(cur.Col).Bit() != 0 {
-				prev = cur
-				horizontalLines[cur.Row] |= (1 << cur.Col)
-				cur.Col++
-			} else if prev.Col != cur.Col-1 && s.horizontalLines[cur.Row]&(cur.Col-1).Bit() != 0 {
-				prev = cur
-				horizontalLines[cur.Row] |= (1 << (cur.Col - 1))
-				cur.Col--
-			} else if prev.Row != cur.Row+1 && s.verticalLines[cur.Col]&(cur.Row).Bit() != 0 {
-				prev = cur
-				verticalLines[cur.Col] |= (1 << cur.Row)
-				cur.Row++
-			} else if prev.Row != cur.Row-1 && s.verticalLines[cur.Col]&(cur.Row-1).Bit() != 0 {
-				prev = cur
-				verticalLines[cur.Col] |= (1 << (cur.Row - 1))
-				cur.Row--
-			} else {
-				break
-			}
-			if cur == start {
-				break
-			}
-		}
-		if cur == prev {
-			continue
-		}
-
 		if cur == start {
 			// we've detected a cycle. If it doesn't look like the full state,
 			// then it's incomplete.
@@ -149,6 +147,7 @@ func (s *state) checkPath() (bool, bool) {
 				verticalLines != s.verticalLines {
 				return false, false
 			}
+			// the cycle is complete. Return that we're finished
 			return true, true
 		}
 	}
@@ -158,10 +157,8 @@ func (s *state) checkPath() (bool, bool) {
 
 func (s *state) isValid() bool {
 	for i := 0; i <= int(s.size); i++ {
-		if s.horizontalAvoids[i]&s.horizontalLines[i] != 0 {
-			return false
-		}
-		if s.verticalLines[i]&s.verticalAvoids[i] != 0 {
+		if s.horizontalAvoids[i]&s.horizontalLines[i] != 0 ||
+			s.verticalLines[i]&s.verticalAvoids[i] != 0 {
 			return false
 		}
 	}
@@ -171,7 +168,7 @@ func (s *state) isValid() bool {
 
 func (s *state) getMostInterestingPath() (model.Coord, bool, bool) {
 	var l, a bool
-	for _, pp := range s.rules.pendingPath {
+	for _, pp := range s.collector.rules.unknowns {
 		if pp.IsHorizontal {
 			if l, a = s.horAt(pp.Row, pp.Col); !l && !a {
 				return pp.Coord, pp.IsHorizontal, true
@@ -206,23 +203,22 @@ func (s *state) avoidHor(r, c model.Dimension) {
 		return
 	}
 	s.horizontalAvoids[r] |= b
-	if s.horizontalLines[r]&b == 0 {
-		// still valid; check the rules
-		s.rules.checkHorizontal(r, c, s)
-	}
+
+	s.collector.checkHorizontal(r, c)
 }
 
 func (s *state) lineHor(r, c model.Dimension) {
 	b := c.Bit()
 	if s.horizontalLines[r]&b == b {
-		// already avoided
+		// already a line
 		return
 	}
 	s.horizontalLines[r] |= b
-	if s.horizontalAvoids[r]&b == 0 {
-		// still valid; check the rules
-		s.rules.checkHorizontal(r, c, s)
-	}
+
+	s.lastLinePlaced.Row = r
+	s.lastLinePlaced.Col = c
+
+	s.collector.checkHorizontal(r, c)
 }
 
 func (s *state) verAt(r, c model.Dimension) (bool, bool) {
@@ -244,10 +240,8 @@ func (s *state) avoidVer(r, c model.Dimension) {
 		return
 	}
 	s.verticalAvoids[c] |= b
-	if s.verticalLines[c]&b == 0 {
-		// still valid; check the rules
-		s.rules.checkVertical(r, c, s)
-	}
+
+	s.collector.checkVertical(r, c)
 }
 
 func (s *state) lineVer(r, c model.Dimension) {
@@ -257,10 +251,11 @@ func (s *state) lineVer(r, c model.Dimension) {
 		return
 	}
 	s.verticalLines[c] |= b
-	if s.verticalAvoids[c]&b == 0 {
-		// still valid; check the rules
-		s.rules.checkVertical(r, c, s)
-	}
+
+	s.lastLinePlaced.Row = r
+	s.lastLinePlaced.Col = c
+
+	s.collector.checkVertical(r, c)
 }
 
 const (
