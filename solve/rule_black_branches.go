@@ -5,11 +5,12 @@ import "github.com/joshprzybyszewski/masyu/model"
 func newBlackLBranchRule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: blackLBranchRuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkBlackLBranch
+	return r
 }
 
 func (r *rule) checkBlackLBranch(
@@ -29,11 +30,12 @@ func (r *rule) checkBlackLBranch(
 func newBlackRBranchRule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: blackRBranchRuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkBlackRBranch
+	return r
 }
 
 func (r *rule) checkBlackRBranch(
@@ -53,11 +55,13 @@ func (r *rule) checkBlackRBranch(
 func newBlackUBranchRule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: blackUBranchRuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkBlackUBranch
+	return r
+
 }
 
 func (r *rule) checkBlackUBranch(
@@ -78,11 +82,12 @@ func (r *rule) checkBlackUBranch(
 func newBlackDBranchRule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: blackDBranchRuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkBlackDBranch
+	return r
 }
 
 func (r *rule) checkBlackDBranch(

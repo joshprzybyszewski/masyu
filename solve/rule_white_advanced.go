@@ -5,11 +5,12 @@ import "github.com/joshprzybyszewski/masyu/model"
 func newAdvancedHorizontalWhite(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: whiteAdvancedHorizontalRuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkAdvancedHorizontalWhite
+	return r
 }
 
 func (r *rule) checkAdvancedHorizontalWhite(
@@ -42,11 +43,12 @@ func (r *rule) checkAdvancedHorizontalWhite(
 func newAdvancedVerticalWhite(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: whiteAdvancedVerticalRuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkAdvancedVerticalWhite
+	return r
 }
 
 func (r *rule) checkAdvancedVerticalWhite(

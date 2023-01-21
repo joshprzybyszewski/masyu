@@ -5,11 +5,12 @@ import "github.com/joshprzybyszewski/masyu/model"
 func newDefaultRule(
 	row, col model.Dimension,
 ) rule {
-	return rule{
-		kind: defaultRuleKind,
-		row:  row,
-		col:  col,
+	r := rule{
+		row: row,
+		col: col,
 	}
+	r.check = r.checkDefault
+	return r
 }
 
 func (r *rule) checkDefault(

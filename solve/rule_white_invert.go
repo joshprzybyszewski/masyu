@@ -5,11 +5,12 @@ import "github.com/joshprzybyszewski/masyu/model"
 func newInvertHorizontalWhite(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: whiteInvertHorizontalRuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkInvertHorizontalWhite
+	return r
 }
 
 func (r *rule) checkInvertHorizontalWhite(
@@ -34,11 +35,12 @@ func (r *rule) checkInvertHorizontalWhite(
 func newInvertVerticalWhite(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: whiteInvertVerticalRuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkInvertVerticalWhite
+	return r
 }
 
 func (r *rule) checkInvertVerticalWhite(

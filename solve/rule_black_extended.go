@@ -5,11 +5,12 @@ import "github.com/joshprzybyszewski/masyu/model"
 func newBlackL2Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: blackL2RuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkBlackL2
+	return r
 }
 
 func (r *rule) checkBlackL2(
@@ -24,11 +25,12 @@ func (r *rule) checkBlackL2(
 func newBlackR2Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: blackR2RuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkBlackR2
+	return r
 }
 
 func (r *rule) checkBlackR2(
@@ -43,11 +45,12 @@ func (r *rule) checkBlackR2(
 func newBlackU2Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: blackU2RuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkBlackU2
+	return r
 }
 
 func (r *rule) checkBlackU2(
@@ -62,11 +65,12 @@ func (r *rule) checkBlackU2(
 func newBlackD2Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: blackD2RuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkBlackD2
+	return r
 }
 
 func (r *rule) checkBlackD2(

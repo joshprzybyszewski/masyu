@@ -27,11 +27,12 @@ func (r *rule) setVerticalWhite(
 func newWhiteL1Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: whiteL1RuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkWhiteL1
+	return r
 }
 
 func (r *rule) checkWhiteL1(
@@ -48,11 +49,12 @@ func (r *rule) checkWhiteL1(
 func newWhiteR1Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: whiteR1RuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkWhiteR1
+	return r
 }
 
 func (r *rule) checkWhiteR1(
@@ -69,11 +71,12 @@ func (r *rule) checkWhiteR1(
 func newWhiteU1Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: whiteU1RuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkWhiteU1
+	return r
 }
 
 func (r *rule) checkWhiteU1(
@@ -90,11 +93,12 @@ func (r *rule) checkWhiteU1(
 func newWhiteD1Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
-	return rule{
-		kind: whiteD1RuleKind,
-		row:  nodeRow,
-		col:  nodeCol,
+	r := rule{
+		row: nodeRow,
+		col: nodeCol,
 	}
+	r.check = r.checkWhiteD1
+	return r
 }
 
 func (r *rule) checkWhiteD1(
