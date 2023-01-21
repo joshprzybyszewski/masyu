@@ -99,22 +99,22 @@ func (s *Solution) ToAnswer() string {
 	rows.Grow(numEdges * (numEdges - 1))
 	cols.Grow(numEdges * (numEdges - 1))
 
-	for dim1 := 0; dim1 <= numEdges; dim1++ {
-		for dim2 := 0; dim2 <= numEdges; dim2++ {
-			if dim2 < numEdges {
-				if s.Horizontals[dim1]&(1<<dim2) != 0 {
-					_ = rows.WriteByte('y')
-				} else {
-					_ = rows.WriteByte('n')
-				}
+	for row := Dimension(0); row <= Dimension(numEdges); row++ {
+		for col := Dimension(0); col < Dimension(numEdges); col++ {
+			if s.Horizontals[row]&col.Bit() != 0 {
+				_ = rows.WriteByte('y')
+			} else {
+				_ = rows.WriteByte('n')
 			}
+		}
+	}
 
-			if dim1 < numEdges {
-				if s.Verticals[dim2]&(1<<dim1) != 0 {
-					_ = cols.WriteByte('y')
-				} else {
-					_ = cols.WriteByte('n')
-				}
+	for row := Dimension(0); row < Dimension(numEdges); row++ {
+		for col := Dimension(0); col <= Dimension(numEdges); col++ {
+			if s.Verticals[col]&row.Bit() != 0 {
+				_ = cols.WriteByte('y')
+			} else {
+				_ = cols.WriteByte('n')
 			}
 		}
 	}
