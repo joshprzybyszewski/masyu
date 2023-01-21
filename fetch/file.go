@@ -61,9 +61,9 @@ func Read(
 
 	data, err := os.ReadFile(getInputFilname(iter))
 	if err != nil {
-		// if strings.Contains(err.Error(), `no such file`) {
-		// 	return nil, nil
-		// }
+		if strings.Contains(err.Error(), `no such file`) {
+			return nil, nil
+		}
 		return nil, err
 	}
 

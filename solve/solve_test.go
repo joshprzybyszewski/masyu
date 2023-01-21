@@ -1,6 +1,7 @@
 package solve_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/joshprzybyszewski/masyu/fetch"
@@ -9,6 +10,9 @@ import (
 )
 
 func BenchmarkAll(b *testing.B) {
+	// go decided that it should run benchmarks in this directory.
+	os.Chdir(`..`)
+
 	for iter := model.MinIterator; iter <= model.MaxIterator; iter++ {
 		b.Run(iter.String(), func(b *testing.B) {
 			srs, err := fetch.Read(iter)
@@ -32,7 +36,7 @@ func BenchmarkAll(b *testing.B) {
 			}
 
 			for id, sr := range srs {
-				b.Run(id, func(b *testing.B) {
+				b.Run("PuzzleID "+id, func(b *testing.B) {
 					var sol model.Solution
 					for n := 0; n < b.N; n++ {
 						sol, err = solve.FromNodes(

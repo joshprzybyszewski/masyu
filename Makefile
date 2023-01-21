@@ -19,7 +19,7 @@ test: ## Run unit tests
 
 .PHONY: bench
 bench: ## Runs benchmarks TODO build these
-	go test -benchmem -run="^$$" -bench "^(BenchmarkSolve)$$" ./...
+	go test -benchmem -run="^$$" -bench "^BenchmarkAll$$" ./... -short -count=1
 
 .PHONY: lint
 lint: ## Runs linters (via golangci-lint) on golang code
