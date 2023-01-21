@@ -86,8 +86,11 @@ func (r *rules) initializePending(
 		}
 	}
 
+	var ni, nj int
+	var dri, dci, drj, dcj, tmp int
+	is := int(s.size)
+
 	sort.Slice(r.pendingPath, func(i, j int) bool {
-		var ni, nj int
 		if r.pendingPath[i].IsHorizontal {
 			ni = len(r.horizontals[r.pendingPath[i].Row][r.pendingPath[i].Col])
 		} else {
@@ -104,13 +107,41 @@ func (r *rules) initializePending(
 			return ni < nj
 		}
 
-		// TODO be smarter
+		// There are the same number of rules for this segment.
+		// Prioritize a segment that is closer to the outer wall
+		dri = int(r.pendingPath[i].Row) - 1
+		if tmp = is - int(r.pendingPath[i].Row); tmp < dri {
+			dri = tmp
+		}
+		dci = int(r.pendingPath[i].Col) - 1
+		if tmp = is - int(r.pendingPath[i].Col); tmp < dci {
+			dci = tmp
+		}
+
+		drj = int(r.pendingPath[j].Row) - 1
+		if tmp = is - int(r.pendingPath[j].Row); tmp < drj {
+			drj = tmp
+		}
+		dcj = int(r.pendingPath[j].Col) - 1
+		if tmp = is - int(r.pendingPath[j].Col); tmp < dcj {
+			dcj = tmp
+		}
+		ni = dri + dci
+		nj = drj + dcj
+		if ni != nj {
+			return ni < nj
+		}
+
+		// They are equally close to the outer wall.
+		// Prioritize the one in the top left.
 		if r.pendingPath[i].Row != r.pendingPath[j].Row {
 			return r.pendingPath[i].Row < r.pendingPath[j].Row
 		}
 		if r.pendingPath[i].Col != r.pendingPath[j].Col {
 			return r.pendingPath[i].Col < r.pendingPath[j].Col
 		}
+
+		// Check horizontal first.
 		return r.pendingPath[i].IsHorizontal
 	})
 }
