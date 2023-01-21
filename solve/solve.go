@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	maxAttemptDuration = 10 * time.Second
+	maxAttemptDuration = 5 * time.Second
 )
 
 func solve(

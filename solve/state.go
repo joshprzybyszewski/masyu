@@ -7,8 +7,9 @@ import (
 )
 
 type state struct {
-	collector *ruleCheckCollector
-	nodes     []model.Node
+	rules *ruleCheckCollector
+	paths pathCollector
+	nodes []model.Node
 
 	size           model.Size
 	lastLinePlaced model.Coord
@@ -29,9 +30,10 @@ func newState(
 	rcc := newRuleCheckCollector(r)
 
 	s := state{
-		nodes:     make([]model.Node, len(ns)),
-		size:      size,
-		collector: &rcc,
+		nodes: make([]model.Node, len(ns)),
+		size:  size,
+		rules: &rcc,
+		paths: newPathCollector(),
 	}
 
 	// offset all of the input nodes by positive one
@@ -67,8 +69,8 @@ func (s *state) initialize() {
 
 	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
 		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
-			s.collector.checkHorizontal(row, col)
-			s.collector.checkVertical(row, col)
+			s.rules.checkHorizontal(row, col)
+			s.rules.checkVertical(row, col)
 		}
 	}
 	s.settle()
@@ -79,7 +81,7 @@ func (s *state) initialize() {
 }
 
 func (s *state) settle() {
-	s.collector.runAllChecks(s)
+	s.rules.runAllChecks(s)
 }
 
 func (s *state) toSolution() (model.Solution, bool, bool) {
@@ -93,7 +95,6 @@ func (s *state) toSolution() (model.Solution, bool, bool) {
 	if !isValid {
 		return model.Solution{}, false, false
 	}
-
 	if !isComplete {
 		return model.Solution{}, false, true
 	}
@@ -111,7 +112,10 @@ func (s *state) toSolution() (model.Solution, bool, bool) {
 }
 
 func (s *state) checkPath() (bool, bool) {
-	// TODO find a way to make this faster
+	if !s.paths.hasCycle {
+		return true, false
+	}
+
 	var horizontalLines [model.MaxPointsPerLine]uint64
 	var verticalLines [model.MaxPointsPerLine]uint64
 
@@ -137,8 +141,9 @@ func (s *state) checkPath() (bool, bool) {
 			verticalLines[cur.Col] |= ((cur.Row - 1).Bit())
 			cur.Row--
 		} else {
-			// we aren't able to move in any of the four directions
-			break
+			// we know there's a cycle somewhere, but we found an incomplete path.
+			// Therefore, this is a bad puzzle state.
+			return false, false
 		}
 		if cur == start {
 			// we've detected a cycle. If it doesn't look like the full state,
@@ -151,8 +156,6 @@ func (s *state) checkPath() (bool, bool) {
 			return true, true
 		}
 	}
-
-	return true, false
 }
 
 func (s *state) isValid() bool {
@@ -168,7 +171,7 @@ func (s *state) isValid() bool {
 
 func (s *state) getMostInterestingPath() (model.Coord, bool, bool) {
 	var l, a bool
-	for _, pp := range s.collector.rules.unknowns {
+	for _, pp := range s.rules.rules.unknowns {
 		if pp.IsHorizontal {
 			if l, a = s.horAt(pp.Row, pp.Col); !l && !a {
 				return pp.Coord, pp.IsHorizontal, true
@@ -204,7 +207,7 @@ func (s *state) avoidHor(r, c model.Dimension) {
 	}
 	s.horizontalAvoids[r] |= b
 
-	s.collector.checkHorizontal(r, c)
+	s.rules.checkHorizontal(r, c)
 }
 
 func (s *state) lineHor(r, c model.Dimension) {
@@ -218,7 +221,8 @@ func (s *state) lineHor(r, c model.Dimension) {
 	s.lastLinePlaced.Row = r
 	s.lastLinePlaced.Col = c
 
-	s.collector.checkHorizontal(r, c)
+	s.rules.checkHorizontal(r, c)
+	s.paths.addHorizontal(r, c)
 }
 
 func (s *state) verAt(r, c model.Dimension) (bool, bool) {
@@ -241,7 +245,7 @@ func (s *state) avoidVer(r, c model.Dimension) {
 	}
 	s.verticalAvoids[c] |= b
 
-	s.collector.checkVertical(r, c)
+	s.rules.checkVertical(r, c)
 }
 
 func (s *state) lineVer(r, c model.Dimension) {
@@ -255,7 +259,8 @@ func (s *state) lineVer(r, c model.Dimension) {
 	s.lastLinePlaced.Row = r
 	s.lastLinePlaced.Col = c
 
-	s.collector.checkVertical(r, c)
+	s.rules.checkVertical(r, c)
+	s.paths.addVertical(r, c)
 }
 
 const (
