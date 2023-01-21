@@ -30,7 +30,7 @@ func Submit(
 	}
 
 	header = buildHeader()
-	data, err = buildHallOfFameSubmission(input, resp, header)
+	data, err = buildHallOfFameSubmission(resp, header)
 	if err != nil {
 		fmt.Printf("Answer: %q\n", sol.ToAnswer())
 		return err
@@ -66,7 +66,6 @@ func buildSubmissionData(
 }
 
 func buildHallOfFameSubmission(
-	input *input,
 	resp []byte,
 	header http.Header,
 ) (io.Reader, error) {

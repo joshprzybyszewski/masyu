@@ -30,13 +30,16 @@ func Update(
 
 	resp, err := post(baseURL, header, data)
 	if err != nil {
-		return puzz, err
+		return input{}, err
 	}
 
-	populateInput(
+	err = populateInput(
 		resp,
 		&puzz,
 	)
+	if err != nil {
+		return input{}, err
+	}
 
 	return puzz, nil
 }

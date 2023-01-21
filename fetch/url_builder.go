@@ -2,9 +2,6 @@ package fetch
 
 import (
 	"net/http"
-	"strconv"
-
-	"github.com/joshprzybyszewski/masyu/model"
 )
 
 const (
@@ -15,12 +12,6 @@ const (
 var (
 	myCookies = []string{}
 )
-
-func buildURL(
-	i model.Iterator,
-) string {
-	return baseURL + `?size=` + strconv.Itoa(int(i))
-}
 
 func buildHeader() http.Header {
 	header := http.Header{}

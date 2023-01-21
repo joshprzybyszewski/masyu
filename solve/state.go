@@ -7,6 +7,7 @@ import (
 )
 
 type state struct {
+	rules *rules
 	nodes []model.Node
 
 	size model.Size
@@ -16,8 +17,6 @@ type state struct {
 
 	verticalLines  [model.MaxPointsPerLine]uint64
 	verticalAvoids [model.MaxPointsPerLine]uint64
-
-	rules *rules
 }
 
 func newState(
@@ -44,6 +43,7 @@ func newState(
 	}
 
 	s.initialize()
+	s.rules.initializePending(&s)
 
 	return s
 }
@@ -70,8 +70,6 @@ func (s *state) initialize() {
 		panic(`state initialization is not valid?`)
 	}
 
-	s.rules.initializePending(s)
-	s.rules.sortPending(s.size)
 }
 
 func (s *state) toSolution() (model.Solution, bool, bool) {

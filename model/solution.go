@@ -48,7 +48,7 @@ func (s *Solution) Pretty(
 
 	for r := Dimension(0); r < Dimension(s.Size); r++ {
 		for c := Dimension(0); c < Dimension(s.Size); c++ {
-			sb.WriteByte(getNodeChar(nodes, r, c, s.Size))
+			sb.WriteByte(getNodeChar(nodes, r, c))
 			sb.WriteByte(' ')
 			if s.Horizontals[r]&c.Bit() != 0 {
 				sb.WriteByte('-')
@@ -78,7 +78,6 @@ func (s *Solution) Pretty(
 func getNodeChar(
 	nodes []Node,
 	r, c Dimension,
-	size Size,
 ) byte {
 	for _, n := range nodes {
 		if n.Row != r || n.Col != c {

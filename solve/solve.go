@@ -15,7 +15,7 @@ var (
 )
 
 func solve(
-	s state,
+	s *state,
 ) (model.Solution, error) {
 	depth = 0
 
@@ -27,30 +27,30 @@ func solve(
 }
 
 func solveDFS(
-	s state,
+	s *state,
 ) (model.Solution, bool) {
 	if depth > maxAttempts {
 		return model.Solution{}, false
 	}
 	depth++
 
-	sol, solved, valid := s.toSolution()
+	sol, solved, ok := s.toSolution()
 	if solved {
 		return sol, true
 	}
-	if !valid {
+	if !ok {
 		return model.Solution{}, false
 	}
 
-	c, isHor, valid := s.getMostInterestingPath()
-	if !valid {
+	c, isHor, ok := s.getMostInterestingPath()
+	if !ok {
 		return model.Solution{}, false
 	}
 
 	if isHor {
-		s2 := s
+		s2 := *s
 		s2.lineHor(c.Row, c.Col)
-		sol, ok := solveDFS(s2)
+		sol, ok = solveDFS(&s2)
 		if ok {
 			return sol, true
 		}
@@ -59,9 +59,9 @@ func solveDFS(
 		return solveDFS(s)
 	}
 
-	s2 := s
+	s2 := *s
 	s2.lineVer(c.Row, c.Col)
-	sol, ok := solveDFS(s2)
+	sol, ok = solveDFS(&s2)
 	if ok {
 		return sol, true
 	}

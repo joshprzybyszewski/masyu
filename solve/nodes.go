@@ -7,7 +7,9 @@ func FromNodes(
 	ns []model.Node,
 ) (model.Solution, error) {
 
+	s := newState(size, ns)
+
 	return solve(
-		newState(size, ns),
+		&s,
 	)
 }

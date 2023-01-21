@@ -3,7 +3,6 @@ package fetch
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -14,11 +13,11 @@ func doRequest(
 	url string,
 	header http.Header,
 	data io.Reader,
-) ([]byte, http.Header, error) {
+) ([]byte, error) {
 
 	req, err := http.NewRequest(method, url, data)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if header != nil {
 		req.Header = header
@@ -27,13 +26,13 @@ func doRequest(
 	client := &http.Client{}
 	response, err := client.Do(req)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
 		var resBytes []byte
-		resBytes, err = ioutil.ReadAll(response.Body)
+		resBytes, err = io.ReadAll(response.Body)
 
 		log.Printf("Got a not-ok response: %+v\n%s\n%s\n",
 			response,
@@ -41,20 +40,20 @@ func doRequest(
 			string(resBytes),
 		)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		contentType := response.Header.Get(`Content-Type`)
 		if strings.Contains(contentType, `text/plain`) {
-			return nil, nil, fmt.Errorf("bad response: \"%s\"", string(resBytes))
+			return nil, fmt.Errorf("bad response: \"%s\"", string(resBytes))
 		}
 
-		return nil, nil, fmt.Errorf(`bad response from server`)
+		return nil, fmt.Errorf(`bad response from server`)
 	}
 
-	resBytes, err := ioutil.ReadAll(response.Body)
+	resBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return resBytes, response.Header, nil
+	return resBytes, nil
 }

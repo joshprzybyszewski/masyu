@@ -38,6 +38,7 @@ func main() {
 			}
 			err := compete(iter)
 			if err != nil {
+				fmt.Printf("Error: %+v\n", err)
 				// panic(err)
 			}
 

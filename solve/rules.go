@@ -85,11 +85,7 @@ func (r *rules) initializePending(
 			}
 		}
 	}
-}
 
-func (r *rules) sortPending(
-	size model.Size,
-) {
 	sort.Slice(r.pendingPath, func(i, j int) bool {
 		var ni, nj int
 		if r.pendingPath[i].IsHorizontal {

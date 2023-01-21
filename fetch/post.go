@@ -11,6 +11,5 @@ func post(
 	data io.Reader,
 ) ([]byte, error) {
 
-	b, _, err := doRequest(`POST`, url, header, data)
-	return b, err
+	return doRequest(`POST`, url, header, data)
 }
