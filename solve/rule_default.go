@@ -61,6 +61,14 @@ func (r *rule) checkDefault(
 		s.avoidHor(r.row, r.col)
 		return
 	}
+	if nl+na == 4 && nl == 1 {
+		// this is an error state.
+		// Either right or down must not be a line.
+		// Write a line over them both to trigger an invalid state.
+		s.lineVer(r.row, r.col)
+		s.lineHor(r.row, r.col)
+		return
+	}
 
 	if nl != 2 && nl+na != 3 {
 		return

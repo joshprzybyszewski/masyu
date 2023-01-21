@@ -48,18 +48,44 @@ func newState(
 	return s
 }
 
-func (s *state) toSolution() (model.Solution, model.Coord, bool, bool) {
+func (s *state) initialize() {
+	avoid := uint64(1 | (1 << s.size))
+	for i := 1; i <= int(s.size); i++ {
+		s.verticalAvoids[i] |= avoid
+		s.horizontalAvoids[i] |= avoid
+	}
+	s.horizontalAvoids[0] = 0xFFFFFFFFFFFFFFFF
+	s.verticalAvoids[0] = 0xFFFFFFFFFFFFFFFF
+	s.horizontalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
+	s.verticalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
+
+	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
+		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
+			s.rules.checkHorizontal(row, col, s)
+			s.rules.checkVertical(row, col, s)
+		}
+	}
+
 	if !s.isValid() {
-		return model.Solution{}, model.Coord{}, false, false
+		panic(`state initialization is not valid?`)
 	}
 
-	eop, isValid, complete := s.isValidPath()
+	s.rules.initializePending(s)
+	s.rules.sortPending(s.size)
+}
+
+func (s *state) toSolution() (model.Solution, bool, bool) {
+	if !s.isValid() {
+		return model.Solution{}, false, false
+	}
+
+	isValid, isComplete := s.checkPath()
 	if !isValid {
-		return model.Solution{}, model.Coord{}, false, false
+		return model.Solution{}, false, false
 	}
 
-	if !complete {
-		return model.Solution{}, eop, false, true
+	if !isComplete {
+		return model.Solution{}, false, true
 	}
 
 	sol := model.Solution{
@@ -71,10 +97,10 @@ func (s *state) toSolution() (model.Solution, model.Coord, bool, bool) {
 		sol.Verticals[i] = (s.verticalLines[i+1]) >> 1
 	}
 
-	return sol, model.Coord{}, true, true
+	return sol, true, true
 }
 
-func (s *state) isValidPath() (model.Coord, bool, bool) {
+func (s *state) checkPath() (bool, bool) {
 	var horizontalLines [model.MaxPointsPerLine]uint64
 	var verticalLines [model.MaxPointsPerLine]uint64
 
@@ -100,21 +126,21 @@ func (s *state) isValidPath() (model.Coord, bool, bool) {
 			verticalLines[cur.Col] |= (1 << (cur.Row - 1))
 			cur.Row--
 		} else {
-			return cur, true, false
+			return true, false
 		}
 		if cur == start {
 			break
 		}
 	}
 	if cur == prev || cur != start {
-		return cur, true, false
+		return true, false
 	}
 
 	if horizontalLines != s.horizontalLines || verticalLines != s.verticalLines {
-		return model.Coord{}, false, false
+		return false, false
 	}
 
-	return model.Coord{}, true, true
+	return true, true
 }
 
 func (s *state) isValid() bool {
@@ -130,27 +156,22 @@ func (s *state) isValid() bool {
 	return true
 }
 
-func (s *state) initialize() {
-	avoid := uint64(1 | (1 << s.size))
-	for i := 1; i <= int(s.size); i++ {
-		s.verticalAvoids[i] |= avoid
-		s.horizontalAvoids[i] |= avoid
-	}
-	s.horizontalAvoids[0] = 0xFFFFFFFFFFFFFFFF
-	s.verticalAvoids[0] = 0xFFFFFFFFFFFFFFFF
-	s.horizontalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
-	s.verticalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
-
-	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
-		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
-			s.rules.checkHorizontal(row, col, s)
-			s.rules.checkVertical(row, col, s)
+func (s *state) getMostInterestingPath() (model.Coord, bool, bool) {
+	var l, a bool
+	for _, pp := range s.rules.pendingPath {
+		if pp.IsHorizontal {
+			if l, a = s.horAt(pp.Row, pp.Col); !l && !a {
+				return pp.Coord, pp.IsHorizontal, true
+			}
+		} else {
+			if l, a = s.verAt(pp.Row, pp.Col); !l && !a {
+				return pp.Coord, pp.IsHorizontal, true
+			}
 		}
 	}
-
-	if !s.isValid() {
-		panic(`dev error`)
-	}
+	// there are no more interesting paths left. Likely this means that there's
+	// an error in the state and we need to abort.
+	return model.Coord{}, false, false
 }
 
 func (s *state) horAt(r, c model.Dimension) (bool, bool) {

@@ -1,18 +1,31 @@
 package solve
 
-import "github.com/joshprzybyszewski/masyu/model"
+import (
+	"sort"
+
+	"github.com/joshprzybyszewski/masyu/model"
+)
+
+type pendingPath struct {
+	model.Coord
+	IsHorizontal bool
+}
 
 type rules struct {
 	// if "this" row/col changes, then run these other checks
 	// [row][col]
 	horizontals [model.MaxPointsPerLine][model.MaxPointsPerLine][]*rule
 	verticals   [model.MaxPointsPerLine][model.MaxPointsPerLine][]*rule
+
+	pendingPath []pendingPath
 }
 
 func newRules(
 	size model.Size,
 ) *rules {
-	r := rules{}
+	r := rules{
+		pendingPath: make([]pendingPath, 0, 2*int(size)*int(size-1)),
+	}
 
 	r.addDefault(size)
 
@@ -42,6 +55,68 @@ func (r *rules) addDefault(
 			)
 		}
 	}
+}
+
+func (r *rules) initializePending(
+	s *state,
+) {
+	var l, a bool
+	for row := model.Dimension(1); row <= model.Dimension(s.size); row++ {
+		for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
+
+			if l, a = s.horAt(row, col); !l && !a {
+				r.pendingPath = append(r.pendingPath, pendingPath{
+					Coord: model.Coord{
+						Row: row,
+						Col: col,
+					},
+					IsHorizontal: true,
+				})
+			}
+
+			if l, a = s.verAt(row, col); !l && !a {
+				r.pendingPath = append(r.pendingPath, pendingPath{
+					Coord: model.Coord{
+						Row: row,
+						Col: col,
+					},
+					IsHorizontal: false,
+				})
+			}
+		}
+	}
+}
+
+func (r *rules) sortPending(
+	size model.Size,
+) {
+	sort.Slice(r.pendingPath, func(i, j int) bool {
+		var ni, nj int
+		if r.pendingPath[i].IsHorizontal {
+			ni = len(r.horizontals[r.pendingPath[i].Row][r.pendingPath[i].Col])
+		} else {
+			ni = len(r.verticals[r.pendingPath[i].Row][r.pendingPath[i].Col])
+		}
+
+		if r.pendingPath[j].IsHorizontal {
+			nj = len(r.horizontals[r.pendingPath[j].Row][r.pendingPath[j].Col])
+		} else {
+			nj = len(r.verticals[r.pendingPath[j].Row][r.pendingPath[j].Col])
+		}
+
+		if ni != nj {
+			return ni < nj
+		}
+
+		// TODO be smarter
+		if r.pendingPath[i].Row != r.pendingPath[j].Row {
+			return r.pendingPath[i].Row < r.pendingPath[j].Row
+		}
+		if r.pendingPath[i].Col != r.pendingPath[j].Col {
+			return r.pendingPath[i].Col < r.pendingPath[j].Col
+		}
+		return r.pendingPath[i].IsHorizontal
+	})
 }
 
 func (r *rules) checkHorizontal(

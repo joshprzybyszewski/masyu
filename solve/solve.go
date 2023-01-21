@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	maxAttempts = 1_000_000
+	maxAttempts = 10_000_000
 )
 
 var (
@@ -34,7 +34,7 @@ func solveDFS(
 	}
 	depth++
 
-	sol, eop, solved, valid := s.toSolution()
+	sol, solved, valid := s.toSolution()
 	if solved {
 		return sol, true
 	}
@@ -42,56 +42,30 @@ func solveDFS(
 		return model.Solution{}, false
 	}
 
-	l, a := s.horAt(eop.Row, eop.Col)
-	if !l && !a {
+	c, isHor, valid := s.getMostInterestingPath()
+	if !valid {
+		return model.Solution{}, false
+	}
+
+	if isHor {
 		s2 := s
-		s2.lineHor(eop.Row, eop.Col)
+		s2.lineHor(c.Row, c.Col)
 		sol, ok := solveDFS(s2)
 		if ok {
 			return sol, true
 		}
 
-		s.avoidHor(eop.Row, eop.Col)
+		s.avoidHor(c.Row, c.Col)
 		return solveDFS(s)
 	}
 
-	l, a = s.verAt(eop.Row, eop.Col)
-	if !l && !a {
-		s2 := s
-		s2.lineVer(eop.Row, eop.Col)
-		sol, ok := solveDFS(s2)
-		if ok {
-			return sol, true
-		}
-
-		s.avoidVer(eop.Row, eop.Col)
-		return solveDFS(s)
+	s2 := s
+	s2.lineVer(c.Row, c.Col)
+	sol, ok := solveDFS(s2)
+	if ok {
+		return sol, true
 	}
 
-	l, a = s.horAt(eop.Row, eop.Col-1)
-	if !l && !a {
-		s2 := s
-		s2.lineHor(eop.Row, eop.Col-1)
-		sol, ok := solveDFS(s2)
-		if ok {
-			return sol, true
-		}
-		s.avoidHor(eop.Row, eop.Col-1)
-		return solveDFS(s)
-	}
-
-	l, a = s.verAt(eop.Row-1, eop.Col)
-	if !l && !a {
-		s2 := s
-		s2.lineVer(eop.Row-1, eop.Col)
-		sol, ok := solveDFS(s2)
-		if ok {
-			return sol, true
-		}
-
-		s.avoidVer(eop.Row-1, eop.Col)
-		return solveDFS(s)
-	}
-
-	return model.Solution{}, false
+	s.avoidVer(c.Row, c.Col)
+	return solveDFS(s)
 }
