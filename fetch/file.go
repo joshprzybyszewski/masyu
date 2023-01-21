@@ -22,7 +22,7 @@ func store(
 
 	f, err := os.OpenFile(
 		getInputFilname(input.iter),
-		os.O_APPEND|os.O_WRONLY|os.O_CREATE,
+		os.O_APPEND|os.O_RDWR|os.O_CREATE,
 		0666,
 	)
 	if err != nil {
@@ -40,7 +40,7 @@ func store(
 func getInputFilname(
 	iter model.Iterator,
 ) string {
-	return fmt.Sprintf("puzzles/iter-%d.txt", iter)
+	return fmt.Sprintf("puzzles/%s.txt", strings.ReplaceAll(iter.String(), " ", "_"))
 }
 
 func getFileLine(
@@ -61,9 +61,9 @@ func Read(
 
 	data, err := os.ReadFile(getInputFilname(iter))
 	if err != nil {
-		if strings.Contains(err.Error(), `no such file`) {
-			return nil, nil
-		}
+		// if strings.Contains(err.Error(), `no such file`) {
+		// 	return nil, nil
+		// }
 		return nil, err
 	}
 

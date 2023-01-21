@@ -1,6 +1,12 @@
 package model
 
+import "fmt"
+
 type Iterator int
+
+func (i Iterator) String() string {
+	return fmt.Sprintf("%dx%d %s", i.GetSize(), i.GetSize(), i.GetDifficulty())
+}
 
 func (i Iterator) Valid() bool {
 	return MinIterator <= i && i <= MaxIterator
