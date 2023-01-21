@@ -102,42 +102,58 @@ func (s *state) checkPath() (bool, bool) {
 	var horizontalLines [model.MaxPointsPerLine]uint64
 	var verticalLines [model.MaxPointsPerLine]uint64
 
-	start := s.nodes[0].Coord
-	cur := start
-	prev := cur
-	for {
-		if prev.Col != cur.Col+1 && s.horizontalLines[cur.Row]&(cur.Col).Bit() != 0 {
-			prev = cur
-			horizontalLines[cur.Row] |= (1 << cur.Col)
-			cur.Col++
-		} else if prev.Col != cur.Col-1 && s.horizontalLines[cur.Row]&(cur.Col-1).Bit() != 0 {
-			prev = cur
-			horizontalLines[cur.Row] |= (1 << (cur.Col - 1))
-			cur.Col--
-		} else if prev.Row != cur.Row+1 && s.verticalLines[cur.Col]&(cur.Row).Bit() != 0 {
-			prev = cur
-			verticalLines[cur.Col] |= (1 << cur.Row)
-			cur.Row++
-		} else if prev.Row != cur.Row-1 && s.verticalLines[cur.Col]&(cur.Row-1).Bit() != 0 {
-			prev = cur
-			verticalLines[cur.Col] |= (1 << (cur.Row - 1))
-			cur.Row--
-		} else {
-			return true, false
+	var start, cur, prev model.Coord
+
+	for _, node := range s.nodes {
+		start = node.Coord
+		cur = start
+		prev = cur
+
+		for i := 0; i <= int(s.size+1); i++ {
+			horizontalLines[i] = 0
+			verticalLines[i] = 0
 		}
+
+		for {
+			if prev.Col != cur.Col+1 && s.horizontalLines[cur.Row]&(cur.Col).Bit() != 0 {
+				prev = cur
+				horizontalLines[cur.Row] |= (1 << cur.Col)
+				cur.Col++
+			} else if prev.Col != cur.Col-1 && s.horizontalLines[cur.Row]&(cur.Col-1).Bit() != 0 {
+				prev = cur
+				horizontalLines[cur.Row] |= (1 << (cur.Col - 1))
+				cur.Col--
+			} else if prev.Row != cur.Row+1 && s.verticalLines[cur.Col]&(cur.Row).Bit() != 0 {
+				prev = cur
+				verticalLines[cur.Col] |= (1 << cur.Row)
+				cur.Row++
+			} else if prev.Row != cur.Row-1 && s.verticalLines[cur.Col]&(cur.Row-1).Bit() != 0 {
+				prev = cur
+				verticalLines[cur.Col] |= (1 << (cur.Row - 1))
+				cur.Row--
+			} else {
+				break
+			}
+			if cur == start {
+				break
+			}
+		}
+		if cur == prev {
+			continue
+		}
+
 		if cur == start {
-			break
+			// we've detected a cycle. If it doesn't look like the full state,
+			// then it's incomplete.
+			if horizontalLines != s.horizontalLines ||
+				verticalLines != s.verticalLines {
+				return false, false
+			}
+			return true, true
 		}
 	}
-	if cur == prev || cur != start {
-		return true, false
-	}
 
-	if horizontalLines != s.horizontalLines || verticalLines != s.verticalLines {
-		return false, false
-	}
-
-	return true, true
+	return true, false
 }
 
 func (s *state) isValid() bool {

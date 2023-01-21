@@ -146,6 +146,7 @@ func (r *rules) initializePending(
 	})
 }
 
+// TODO instead of calling all checks, what if we stored off the pending paths to check?
 func (r *rules) checkHorizontal(
 	row, col model.Dimension,
 	s *state,
