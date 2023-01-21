@@ -15,7 +15,12 @@ type input struct {
 }
 
 func (i input) String() string {
-	return fmt.Sprintf("Puzzle %s (Size: %d, Difficulty: %s)", i.id, i.iter.GetSize(), i.iter.GetDifficulty())
+	return fmt.Sprintf("Puzzle %s (Iter: %d, Size: %d, Difficulty: %s)",
+		i.id,
+		i.iter,
+		i.iter.GetSize(),
+		i.iter.GetDifficulty(),
+	)
 }
 
 func (i input) ToNodes() []model.Node {
