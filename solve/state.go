@@ -146,16 +146,19 @@ func (s *state) checkPath() (bool, bool) {
 			return false, false
 		}
 		if cur == start {
-			// we've detected a cycle. If it doesn't look like the full state,
-			// then it's incomplete.
-			if horizontalLines != s.horizontalLines ||
-				verticalLines != s.verticalLines {
-				return false, false
-			}
-			// the cycle is complete. Return that we're finished
-			return true, true
+			break
 		}
 	}
+
+	// we've detected a cycle. If it doesn't look like the full state,
+	// then it's incomplete.
+	if horizontalLines != s.horizontalLines ||
+		verticalLines != s.verticalLines {
+		return false, false
+	}
+	// the cycle is complete. Return that we're finished
+	return true, true
+
 }
 
 func (s *state) isValid() bool {

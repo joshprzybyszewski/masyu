@@ -45,7 +45,7 @@ func (w *workforce) startWorker(
 				return
 			}
 			atomic.AddInt32(&w.freeWorkers, -1)
-			w.process(s)
+			w.process(ctx, s)
 			atomic.AddInt32(&w.freeWorkers, 1)
 		}
 	}
@@ -62,7 +62,7 @@ func (w *workforce) solve(
 	ctx context.Context,
 	s *state,
 ) (model.Solution, error) {
-	w.process(s)
+	w.process(ctx, s)
 
 	select {
 	case <-ctx.Done():
@@ -76,8 +76,12 @@ func (w *workforce) solve(
 }
 
 func (w *workforce) process(
+	ctx context.Context,
 	s *state,
 ) {
+	if ctx.Err() != nil {
+		return
+	}
 	sol, solved, ok := s.toSolution()
 	if solved {
 		w.solution <- sol
@@ -95,26 +99,27 @@ func (w *workforce) process(
 	if isHor {
 		s2 := *s
 		s2.lineHor(c.Row, c.Col)
-		w.send(&s2)
+		w.send(ctx, &s2)
 
 		s.avoidHor(c.Row, c.Col)
-		w.send(s)
+		w.send(ctx, s)
 		return
 	}
 
 	s2 := *s
 	s2.lineVer(c.Row, c.Col)
-	w.send(&s2)
+	w.send(ctx, &s2)
 
 	s.avoidVer(c.Row, c.Col)
-	w.send(s)
+	w.send(ctx, s)
 }
 
 func (w *workforce) send(
+	ctx context.Context,
 	s *state,
 ) {
 	if atomic.LoadInt32(&w.freeWorkers) == 0 {
-		w.process(s)
+		w.process(ctx, s)
 	} else {
 		defer func() {
 			// if the work channel has been closed, then don't do anything.
