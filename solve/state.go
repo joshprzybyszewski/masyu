@@ -172,7 +172,15 @@ func (s *state) getMostInterestingPath() (model.Coord, bool, bool) {
 }
 
 func (s *state) horAt(r, c model.Dimension) (bool, bool) {
-	return s.horizontalLines[r]&c.Bit() != 0, s.horizontalAvoids[r]&c.Bit() != 0
+	return s.horLineAt(r, c), s.horAvoidAt(r, c)
+}
+
+func (s *state) horLineAt(r, c model.Dimension) bool {
+	return s.horizontalLines[r]&c.Bit() != 0
+}
+
+func (s *state) horAvoidAt(r, c model.Dimension) bool {
+	return s.horizontalAvoids[r]&c.Bit() != 0
 }
 
 func (s *state) avoidHor(r, c model.Dimension) {
@@ -202,7 +210,15 @@ func (s *state) lineHor(r, c model.Dimension) {
 }
 
 func (s *state) verAt(r, c model.Dimension) (bool, bool) {
-	return s.verticalLines[c]&r.Bit() != 0, s.verticalAvoids[c]&r.Bit() != 0
+	return s.verLineAt(r, c), s.verAvoidAt(r, c)
+}
+
+func (s *state) verLineAt(r, c model.Dimension) bool {
+	return s.verticalLines[c]&r.Bit() != 0
+}
+
+func (s *state) verAvoidAt(r, c model.Dimension) bool {
+	return s.verticalAvoids[c]&r.Bit() != 0
 }
 
 func (s *state) avoidVer(r, c model.Dimension) {

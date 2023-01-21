@@ -16,12 +16,8 @@ func newInvertHorizontalWhite(
 func (r *rule) checkInvertHorizontalWhite(
 	s *state,
 ) {
-	l, _ := s.horAt(r.row, r.col+1)
-	if !l {
-		return
-	}
-	l, _ = s.horAt(r.row, r.col-2)
-	if !l {
+	if !s.horLineAt(r.row, r.col+1) ||
+		!s.horLineAt(r.row, r.col-2) {
 		return
 	}
 
@@ -46,12 +42,8 @@ func newInvertVerticalWhite(
 func (r *rule) checkInvertVerticalWhite(
 	s *state,
 ) {
-	l, _ := s.verAt(r.row+1, r.col)
-	if !l {
-		return
-	}
-	l, _ = s.verAt(r.row-2, r.col)
-	if !l {
+	if !s.verLineAt(r.row+1, r.col) ||
+		!s.verLineAt(r.row-2, r.col) {
 		return
 	}
 

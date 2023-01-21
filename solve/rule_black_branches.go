@@ -16,12 +16,8 @@ func newBlackLBranchRule(
 func (r *rule) checkBlackLBranch(
 	s *state,
 ) {
-	l, _ := s.verAt(r.row, r.col-1)
-	if !l {
-		return
-	}
-	l, _ = s.verAt(r.row-1, r.col-1)
-	if !l {
+	if !s.verLineAt(r.row, r.col-1) ||
+		!s.verLineAt(r.row-1, r.col-1) {
 		return
 	}
 	s.avoidHor(r.row, r.col-1)
@@ -41,12 +37,8 @@ func newBlackRBranchRule(
 func (r *rule) checkBlackRBranch(
 	s *state,
 ) {
-	l, _ := s.verAt(r.row, r.col+1)
-	if !l {
-		return
-	}
-	l, _ = s.verAt(r.row-1, r.col+1)
-	if !l {
+	if !s.verLineAt(r.row, r.col+1) ||
+		!s.verLineAt(r.row-1, r.col+1) {
 		return
 	}
 	s.avoidHor(r.row, r.col)
@@ -67,12 +59,8 @@ func newBlackUBranchRule(
 func (r *rule) checkBlackUBranch(
 	s *state,
 ) {
-	l, _ := s.horAt(r.row-1, r.col)
-	if !l {
-		return
-	}
-	l, _ = s.horAt(r.row-1, r.col-1)
-	if !l {
+	if !s.horLineAt(r.row-1, r.col) ||
+		!s.horLineAt(r.row-1, r.col-1) {
 		return
 	}
 
@@ -93,12 +81,8 @@ func newBlackDBranchRule(
 func (r *rule) checkBlackDBranch(
 	s *state,
 ) {
-	l, _ := s.horAt(r.row+1, r.col)
-	if !l {
-		return
-	}
-	l, _ = s.horAt(r.row+1, r.col-1)
-	if !l {
+	if !s.horLineAt(r.row+1, r.col) ||
+		!s.horLineAt(r.row+1, r.col-1) {
 		return
 	}
 

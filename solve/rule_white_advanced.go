@@ -16,8 +16,7 @@ func newAdvancedHorizontalWhite(
 func (r *rule) checkAdvancedHorizontalWhite(
 	s *state,
 ) {
-	l, _ := s.horAt(r.row, r.col)
-	if !l {
+	if !s.horLineAt(r.row, r.col) {
 		return
 	}
 
@@ -32,11 +31,8 @@ func (r *rule) checkAdvancedHorizontalWhite(
 	l, a := s.horAt(r.row, r.col-2)
 	if l {
 		s.avoidHor(r.row, r.col+1)
-	} else if !a {
-		l, _ = s.horAt(r.row, r.col+1)
-		if l {
-			s.avoidHor(r.row, r.col-2)
-		}
+	} else if !a && s.horLineAt(r.row, r.col+1) {
+		s.avoidHor(r.row, r.col-2)
 	}
 }
 
@@ -54,8 +50,7 @@ func newAdvancedVerticalWhite(
 func (r *rule) checkAdvancedVerticalWhite(
 	s *state,
 ) {
-	l, _ := s.verAt(r.row, r.col)
-	if !l {
+	if !s.verLineAt(r.row, r.col) {
 		return
 	}
 
@@ -70,13 +65,7 @@ func (r *rule) checkAdvancedVerticalWhite(
 	l, a := s.verAt(r.row-2, r.col)
 	if l {
 		s.avoidVer(r.row+1, r.col)
-		return
-	}
-
-	if !a {
-		l, _ = s.verAt(r.row+1, r.col)
-		if l {
-			s.avoidVer(r.row-2, r.col)
-		}
+	} else if !a && s.verLineAt(r.row+1, r.col) {
+		s.avoidVer(r.row-2, r.col)
 	}
 }
