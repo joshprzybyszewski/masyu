@@ -3,12 +3,13 @@ package fetch
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
-func store(
+func storeAnswer(
 	input *input,
 	sol *model.Solution,
 ) error {
@@ -16,12 +17,37 @@ func store(
 	if err != nil {
 		return err
 	}
-	if _, ok := known[input.id]; ok {
+	if sr, ok := known[input.ID]; ok && sr.Answer != `` {
 		return nil
 	}
-
-	f, err := os.OpenFile(
+	return appendToFile(
 		getInputFilname(input.iter),
+		getFileLine(input, sol),
+	)
+}
+
+func storePuzzle(
+	input *input,
+) error {
+	known, err := Read(input.iter)
+	if err != nil {
+		return err
+	}
+	if _, ok := known[input.ID]; ok {
+		return nil
+	}
+	return appendToFile(
+		getInputFilname(input.iter),
+		getFileLine(input, nil),
+	)
+}
+
+func appendToFile(
+	filename string,
+	line string,
+) error {
+	f, err := os.OpenFile(
+		filename,
 		os.O_APPEND|os.O_RDWR|os.O_CREATE,
 		0666,
 	)
@@ -30,7 +56,7 @@ func store(
 	}
 	defer f.Close()
 
-	_, err = f.WriteString(getFileLine(input, sol))
+	_, err = f.WriteString(line)
 	if err != nil {
 		return err
 	}
@@ -47,7 +73,7 @@ func getFileLine(
 	input *input,
 	sol *model.Solution,
 ) string {
-	return fmt.Sprintf("%s:%s:%s\n", input.id, input.task, sol.ToAnswer())
+	return fmt.Sprintf("%s:%s:%s\n", input.ID, input.task, sol.ToAnswer())
 }
 
 type savedResult struct {
@@ -79,7 +105,7 @@ func Read(
 
 		output[parts[0]] = savedResult{
 			Input: &input{
-				id:   parts[0],
+				ID:   parts[0],
 				task: parts[1],
 				iter: iter,
 			},
@@ -88,4 +114,47 @@ func Read(
 	}
 
 	return output, nil
+}
+
+func ReadN(
+	iter model.Iterator,
+	n int,
+) ([]savedResult, error) {
+	if n <= 0 {
+		return nil, nil
+	}
+
+	puzzles, err := Read(iter)
+	if err != nil {
+		return nil, err
+	}
+
+	if n > len(puzzles) {
+		n = len(puzzles)
+	}
+
+	ids := make([]string, len(puzzles))
+	for id := range puzzles {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+
+	output := make([]savedResult, n)
+	for i := range output {
+		output[i] = puzzles[ids[i]]
+	}
+	return output, nil
+}
+
+func ReadID(
+	iter model.Iterator,
+	puzzID string,
+) (savedResult, error) {
+
+	puzzles, err := Read(iter)
+	if err != nil {
+		return savedResult{}, err
+	}
+
+	return puzzles[puzzID], nil
 }

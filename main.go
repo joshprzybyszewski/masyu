@@ -13,6 +13,8 @@ import (
 )
 
 var (
+	puzzID = flag.String("puzzID", "", "if set, then this will run a specific puzzle")
+
 	iterStart     = flag.Int("start", int(model.MinIterator), "if set, this will override the iterators starting value")
 	iterFinish    = flag.Int("finish", int(model.MaxIterator), "if set, this will override the iterators final value")
 	skipLarge     = flag.Bool("skipbig", true, "if set, this won't attempt the largest puzzles")
@@ -28,6 +30,14 @@ func main() {
 
 	if *shouldProfile {
 		defer profile.Start()()
+	}
+
+	if *puzzID != `` {
+		_ = runPuzzleID(
+			model.Iterator(*iterStart),
+			*puzzID,
+		)
+		return
 	}
 
 	for i := 0; i < *numIterations; i++ {
@@ -54,9 +64,41 @@ func compete(iter model.Iterator) error {
 
 	input, err := fetch.Puzzle(iter)
 	if *fetchNewPuzzles {
-		input, err = fetch.Update(iter)
+		input, err = fetch.GetNewPuzzle(iter)
 	}
 
+	if err != nil {
+		return err
+	}
+
+	ns := input.ToNodes()
+
+	t0 := time.Now()
+	sol, err := solve.FromNodes(
+		iter.GetSize(),
+		ns,
+	)
+	defer func(dur time.Duration) {
+		fmt.Printf("Input: %s\n", input)
+		fmt.Printf("Solution:\n%s\n", sol.Pretty(ns))
+		fmt.Printf("Duration: %s\n\n\n", dur)
+	}(time.Since(t0))
+
+	if err != nil {
+		return err
+	}
+
+	return fetch.Submit(
+		&input,
+		&sol,
+	)
+}
+
+func runPuzzleID(
+	iter model.Iterator,
+	id string,
+) error {
+	input, err := fetch.GetPuzzleID(iter, id)
 	if err != nil {
 		return err
 	}

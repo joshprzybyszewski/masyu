@@ -15,7 +15,7 @@ func BenchmarkAll(b *testing.B) {
 
 	for iter := model.MinIterator; iter <= model.MaxIterator; iter++ {
 		b.Run(iter.String(), func(b *testing.B) {
-			srs, err := fetch.Read(iter)
+			srs, err := fetch.ReadN(iter, 10)
 			if err != nil {
 				b.Logf("Error fetching input: %q", err)
 				b.Fail()
@@ -24,19 +24,8 @@ func BenchmarkAll(b *testing.B) {
 				b.Fail()
 			}
 
-			max := 10
-			if iter.GetSize() > 15 {
-				max = 2
-			}
-			for k := range srs {
-				if len(srs) <= max {
-					break
-				}
-				delete(srs, k)
-			}
-
-			for id, sr := range srs {
-				b.Run("PuzzleID "+id, func(b *testing.B) {
+			for _, sr := range srs {
+				b.Run("PuzzleID "+sr.Input.ID, func(b *testing.B) {
 					var sol model.Solution
 					for n := 0; n < b.N; n++ {
 						sol, err = solve.FromNodes(

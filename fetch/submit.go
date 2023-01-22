@@ -17,6 +17,7 @@ func Submit(
 	input *input,
 	sol *model.Solution,
 ) error {
+	defer storePuzzle(input)
 	if input == nil || input.param == `` {
 		return nil
 	}
@@ -41,7 +42,7 @@ func Submit(
 		return err
 	}
 
-	return store(input, sol)
+	return storeAnswer(input, sol)
 }
 
 func buildSubmissionData(

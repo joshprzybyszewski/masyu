@@ -92,6 +92,9 @@ func getNodeChar(
 }
 
 func (s *Solution) ToAnswer() string {
+	if s == nil {
+		return ``
+	}
 
 	numEdges := int(s.Size) - 1
 	var rows, cols strings.Builder

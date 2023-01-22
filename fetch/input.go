@@ -7,7 +7,7 @@ import (
 )
 
 type input struct {
-	id    string
+	ID    string
 	param string
 	task  string
 
@@ -16,7 +16,7 @@ type input struct {
 
 func (i input) String() string {
 	return fmt.Sprintf("Puzzle %s (Iter: %d, Size: %d, Difficulty: %s)",
-		i.id,
+		i.ID,
 		i.iter,
 		i.iter.GetSize(),
 		i.iter.GetDifficulty(),

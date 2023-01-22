@@ -14,7 +14,7 @@ import (
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
-func Update(
+func GetNewPuzzle(
 	iter model.Iterator,
 ) (input, error) {
 	if !iter.Valid() {
@@ -72,7 +72,7 @@ func populateInput(
 		return err
 	}
 
-	input.id = doc.Find(`#puzzleID`).First().Text()
+	input.ID = doc.Find(`#puzzleID`).First().Text()
 
 	taskString, err := getTaskFromScriptText(
 		doc.Find(`#rel`).Find(`script`).Text(),
