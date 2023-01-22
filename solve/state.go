@@ -75,21 +75,14 @@ func (s *state) initialize() {
 			s.rules.checkVertical(row, col)
 		}
 	}
-	s.settle()
 
-	if !s.isValid() {
+	if !s.rules.runAllChecks(s) {
 		panic(`state initialization is not valid?`)
 	}
 }
 
-func (s *state) settle() {
-	s.rules.runAllChecks(s)
-}
-
 func (s *state) toSolution() (model.Solution, bool, bool) {
-	s.settle()
-
-	if !s.isValid() {
+	if !s.rules.runAllChecks(s) {
 		return model.Solution{}, false, false
 	}
 
@@ -125,6 +118,10 @@ func (s *state) checkPath() (bool, bool) {
 }
 
 func (s *state) isValid() bool {
+	if s.paths.hasCycle && s.paths.cycleSeenNodes != len(s.nodes) {
+		return false
+	}
+
 	for i := 0; i <= int(s.size); i++ {
 		if s.horizontalAvoids[i]&s.horizontalLines[i] != 0 ||
 			s.verticalLines[i]&s.verticalAvoids[i] != 0 {
@@ -172,6 +169,10 @@ func (s *state) avoidHor(r, c model.Dimension) {
 		return
 	}
 	s.horizontalAvoids[r] |= b
+	if s.horizontalLines[r]&s.horizontalAvoids[r] != 0 {
+		// invalid
+		return
+	}
 
 	s.rules.checkHorizontal(r, c)
 }
@@ -183,6 +184,10 @@ func (s *state) lineHor(r, c model.Dimension) {
 		return
 	}
 	s.horizontalLines[r] |= b
+	if s.horizontalLines[r]&s.horizontalAvoids[r] != 0 {
+		// invalid
+		return
+	}
 
 	s.lastLinePlaced.Row = r
 	s.lastLinePlaced.Col = c
@@ -210,6 +215,10 @@ func (s *state) avoidVer(r, c model.Dimension) {
 		return
 	}
 	s.verticalAvoids[c] |= b
+	if s.verticalLines[c]&s.verticalAvoids[c] != 0 {
+		// invalid
+		return
+	}
 
 	s.rules.checkVertical(r, c)
 }
@@ -221,6 +230,10 @@ func (s *state) lineVer(r, c model.Dimension) {
 		return
 	}
 	s.verticalLines[c] |= b
+	if s.verticalLines[c]&s.verticalAvoids[c] != 0 {
+		// invalid
+		return
+	}
 
 	s.lastLinePlaced.Row = r
 	s.lastLinePlaced.Col = c

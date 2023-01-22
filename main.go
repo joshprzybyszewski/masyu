@@ -46,15 +46,15 @@ func main() {
 				// These are the massive ones
 				continue
 			}
+			for numGCs := 0; numGCs < 5; numGCs++ {
+				time.Sleep(100 * time.Millisecond)
+				runtime.GC()
+			}
+
 			err := compete(iter)
 			if err != nil {
 				fmt.Printf("Error: %+v\n", err)
 				// panic(err)
-			}
-
-			for numGCs := 0; numGCs < 3; numGCs++ {
-				time.Sleep(100 * time.Millisecond)
-				runtime.GC()
 			}
 		}
 	}

@@ -31,13 +31,15 @@ func (c *ruleCheckCollector) checkVertical(
 
 func (c *ruleCheckCollector) runAllChecks(
 	s *state,
-) {
+) bool {
 	for c.hasPending() {
 		c.flush(s)
 		if !s.isValid() {
-			return
+			return false
 		}
 	}
+
+	return s.isValid()
 }
 
 func (c *ruleCheckCollector) hasPending() bool {

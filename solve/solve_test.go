@@ -9,6 +9,47 @@ import (
 	"github.com/joshprzybyszewski/masyu/solve"
 )
 
+func TestAccuracy(t *testing.T) {
+	// go decided that it should run tests in this directory.
+	os.Chdir(`..`)
+	max := model.MaxIterator
+	max = 4
+
+	for iter := model.MinIterator; iter <= max; iter++ {
+		t.Run(iter.String(), func(t *testing.T) {
+			srs, err := fetch.ReadN(iter, 100)
+			if err != nil {
+				t.Logf("Error fetching input: %q", err)
+				t.Fail()
+			}
+			if len(srs) == 0 {
+				t.Skip()
+			}
+
+			for _, sr := range srs {
+				t.Run(sr.Input.ID, func(t *testing.T) {
+					ns := sr.Input.ToNodes()
+					sol, err := solve.FromNodes(
+						iter.GetSize(),
+						ns,
+					)
+					if err != nil {
+						t.Logf("Error fetching input: %q", err)
+						t.Fail()
+					}
+					if sol.ToAnswer() != sr.Answer {
+						t.Logf("Incorrect Answer\n")
+						t.Logf("Exp: %s\n", sr.Answer)
+						t.Logf("Act: %s\n", sol.ToAnswer())
+						t.Logf("Board:\n%s\n\n", sol.Pretty(ns))
+						t.Fail()
+					}
+				})
+			}
+		})
+	}
+}
+
 func BenchmarkAll(b *testing.B) {
 	// go decided that it should run benchmarks in this directory.
 	os.Chdir(`..`)

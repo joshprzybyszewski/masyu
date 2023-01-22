@@ -129,17 +129,20 @@ func ReadN(
 		return nil, err
 	}
 
-	if n > len(puzzles) {
-		n = len(puzzles)
-	}
-
-	ids := make([]string, len(puzzles))
+	ids := make([]string, 0, len(puzzles))
 	for id := range puzzles {
+		if puzzles[id].Input == nil {
+			continue
+		}
 		ids = append(ids, id)
 	}
 	sort.Strings(ids)
 
-	output := make([]savedResult, n)
+	if n < len(ids) {
+		ids = ids[:n]
+	}
+
+	output := make([]savedResult, len(ids))
 	for i := range output {
 		output[i] = puzzles[ids[i]]
 	}

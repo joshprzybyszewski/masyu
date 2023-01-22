@@ -12,7 +12,7 @@ import (
 type workforce struct {
 	solution chan model.Solution
 
-	work chan *state
+	work chan state
 
 	freeWorkers int32
 }
@@ -20,7 +20,7 @@ type workforce struct {
 func newWorkforce() workforce {
 	return workforce{
 		solution: make(chan model.Solution, 1),
-		work:     make(chan *state, runtime.NumCPU()),
+		work:     make(chan state, runtime.NumCPU()),
 	}
 }
 
@@ -45,7 +45,7 @@ func (w *workforce) startWorker(
 				return
 			}
 			atomic.AddInt32(&w.freeWorkers, -1)
-			w.process(ctx, s)
+			w.process(&s)
 			atomic.AddInt32(&w.freeWorkers, 1)
 		}
 	}
@@ -62,7 +62,7 @@ func (w *workforce) solve(
 	ctx context.Context,
 	s *state,
 ) (model.Solution, error) {
-	w.process(ctx, s)
+	w.process(s)
 
 	select {
 	case <-ctx.Done():
@@ -76,14 +76,17 @@ func (w *workforce) solve(
 }
 
 func (w *workforce) process(
-	ctx context.Context,
 	s *state,
 ) {
-	if ctx.Err() != nil {
+	if atomic.LoadInt32(&w.freeWorkers) > 9000 {
 		return
 	}
 	sol, solved, ok := s.toSolution()
 	if solved {
+		defer func() {
+			// if the solution channel has been closed, then don't do anything.
+			_ = recover()
+		}()
 		w.solution <- sol
 		return
 	}
@@ -99,27 +102,30 @@ func (w *workforce) process(
 	if isHor {
 		s2 := *s
 		s2.lineHor(c.Row, c.Col)
-		w.send(ctx, &s2)
+		w.send(s2)
 
 		s.avoidHor(c.Row, c.Col)
-		w.send(ctx, s)
+		w.send(*s)
 		return
 	}
 
 	s2 := *s
 	s2.lineVer(c.Row, c.Col)
-	w.send(ctx, &s2)
+	w.send(s2)
 
 	s.avoidVer(c.Row, c.Col)
-	w.send(ctx, s)
+	w.send(*s)
 }
 
 func (w *workforce) send(
-	ctx context.Context,
-	s *state,
+	s state,
 ) {
-	if atomic.LoadInt32(&w.freeWorkers) == 0 {
-		w.process(ctx, s)
+	fw := atomic.LoadInt32(&w.freeWorkers)
+	if fw > 9000 {
+		return
+	}
+	if fw == 0 {
+		w.process(&s)
 	} else {
 		defer func() {
 			// if the work channel has been closed, then don't do anything.
