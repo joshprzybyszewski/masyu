@@ -10,11 +10,11 @@ import (
 )
 
 type workforce struct {
-	freeWorkers int32
-
 	solution chan model.Solution
 
 	work chan *state
+
+	freeWorkers int32
 }
 
 func newWorkforce() workforce {

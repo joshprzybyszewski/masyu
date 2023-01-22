@@ -8,11 +8,12 @@ import (
 
 type state struct {
 	rules *ruleCheckCollector
-	paths pathCollector
 	nodes []model.Node
 
 	size           model.Size
 	lastLinePlaced model.Coord
+
+	paths pathCollector
 
 	horizontalLines  [model.MaxPointsPerLine]uint64
 	horizontalAvoids [model.MaxPointsPerLine]uint64
