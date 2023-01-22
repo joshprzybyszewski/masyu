@@ -33,7 +33,6 @@ func newState(
 		nodes: make([]model.Node, len(ns)),
 		size:  size,
 		rules: &rcc,
-		paths: newPathCollector(),
 	}
 
 	// offset all of the input nodes by positive one
@@ -48,6 +47,8 @@ func newState(
 			r.addWhiteNode(s.nodes[i].Row, s.nodes[i].Col)
 		}
 	}
+	s.paths = newPathCollector(s.nodes)
+
 	s.lastLinePlaced = s.nodes[0].Coord
 
 	s.initialize()
@@ -115,50 +116,11 @@ func (s *state) checkPath() (bool, bool) {
 	if !s.paths.hasCycle {
 		return true, false
 	}
-
-	var horizontalLines [model.MaxPointsPerLine]uint64
-	var verticalLines [model.MaxPointsPerLine]uint64
-
-	start := s.lastLinePlaced
-	cur := start
-	prev := cur
-
-	for {
-		if prev.Col != cur.Col+1 && s.horizontalLines[cur.Row]&(cur.Col).Bit() != 0 {
-			prev = cur
-			horizontalLines[cur.Row] |= (cur.Col.Bit())
-			cur.Col++
-		} else if prev.Row != cur.Row+1 && s.verticalLines[cur.Col]&(cur.Row).Bit() != 0 {
-			prev = cur
-			verticalLines[cur.Col] |= (cur.Row.Bit())
-			cur.Row++
-		} else if prev.Col != cur.Col-1 && s.horizontalLines[cur.Row]&(cur.Col-1).Bit() != 0 {
-			prev = cur
-			horizontalLines[cur.Row] |= ((cur.Col - 1).Bit())
-			cur.Col--
-		} else if prev.Row != cur.Row-1 && s.verticalLines[cur.Col]&(cur.Row-1).Bit() != 0 {
-			prev = cur
-			verticalLines[cur.Col] |= ((cur.Row - 1).Bit())
-			cur.Row--
-		} else {
-			// we know there's a cycle somewhere, but we found an incomplete path.
-			// Therefore, this is a bad puzzle state.
-			return false, false
-		}
-		if cur == start {
-			break
-		}
+	if s.paths.cycleSeenNodes == len(s.nodes) {
+		return true, true
 	}
 
-	// we've detected a cycle. If it doesn't look like the full state,
-	// then it's incomplete.
-	if horizontalLines != s.horizontalLines ||
-		verticalLines != s.verticalLines {
-		return false, false
-	}
-	// the cycle is complete. Return that we're finished
-	return true, true
-
+	return false, false
 }
 
 func (s *state) isValid() bool {

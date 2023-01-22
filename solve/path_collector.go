@@ -7,18 +7,35 @@ import (
 type pair struct {
 	a model.Coord
 	b model.Coord
+
+	numSeenNodes int
 }
 
 type pathCollector struct {
 	pairs [model.MaxPointsPerLine][model.MaxPointsPerLine]*pair
 
-	hasCycle bool
+	nodes [model.MaxPointsPerLine]uint64
+
+	hasCycle       bool
+	cycleSeenNodes int
 }
 
-func newPathCollector() pathCollector {
-	return pathCollector{
-		//
+func newPathCollector(
+	nodes []model.Node,
+) pathCollector {
+	pc := pathCollector{}
+
+	for _, n := range nodes {
+		pc.nodes[n.Row] |= (n.Col.Bit())
 	}
+
+	return pc
+}
+
+func (pc *pathCollector) isNode(
+	c model.Coord,
+) bool {
+	return pc.nodes[c.Row]&(c.Col.Bit()) != 0
 }
 
 func (pc *pathCollector) addHorizontal(
@@ -57,11 +74,18 @@ func (pc *pathCollector) add(
 	r := pc.pairs[myb.Row][myb.Col]
 
 	if l == nil && r == nil {
-		// fmt.Printf("first add %v %v\n", mya, myb)
 		p := pair{
 			a: mya,
 			b: myb,
 		}
+
+		if pc.isNode(mya) {
+			p.numSeenNodes++
+		}
+		if pc.isNode(myb) {
+			p.numSeenNodes++
+		}
+
 		pc.pairs[mya.Row][mya.Col] = &p
 		pc.pairs[myb.Row][myb.Col] = &p
 		return
@@ -72,10 +96,16 @@ func (pc *pathCollector) add(
 			pc.pairs[mya.Row][mya.Col] = nil
 			pc.pairs[myb.Row][myb.Col] = nil
 			pc.hasCycle = true
+			if l.numSeenNodes != r.numSeenNodes {
+				panic(`wtf`)
+			}
+			pc.cycleSeenNodes = l.numSeenNodes
 			return
 		}
+
 		// fmt.Printf("connecting %v %v\n", mya, myb)
 		p := *l
+		p.numSeenNodes += r.numSeenNodes
 		if p.a == mya {
 			if r.a == myb {
 				p.a = r.b
@@ -108,13 +138,18 @@ func (pc *pathCollector) add(
 	if l != nil {
 		// fmt.Printf("extending left %v %v\n", mya, myb)
 		p := *l
+		if pc.isNode(myb) {
+			p.numSeenNodes++
+		}
 		pc.pairs[mya.Row][mya.Col] = nil
 		if p.a == mya {
 			if p.b == myb {
+				panic(`ahh`)
 				// fmt.Printf("cycle detected %v %v\n", mya, myb)
-				pc.hasCycle = true
-				pc.pairs[myb.Row][myb.Col] = nil
-				return
+				// pc.hasCycle = true
+				// pc.cycleSeenNodes = l.numSeenNodes
+				// pc.pairs[myb.Row][myb.Col] = nil
+				// return
 			}
 			p.a = myb
 			pc.pairs[p.a.Row][p.a.Col] = &p
@@ -126,10 +161,12 @@ func (pc *pathCollector) add(
 		}
 
 		if p.a == myb {
+			panic(`ahh`)
 			// fmt.Printf("cycle detected %v %v\n", mya, myb)
-			pc.hasCycle = true
-			pc.pairs[myb.Row][myb.Col] = nil
-			return
+			// pc.hasCycle = true
+			// pc.cycleSeenNodes = l.numSeenNodes
+			// pc.pairs[myb.Row][myb.Col] = nil
+			// return
 		}
 		p.b = myb
 		pc.pairs[p.a.Row][p.a.Col] = &p
@@ -139,13 +176,18 @@ func (pc *pathCollector) add(
 
 	// fmt.Printf("extending right %v %v\n", mya, myb)
 	p := *r
+	if pc.isNode(mya) {
+		p.numSeenNodes++
+	}
 	pc.pairs[myb.Row][myb.Col] = nil
 	if p.a == myb {
 		if p.b == mya {
+			panic(`ahh`)
 			// fmt.Printf("cycle detected %v %v\n", mya, myb)
-			pc.hasCycle = true
-			pc.pairs[mya.Row][mya.Col] = nil
-			return
+			// pc.hasCycle = true
+			// pc.cycleSeenNodes = l.numSeenNodes
+			// pc.pairs[mya.Row][mya.Col] = nil
+			// return
 		}
 		p.a = mya
 		pc.pairs[p.a.Row][p.a.Col] = &p
@@ -157,10 +199,12 @@ func (pc *pathCollector) add(
 		panic(`dev error`)
 	}
 	if p.a == mya {
+		panic(`ahh`)
 		// fmt.Printf("cycle detected %v %v\n", mya, myb)
-		pc.hasCycle = true
-		pc.pairs[mya.Row][mya.Col] = nil
-		return
+		// pc.hasCycle = true
+		// pc.cycleSeenNodes = l.numSeenNodes
+		// pc.pairs[mya.Row][mya.Col] = nil
+		// return
 	}
 	p.b = mya
 	pc.pairs[p.a.Row][p.a.Col] = &p
