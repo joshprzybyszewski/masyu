@@ -23,6 +23,7 @@ func solve(
 	w := newWorkforce()
 	w.start(ctx)
 	defer w.stop()
+	defer cancelFn()
 
 	return w.solve(ctx, s)
 }

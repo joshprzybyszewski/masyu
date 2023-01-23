@@ -76,7 +76,7 @@ func (w *workforce) solve(
 	ctx context.Context,
 	s *state,
 ) (model.Solution, error) {
-	w.work <- *s
+	go w.sendWork(ctx, *s)
 
 	select {
 	case <-ctx.Done():
@@ -86,5 +86,70 @@ func (w *workforce) solve(
 			return model.Solution{}, fmt.Errorf("did not find the solution")
 		}
 		return sol, nil
+	}
+}
+
+func (w *workforce) sendWork(
+	ctx context.Context,
+	initial state,
+) {
+	w.work <- initial
+
+	defer fmt.Printf("completed send work\n")
+
+	var cpy state
+	sendCpy := func() {
+		defer func() {
+			// if the work channel has been closed, then don't do anything.
+			_ = recover()
+		}()
+		select {
+		case <-ctx.Done():
+		case w.work <- cpy:
+		}
+	}
+
+	var l, a bool
+
+	for _, n := range initial.nodes {
+		if l, a = initial.horAt(n.Row, n.Col); !l && !a {
+			cpy = initial
+			cpy.lineHor(n.Row, n.Col)
+			sendCpy()
+
+			cpy = initial
+			cpy.avoidHor(n.Row, n.Col)
+			sendCpy()
+		}
+
+		if l, a = initial.verAt(n.Row, n.Col); !l && !a {
+			cpy = initial
+			cpy.lineVer(n.Row, n.Col)
+			sendCpy()
+
+			cpy = initial
+			cpy.avoidVer(n.Row, n.Col)
+			sendCpy()
+		}
+
+		if l, a = initial.horAt(n.Row, n.Col-1); !l && !a {
+			cpy = initial
+			cpy.lineHor(n.Row, n.Col-1)
+			sendCpy()
+
+			cpy = initial
+			cpy.avoidHor(n.Row, n.Col-1)
+			sendCpy()
+		}
+
+		if l, a = initial.verAt(n.Row-1, n.Col); !l && !a {
+			cpy = initial
+			cpy.lineVer(n.Row-1, n.Col)
+			sendCpy()
+
+			cpy = initial
+			cpy.avoidVer(n.Row-1, n.Col)
+			sendCpy()
+		}
 	}
 }
