@@ -9,33 +9,50 @@ import (
 	"github.com/joshprzybyszewski/masyu/solve"
 )
 
-func Test150618(t *testing.T) {
+func TestSpecifics(t *testing.T) {
 	// go decided that it should run tests in this directory.
 	os.Chdir(`..`)
 
-	iter := model.Iterator(2)
+	testCases := []struct {
+		iter model.Iterator
+		id   string
+	}{{
+		iter: 2,
+		id:   `150,618`,
+	}, {
+		iter: 1,
+		id:   `1,527,476`,
+	}, {
+		iter: 5,
+		id:   `193,319`,
+	}}
 
-	sr, err := fetch.ReadID(iter, `150,618`)
-	if err != nil {
-		t.Logf("Error fetching input: %q", err)
-		t.Fail()
-	}
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.iter.String()+` `+tc.id, func(t *testing.T) {
+			sr, err := fetch.ReadID(tc.iter, tc.id)
+			if err != nil {
+				t.Logf("Error fetching input: %q", err)
+				t.Fail()
+			}
 
-	ns := sr.Input.ToNodes()
-	sol, err := solve.FromNodes(
-		iter.GetSize(),
-		ns,
-	)
-	if err != nil {
-		t.Logf("Error fetching input: %q", err)
-		t.Fail()
-	}
-	if sol.ToAnswer() != sr.Answer {
-		t.Logf("Incorrect Answer\n")
-		t.Logf("Exp: %s\n", sr.Answer)
-		t.Logf("Act: %s\n", sol.ToAnswer())
-		t.Logf("Board:\n%s\n\n", sol.Pretty(ns))
-		t.Fail()
+			ns := sr.Input.ToNodes()
+			sol, err := solve.FromNodes(
+				tc.iter.GetSize(),
+				ns,
+			)
+			if err != nil {
+				t.Logf("Error fetching input: %q", err)
+				t.Fail()
+			}
+			if sol.ToAnswer() != sr.Answer {
+				t.Logf("Incorrect Answer\n")
+				t.Logf("Exp: %q\n", sr.Answer)
+				t.Logf("Act: %q\n", sol.ToAnswer())
+				t.Logf("Board:\n%s\n\n", sol.Pretty(ns))
+				t.Fail()
+			}
+		})
 	}
 }
 
@@ -69,8 +86,8 @@ func TestAccuracy(t *testing.T) {
 					}
 					if sol.ToAnswer() != sr.Answer {
 						t.Logf("Incorrect Answer\n")
-						t.Logf("Exp: %s\n", sr.Answer)
-						t.Logf("Act: %s\n", sol.ToAnswer())
+						t.Logf("Exp: %q\n", sr.Answer)
+						t.Logf("Act: %q\n", sol.ToAnswer())
 						t.Logf("Board:\n%s\n\n", sol.Pretty(ns))
 						t.Fail()
 					}

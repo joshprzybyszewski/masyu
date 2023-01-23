@@ -103,6 +103,11 @@ func (pc *pathCollector) add(
 		if l == r {
 			pc.pairs[mya.Row][mya.Col] = newEmptyPair()
 			pc.pairs[myb.Row][myb.Col] = newEmptyPair()
+			if pc.hasCycle {
+				// a second cycle? this is bad news.
+				pc.cycleSeenNodes = -1
+				return
+			}
 			pc.hasCycle = true
 			pc.cycleSeenNodes = l.numSeenNodes
 			return

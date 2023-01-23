@@ -41,19 +41,16 @@ func newState(
 		s.nodes[i] = ns[i]
 		s.nodes[i].Row++
 		s.nodes[i].Col++
-
-		if ns[i].IsBlack {
-			r.addBlackNode(s.nodes[i].Row, s.nodes[i].Col)
-		} else {
-			r.addWhiteNode(s.nodes[i].Row, s.nodes[i].Col)
-		}
 	}
 	s.paths = newPathCollector(s.nodes)
 
 	s.lastLinePlaced = s.nodes[0].Coord
 
+	r.populateRules(&s)
+
 	s.initialize()
-	r.intializeUnknowns(&s)
+
+	r.populateUnknowns(&s)
 
 	return s
 }
@@ -86,12 +83,33 @@ func (s *state) toSolution() (model.Solution, bool, bool) {
 		return model.Solution{}, false, false
 	}
 
-	isValid, isComplete := s.checkPath()
-	if !isValid {
+	if !s.paths.hasCycle {
+		// is not completed yet
+		return model.Solution{}, false, true
+	}
+
+	if s.paths.cycleSeenNodes != len(s.nodes) {
+		// there's a cycle, but it doesn't include all of the nodes.
+		// it's invalid.
 		return model.Solution{}, false, false
 	}
-	if !isComplete {
-		return model.Solution{}, false, true
+
+	// we found a state that includes a cycle with all of the nodes.
+	// avoid all of the remaining spots in the state, and see if it's
+	// still valid: this eliminates the bad state of having tertiary paths set.
+	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
+		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
+			if !s.horLineAt(row, col) {
+				s.avoidHor(row, col)
+			}
+			if !s.verLineAt(row, col) {
+				s.avoidVer(row, col)
+			}
+		}
+	}
+
+	if !s.rules.runAllChecks(s) {
+		return model.Solution{}, false, false
 	}
 
 	sol := model.Solution{
@@ -104,17 +122,6 @@ func (s *state) toSolution() (model.Solution, bool, bool) {
 	}
 
 	return sol, true, true
-}
-
-func (s *state) checkPath() (bool, bool) {
-	if !s.paths.hasCycle {
-		return true, false
-	}
-	if s.paths.cycleSeenNodes == len(s.nodes) {
-		return true, true
-	}
-
-	return false, false
 }
 
 func (s *state) isValid() bool {

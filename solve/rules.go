@@ -32,40 +32,43 @@ func newRules(
 	}
 }
 
-func (r *rules) addDefault(
-	size model.Size,
+func (r *rules) populateRules(
+	s *state,
 ) {
+
+	for i := range s.nodes {
+		if s.nodes[i].IsBlack {
+			r.addBlackNode(s.nodes[i].Row, s.nodes[i].Col)
+		} else {
+			r.addWhiteNode(s.nodes[i].Row, s.nodes[i].Col)
+		}
+	}
+
 	var pins [model.MaxPointsPerLine][model.MaxPointsPerLine]rule
-	for row := model.Dimension(1); row <= model.Dimension(size); row++ {
-		for col := model.Dimension(1); col <= model.Dimension(size); col++ {
+	for row := model.Dimension(1); row <= model.Dimension(s.size); row++ {
+		for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
 			pins[row][col] = newDefaultRule(row, col)
 		}
 	}
 
-	for row := model.Dimension(1); row <= model.Dimension(size); row++ {
-		for col := model.Dimension(1); col < model.Dimension(size); col++ {
-			r.horizontals[row][col] = append(r.horizontals[row][col],
-				&pins[row][col],
-				&pins[row][col+1],
-			)
+	for row := model.Dimension(1); row <= model.Dimension(s.size); row++ {
+		for col := model.Dimension(1); col < model.Dimension(s.size); col++ {
+			r.addHorizontalRule(row, col, &pins[row][col])
+			r.addHorizontalRule(row, col, &pins[row][col+1])
 		}
 	}
 
-	for col := model.Dimension(1); col <= model.Dimension(size); col++ {
-		for row := model.Dimension(1); row < model.Dimension(size); row++ {
-			r.verticals[row][col] = append(r.verticals[row][col],
-				&pins[row][col],
-				&pins[row+1][col],
-			)
+	for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
+		for row := model.Dimension(1); row < model.Dimension(s.size); row++ {
+			r.addVerticalRule(row, col, &pins[row][col])
+			r.addVerticalRule(row, col, &pins[row+1][col])
 		}
 	}
 }
 
-func (r *rules) intializeUnknowns(
+func (r *rules) populateUnknowns(
 	s *state,
 ) {
-
-	r.addDefault(s.size)
 
 	var l, a bool
 	for row := model.Dimension(1); row <= model.Dimension(s.size); row++ {
@@ -171,222 +174,151 @@ func (r *rules) checkVertical(
 	}
 }
 
+func (r *rules) addHorizontalRule(
+	row, col model.Dimension,
+	rule *rule,
+) {
+	r.horizontals[row][col] = append(r.horizontals[row][col],
+		rule,
+	)
+}
+
+func (r *rules) addVerticalRule(
+	row, col model.Dimension,
+	rule *rule,
+) {
+	r.verticals[row][col] = append(r.verticals[row][col],
+		rule,
+	)
+}
+
 func (r *rules) addBlackNode(
 	row, col model.Dimension,
 ) {
 	left := newBlackL1Rule(row, col)
-	r.horizontals[row][col-1] = append(r.horizontals[row][col-1],
-		&left,
-	)
+	r.addHorizontalRule(row, col-1, &left)
+
 	right := newBlackR1Rule(row, col)
-	r.horizontals[row][col] = append(r.horizontals[row][col],
-		&right,
-	)
+	r.addHorizontalRule(row, col, &right)
+
 	up := newBlackU1Rule(row, col)
-	r.verticals[row-1][col] = append(r.verticals[row-1][col],
-		&up,
-	)
+	r.addVerticalRule(row-1, col, &up)
+
 	down := newBlackD1Rule(row, col)
-	r.verticals[row][col] = append(r.verticals[row][col],
-		&down,
-	)
+	r.addVerticalRule(row, col, &down)
 
 	// Look at extended "avoids"
 	if col > 1 {
 		left2 := newBlackL2Rule(row, col)
-		r.horizontals[row][col-2] = append(r.horizontals[row][col-2],
-			&left2,
-		)
+		r.addHorizontalRule(row, col-2, &left2)
 	}
+
 	right2 := newBlackR2Rule(row, col)
-	r.horizontals[row][col+1] = append(r.horizontals[row][col+1],
-		&right2,
-	)
+	r.addHorizontalRule(row, col+1, &right2)
+
 	if row > 1 {
 		up2 := newBlackU2Rule(row, col)
-		r.verticals[row-2][col] = append(r.verticals[row-2][col],
-			&up2,
-		)
+		r.addVerticalRule(row-2, col, &up2)
 	}
+
 	down2 := newBlackD2Rule(row, col)
-	r.verticals[row+1][col] = append(r.verticals[row+1][col],
-		&down2,
-	)
+	r.addVerticalRule(row+1, col, &down2)
 
 	// Look at branches off the adjacencies.
 	leftBranch := newBlackLBranchRule(row, col)
-	r.verticals[row-1][col-1] = append(r.verticals[row-1][col-1],
-		&leftBranch,
-	)
-	r.verticals[row][col-1] = append(r.verticals[row][col-1],
-		&leftBranch,
-	)
+	r.addVerticalRule(row-1, col-1, &leftBranch)
+	r.addVerticalRule(row, col-1, &leftBranch)
+
 	rightBranch := newBlackRBranchRule(row, col)
-	r.verticals[row-1][col+1] = append(r.verticals[row-1][col+1],
-		&rightBranch,
-	)
-	r.verticals[row][col+1] = append(r.verticals[row][col+1],
-		&rightBranch,
-	)
+	r.addVerticalRule(row-1, col+1, &rightBranch)
+	r.addVerticalRule(row, col+1, &rightBranch)
+
 	upBranch := newBlackUBranchRule(row, col)
-	r.horizontals[row-1][col] = append(r.horizontals[row-1][col],
-		&upBranch,
-	)
-	r.horizontals[row-1][col-1] = append(r.horizontals[row-1][col-1],
-		&upBranch,
-	)
+	r.addHorizontalRule(row-1, col, &upBranch)
+	r.addHorizontalRule(row-1, col-1, &upBranch)
+
 	downBranch := newBlackDBranchRule(row, col)
-	r.horizontals[row+1][col] = append(r.horizontals[row+1][col],
-		&downBranch,
-	)
-	r.horizontals[row+1][col-1] = append(r.horizontals[row+1][col-1],
-		&downBranch,
-	)
+	r.addHorizontalRule(row+1, col, &downBranch)
+	r.addHorizontalRule(row+1, col-1, &downBranch)
 
 	// look at inversions for black nodes
 	if ih := newInvertHorizontalBlack(row, col); ih != nil {
-		r.horizontals[row][col-2] = append(r.horizontals[row][col-2],
-			ih,
-		)
-		r.horizontals[row][col+1] = append(r.horizontals[row][col+1],
-			ih,
-		)
-		r.verticals[row-2][col] = append(r.verticals[row-2][col],
-			ih,
-		)
-		r.verticals[row+1][col] = append(r.verticals[row+1][col],
-			ih,
-		)
-	}
-	if iv := newInvertVerticalBlack(row, col); iv != nil {
-		r.horizontals[row][col-2] = append(r.horizontals[row][col-2],
-			iv,
-		)
-		r.horizontals[row][col+1] = append(r.horizontals[row][col+1],
-			iv,
-		)
-		r.verticals[row-2][col] = append(r.verticals[row-2][col],
-			iv,
-		)
-		r.verticals[row+1][col] = append(r.verticals[row+1][col],
-			iv,
-		)
+		r.addHorizontalRule(row, col-2, ih)
+		r.addHorizontalRule(row, col+1, ih)
+		r.addVerticalRule(row-2, col, ih)
+		r.addVerticalRule(row+1, col, ih)
 	}
 
+	if iv := newInvertVerticalBlack(row, col); iv != nil {
+		r.addHorizontalRule(row, col-2, iv)
+		r.addHorizontalRule(row, col+1, iv)
+		r.addVerticalRule(row-2, col, iv)
+		r.addVerticalRule(row+1, col, iv)
+	}
+
+	// ensure the black node is valid
 	bv := newBlackValidator(row, col)
-	r.horizontals[row][col-1] = append(r.horizontals[row][col-1],
-		&bv,
-	)
-	r.horizontals[row][col] = append(r.horizontals[row][col],
-		&bv,
-	)
-	r.verticals[row-1][col] = append(r.verticals[row-1][col],
-		&bv,
-	)
-	r.verticals[row][col] = append(r.verticals[row][col],
-		&bv,
-	)
+	r.addHorizontalRule(row, col-1, &bv)
+	r.addHorizontalRule(row, col, &bv)
+	r.addVerticalRule(row-1, col, &bv)
+	r.addVerticalRule(row, col, &bv)
 }
 
 func (r *rules) addWhiteNode(
 	row, col model.Dimension,
 ) {
 	left := newWhiteL1Rule(row, col)
-	r.horizontals[row][col-1] = append(r.horizontals[row][col-1],
-		&left,
-	)
+	r.addHorizontalRule(row, col-1, &left)
+
 	right := newWhiteR1Rule(row, col)
-	r.horizontals[row][col] = append(r.horizontals[row][col],
-		&right,
-	)
+	r.addHorizontalRule(row, col, &right)
+
 	up := newWhiteU1Rule(row, col)
-	r.verticals[row-1][col] = append(r.verticals[row-1][col],
-		&up,
-	)
+	r.addVerticalRule(row-1, col, &up)
+
 	down := newWhiteD1Rule(row, col)
-	r.verticals[row][col] = append(r.verticals[row][col],
-		&down,
-	)
+	r.addVerticalRule(row, col, &down)
 
 	ah := newAdvancedHorizontalWhite(row, col)
 	if col > 1 {
-		r.horizontals[row][col-2] = append(r.horizontals[row][col-2],
-			&ah,
-		)
+		r.addHorizontalRule(row, col-2, &ah)
+
 	}
-	r.horizontals[row][col+1] = append(r.horizontals[row][col+1],
-		&ah,
-	)
+	r.addHorizontalRule(row, col+1, &ah)
 
 	av := newAdvancedVerticalWhite(row, col)
 	if row > 1 {
-		r.verticals[row-2][col] = append(r.verticals[row-2][col],
-			&av,
-		)
+		r.addVerticalRule(row-2, col, &av)
 	}
-	r.verticals[row+1][col] = append(r.verticals[row+1][col],
-		&av,
-	)
+	r.addVerticalRule(row+1, col, &av)
 
 	ih := newInvertHorizontalWhite(row, col)
 	if col > 1 {
-		r.horizontals[row][col-2] = append(r.horizontals[row][col-2],
-			&ih,
-		)
+		r.addHorizontalRule(row, col-2, &ih)
 	}
-	r.horizontals[row][col+1] = append(r.horizontals[row][col+1],
-		&ih,
-	)
+	r.addHorizontalRule(row, col+1, &ih)
 
 	iv := newInvertVerticalWhite(row, col)
 	if row > 1 {
-		r.verticals[row-2][col] = append(r.verticals[row-2][col],
-			&iv,
-		)
+		r.addVerticalRule(row-2, col, &iv)
 	}
-	r.verticals[row+1][col] = append(r.verticals[row+1][col],
-		&iv,
-	)
+	r.addVerticalRule(row+1, col, &iv)
 
 	hb := newWhiteHorizontalBranchRule(row, col)
-	r.verticals[row][col-1] = append(r.verticals[row][col-1],
-		&hb,
-	)
-	r.verticals[row-1][col-1] = append(r.verticals[row-1][col-1],
-		&hb,
-	)
-	r.verticals[row][col+1] = append(r.verticals[row][col+1],
-		&hb,
-	)
-	r.verticals[row-1][col+1] = append(r.verticals[row-1][col+1],
-		&hb,
-	)
+	r.addVerticalRule(row, col-1, &hb)
+	r.addVerticalRule(row-1, col-1, &hb)
+	r.addVerticalRule(row, col+1, &hb)
+	r.addVerticalRule(row-1, col+1, &hb)
 
 	vb := newWhiteVerticalBranchRule(row, col)
-	r.verticals[row-1][col] = append(r.verticals[row-1][col],
-		&vb,
-	)
-	r.verticals[row-1][col-1] = append(r.verticals[row-1][col-1],
-		&vb,
-	)
-	r.verticals[row+1][col] = append(r.verticals[row+1][col],
-		&vb,
-	)
-	r.verticals[row+1][col-1] = append(r.verticals[row+1][col-1],
-		&vb,
-	)
+	r.addVerticalRule(row-1, col, &vb)
+	r.addVerticalRule(row-1, col-1, &vb)
+	r.addVerticalRule(row+1, col, &vb)
+	r.addVerticalRule(row+1, col-1, &vb)
 
 	wv := newWhiteValidator(row, col)
-	r.horizontals[row][col-1] = append(r.horizontals[row][col-1],
-		&wv,
-	)
-	r.horizontals[row][col] = append(r.horizontals[row][col],
-		&wv,
-	)
-	r.verticals[row-1][col] = append(r.verticals[row-1][col],
-		&wv,
-	)
-	r.verticals[row][col] = append(r.verticals[row][col],
-		&wv,
-	)
+	r.addHorizontalRule(row, col-1, &wv)
+	r.addHorizontalRule(row, col, &wv)
+	r.addVerticalRule(row-1, col, &wv)
+	r.addVerticalRule(row, col, &wv)
 }

@@ -1,6 +1,8 @@
 package solve
 
-import "github.com/joshprzybyszewski/masyu/model"
+import (
+	"github.com/joshprzybyszewski/masyu/model"
+)
 
 func newDefaultRule(
 	row, col model.Dimension,
