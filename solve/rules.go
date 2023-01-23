@@ -242,6 +242,36 @@ func (r *rules) addBlackNode(
 	r.horizontals[row+1][col-1] = append(r.horizontals[row+1][col-1],
 		&downBranch,
 	)
+
+	// look at inversions for black nodes
+	if ih := newInvertHorizontalBlack(row, col); ih != nil {
+		r.horizontals[row][col-2] = append(r.horizontals[row][col-2],
+			ih,
+		)
+		r.horizontals[row][col+1] = append(r.horizontals[row][col+1],
+			ih,
+		)
+		r.verticals[row-2][col] = append(r.verticals[row-2][col],
+			ih,
+		)
+		r.verticals[row+1][col] = append(r.verticals[row+1][col],
+			ih,
+		)
+	}
+	if iv := newInvertVerticalBlack(row, col); iv != nil {
+		r.horizontals[row][col-2] = append(r.horizontals[row][col-2],
+			iv,
+		)
+		r.horizontals[row][col+1] = append(r.horizontals[row][col+1],
+			iv,
+		)
+		r.verticals[row-2][col] = append(r.verticals[row-2][col],
+			iv,
+		)
+		r.verticals[row+1][col] = append(r.verticals[row+1][col],
+			iv,
+		)
+	}
 }
 
 func (r *rules) addWhiteNode(
