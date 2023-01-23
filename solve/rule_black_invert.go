@@ -28,8 +28,7 @@ func (r *rule) checkInvertHorizontalBlack(
 	rl, ra := s.horAt(r.row, r.col+1)
 	if la && ra {
 		// if they are both avoided, then we are invalid.
-		s.lineHor(r.row, r.col)
-		s.avoidHor(r.row, r.col)
+		r.setInvalid(s)
 		return
 	}
 	if !ll || !rl {
@@ -90,8 +89,7 @@ func (r *rule) checkInvertVerticalBlack(
 	dl, da := s.verAt(r.row+1, r.col)
 	if ua && da {
 		// if they are both avoided, then we are invalid.
-		s.lineHor(r.row, r.col)
-		s.avoidHor(r.row, r.col)
+		r.setInvalid(s)
 		return
 	}
 	if !ul || !dl {

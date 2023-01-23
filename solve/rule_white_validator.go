@@ -50,7 +50,6 @@ func (r *rule) checkWhiteValid(
 	if (nh == 1 && nv == 1) || (ah == 1 && av == 1) {
 		// white nodes require 2 lines or 2 avoids in the same direction.
 		// Write out state that is invalid.
-		s.lineHor(r.row, r.col)
-		s.avoidHor(r.row, r.col)
+		r.setInvalid(s)
 	}
 }

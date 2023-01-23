@@ -22,6 +22,10 @@ func (r *rule) checkBlackValid(
 	l, a := s.horAt(r.row, r.col)
 	if l {
 		nh++
+		if s.horAvoidAt(r.row, r.col+1) {
+			r.setInvalid(s)
+			return
+		}
 	} else if a {
 		ah++
 	}
@@ -29,28 +33,42 @@ func (r *rule) checkBlackValid(
 	l, a = s.verAt(r.row, r.col)
 	if l {
 		nv++
+		if s.verAvoidAt(r.row+1, r.col) {
+			r.setInvalid(s)
+			return
+		}
 	} else if a {
 		av++
 	}
 
 	l, a = s.horAt(r.row, r.col-1)
 	if l {
-		nh++
-	} else if a {
-		ah++
+		if nh == 1 {
+			r.setInvalid(s)
+			return
+		}
+
+		if r.col < 2 || s.horAvoidAt(r.row, r.col-2) {
+			r.setInvalid(s)
+			return
+		}
+	} else if a && ah == 1 {
+		r.setInvalid(s)
+		return
 	}
 
 	l, a = s.verAt(r.row-1, r.col)
 	if l {
-		nv++
-	} else if a {
-		av++
-	}
-
-	if nh == 2 || nv == 2 || ah == 2 || av == 2 {
-		// black nodes require at most 1 line or at most 1 avoid in each direction.
-		// Write out state that is invalid.
-		s.lineHor(r.row, r.col)
-		s.avoidHor(r.row, r.col)
+		if nv == 1 {
+			r.setInvalid(s)
+			return
+		}
+		if r.row < 2 || s.verAvoidAt(r.row-2, r.col) {
+			r.setInvalid(s)
+			return
+		}
+	} else if a && av == 1 {
+		r.setInvalid(s)
+		return
 	}
 }

@@ -39,9 +39,7 @@ func (r *rule) checkDefault(
 	if ll {
 		if nl == 2 {
 			// We should never have 3 or 4 lines coming into a pin.
-			// Write out state that is invalid.
-			s.lineHor(r.row, r.col)
-			s.avoidHor(r.row, r.col)
+			r.setInvalid(s)
 			return
 		}
 		nl++
@@ -53,9 +51,7 @@ func (r *rule) checkDefault(
 	if ul {
 		if nl == 2 {
 			// We should never have 3 or 4 lines coming into a pin.
-			// Write out state that is invalid.
-			s.lineHor(r.row, r.col)
-			s.avoidHor(r.row, r.col)
+			r.setInvalid(s)
 			return
 		}
 		nl++
@@ -66,9 +62,7 @@ func (r *rule) checkDefault(
 	if nl+na == 4 {
 		if nl == 1 {
 			// All four directions are set, but there's only one line.
-			// Write out state that is invalid.
-			s.lineHor(r.row, r.col)
-			s.avoidHor(r.row, r.col)
+			r.setInvalid(s)
 		}
 		return
 	}

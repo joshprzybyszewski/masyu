@@ -101,53 +101,48 @@ func (w *workforce) sendWork(
 			// if the work channel has been closed, then don't do anything.
 			_ = recover()
 		}()
-		select {
-		case <-ctx.Done():
-		case w.work <- cpy:
-		}
+		w.work <- cpy
 	}
-
 	var l, a bool
 
+	whites := make([]model.Coord, 0, len(initial.nodes))
 	for _, n := range initial.nodes {
+		if n.IsBlack {
+			continue
+		}
 		if l, a = initial.horAt(n.Row, n.Col); !l && !a {
-			cpy = initial
-			cpy.lineHor(n.Row, n.Col)
-			sendCpy()
+			whites = append(whites, n.Coord)
+		}
+	}
+	start := 0
+	var decisions, bit uint8
+	var i int
 
+	for start < len(whites) {
+		for decisions = 0; decisions < 255; decisions++ {
 			cpy = initial
-			cpy.avoidHor(n.Row, n.Col)
+			for bit, i = 0x01, 0; i < 8; i++ {
+				if start+i >= len(whites) {
+					break
+				}
+
+				if decisions&bit == bit {
+					cpy.lineHor(whites[start+i].Row, whites[start+i].Col)
+				} else {
+					cpy.lineVer(whites[start+i].Row, whites[start+i].Col)
+				}
+
+				bit <<= 1
+			}
+
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
 			sendCpy()
 		}
-
-		if l, a = initial.verAt(n.Row, n.Col); !l && !a {
-			cpy = initial
-			cpy.lineVer(n.Row, n.Col)
-			sendCpy()
-
-			cpy = initial
-			cpy.avoidVer(n.Row, n.Col)
-			sendCpy()
-		}
-
-		if l, a = initial.horAt(n.Row, n.Col-1); !l && !a {
-			cpy = initial
-			cpy.lineHor(n.Row, n.Col-1)
-			sendCpy()
-
-			cpy = initial
-			cpy.avoidHor(n.Row, n.Col-1)
-			sendCpy()
-		}
-
-		if l, a = initial.verAt(n.Row-1, n.Col); !l && !a {
-			cpy = initial
-			cpy.lineVer(n.Row-1, n.Col)
-			sendCpy()
-
-			cpy = initial
-			cpy.avoidVer(n.Row-1, n.Col)
-			sendCpy()
-		}
+		start += 8
 	}
 }

@@ -108,6 +108,14 @@ func (s *state) toSolution() (model.Solution, bool, bool) {
 		}
 	}
 
+	// and force a re-check of all the rules.
+	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
+		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
+			s.rules.checkHorizontal(row, col)
+			s.rules.checkVertical(row, col)
+		}
+	}
+
 	if !s.rules.runAllChecks(s) {
 		return model.Solution{}, false, false
 	}

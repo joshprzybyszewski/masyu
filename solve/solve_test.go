@@ -25,6 +25,12 @@ func TestSpecifics(t *testing.T) {
 	}, {
 		iter: 5,
 		id:   `193,319`,
+	}, {
+		iter: 3,
+		id:   `1,817,845`,
+	}, {
+		iter: 3,
+		id:   `5,995,199`,
 	}}
 
 	for _, tc := range testCases {

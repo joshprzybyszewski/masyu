@@ -258,10 +258,18 @@ func (r *rules) addBlackNode(
 
 	// ensure the black node is valid
 	bv := newBlackValidator(row, col)
+	if col > 1 {
+		r.addHorizontalRule(row, col-2, &bv)
+	}
 	r.addHorizontalRule(row, col-1, &bv)
 	r.addHorizontalRule(row, col, &bv)
+	r.addHorizontalRule(row, col+1, &bv)
+	if row > 1 {
+		r.addVerticalRule(row-2, col, &bv)
+	}
 	r.addVerticalRule(row-1, col, &bv)
 	r.addVerticalRule(row, col, &bv)
+	r.addVerticalRule(row+1, col, &bv)
 }
 
 func (r *rules) addWhiteNode(
