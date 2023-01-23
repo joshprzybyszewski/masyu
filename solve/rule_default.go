@@ -35,37 +35,39 @@ func (r *rule) checkDefault(
 
 	ll, la := s.horAt(r.row, r.col-1)
 	if ll {
-		nl++
-		if nl >= 3 {
+		if nl == 2 {
 			// We should never have 3 or 4 lines coming into a pin.
 			// Write out state that is invalid.
 			s.lineHor(r.row, r.col)
 			s.avoidHor(r.row, r.col)
 			return
 		}
+		nl++
 	} else if la {
 		na++
 	}
 
 	ul, ua := s.verAt(r.row-1, r.col)
 	if ul {
-		nl++
-		if nl >= 3 {
+		if nl == 2 {
 			// We should never have 3 or 4 lines coming into a pin.
 			// Write out state that is invalid.
 			s.lineHor(r.row, r.col)
 			s.avoidHor(r.row, r.col)
 			return
 		}
+		nl++
 	} else if ua {
 		na++
 	}
 
-	if nl+na == 4 && nl == 1 {
-		// All four directions are set, but there's only one line.
-		// Write out state that is invalid.
-		s.lineHor(r.row, r.col)
-		s.avoidHor(r.row, r.col)
+	if nl+na == 4 {
+		if nl == 1 {
+			// All four directions are set, but there's only one line.
+			// Write out state that is invalid.
+			s.lineHor(r.row, r.col)
+			s.avoidHor(r.row, r.col)
+		}
 		return
 	}
 
