@@ -156,24 +156,6 @@ func (r *rules) populateUnknowns(
 	})
 }
 
-func (r *rules) checkHorizontal(
-	row, col model.Dimension,
-	s *state,
-) {
-	for _, r := range r.horizontals[row][col] {
-		r.check(s)
-	}
-}
-
-func (r *rules) checkVertical(
-	row, col model.Dimension,
-	s *state,
-) {
-	for _, r := range r.verticals[row][col] {
-		r.check(s)
-	}
-}
-
 func (r *rules) addHorizontalRule(
 	row, col model.Dimension,
 	rule *rule,

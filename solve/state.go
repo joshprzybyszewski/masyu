@@ -10,9 +10,8 @@ type state struct {
 	rules *ruleCheckCollector
 	nodes []model.Node
 
-	size           model.Size
-	lastLinePlaced model.Coord
-	hasInvalid     bool
+	size       model.Size
+	hasInvalid bool
 
 	paths pathCollector
 
@@ -44,8 +43,6 @@ func newState(
 		s.nodes[i].Col++
 	}
 	s.paths = newPathCollector(s.nodes)
-
-	s.lastLinePlaced = s.nodes[0].Coord
 
 	r.populateRules(&s)
 
@@ -147,13 +144,6 @@ func (s *state) isValid() bool {
 		return false
 	}
 
-	// for i := 0; i <= int(s.size); i++ {
-	// 	if (s.horizontalAvoids[i])&(s.horizontalLines[i]) != 0 ||
-	// 		(s.verticalLines[i])&(s.verticalAvoids[i]) != 0 {
-	// 		return false
-	// 	}
-	// }
-
 	return true
 }
 
@@ -216,9 +206,6 @@ func (s *state) lineHor(r, c model.Dimension) {
 		return
 	}
 
-	s.lastLinePlaced.Row = r
-	s.lastLinePlaced.Col = c
-
 	s.rules.checkHorizontal(r, c, s)
 	s.paths.addHorizontal(r, c)
 }
@@ -263,9 +250,6 @@ func (s *state) lineVer(r, c model.Dimension) {
 		s.hasInvalid = true
 		return
 	}
-
-	s.lastLinePlaced.Row = r
-	s.lastLinePlaced.Col = c
 
 	s.rules.checkVertical(r, c, s)
 	s.paths.addVertical(r, c)

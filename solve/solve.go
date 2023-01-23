@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	// maxAttemptDuration = 5 * time.Second
-	maxAttemptDuration = 15 * time.Second
+	maxAttemptDuration = 5 * time.Second
+	// maxAttemptDuration = 15 * time.Second
 	// maxAttemptDuration = time.Minute
 )
 

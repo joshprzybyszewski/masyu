@@ -38,9 +38,13 @@ func (c *ruleCheckCollector) checkVertical(
 func (c *ruleCheckCollector) runAllChecks(
 	s *state,
 ) bool {
+	if !s.isValid() {
+		return false
+	}
 
 	var dim1, dim2 model.Dimension
 	var bit uint64
+	var r *rule
 	im := model.Dimension(int(s.size) + 2)
 
 	for c.hasPending {
@@ -50,11 +54,10 @@ func (c *ruleCheckCollector) runAllChecks(
 			if c.hor[dim1] != 0 {
 				bit = 1
 				for dim2 = 0; dim2 < im; dim2++ {
-					if c.hor[dim1]&bit != 0 {
+					if c.hor[dim1]&bit == bit {
 						c.hor[dim1] = c.hor[dim1] ^ bit
-						c.rules.checkHorizontal(dim1, dim2, s)
-						if !s.isValid() {
-							return false
+						for _, r = range c.rules.horizontals[dim1][dim2] {
+							r.check(s)
 						}
 					}
 					bit <<= 1
@@ -64,15 +67,17 @@ func (c *ruleCheckCollector) runAllChecks(
 			if c.ver[dim1] != 0 {
 				bit = 1
 				for dim2 = 0; dim2 < im; dim2++ {
-					if c.ver[dim1]&bit != 0 {
+					if c.ver[dim1]&bit == bit {
 						c.ver[dim1] = c.ver[dim1] ^ bit
-						c.rules.checkVertical(dim2, dim1, s)
-						if !s.isValid() {
-							return false
+						for _, r = range c.rules.verticals[dim2][dim1] {
+							r.check(s)
 						}
 					}
 					bit <<= 1
 				}
+			}
+			if !s.isValid() {
+				return false
 			}
 		}
 
