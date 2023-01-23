@@ -1,8 +1,6 @@
 package solve
 
 import (
-	"context"
-
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
@@ -20,20 +18,21 @@ func newWorker(
 	}
 }
 
-func (w *worker) process(
-	ctx context.Context,
-) {
-	if w.sendAnswer == nil || ctx.Err() != nil {
+func (w *worker) process() {
+	if w.sendAnswer == nil {
 		return
 	}
 
-	sol, solved, ok := w.state.toSolution()
+	valid, solved := w.state.isValidAndSolved()
 	if solved {
-		w.sendAnswer(sol)
-		w.sendAnswer = nil
+		sol, ok := w.state.toSolution()
+		if ok {
+			w.sendAnswer(sol)
+			w.sendAnswer = nil
+		}
 		return
 	}
-	if !ok {
+	if !valid {
 		return
 	}
 
@@ -45,21 +44,21 @@ func (w *worker) process(
 	if isHor {
 		s := w.state
 		w.state.lineHor(c.Row, c.Col)
-		w.process(ctx)
+		w.process()
 
 		w.state = s
 
 		w.state.avoidHor(c.Row, c.Col)
-		w.process(ctx)
+		w.process()
 		return
 	}
 
 	s := w.state
 	w.state.lineVer(c.Row, c.Col)
-	w.process(ctx)
+	w.process()
 
 	w.state = s
 
 	w.state.avoidVer(c.Row, c.Col)
-	w.process(ctx)
+	w.process()
 }

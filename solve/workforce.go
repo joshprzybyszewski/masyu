@@ -66,12 +66,13 @@ func (w *workforce) startWorker(
 	for {
 		select {
 		case <-ctx.Done():
+			worker.sendAnswer = nil
 			return
 		case worker.state, ok = <-w.work: // s is on the heap
 			if !ok {
 				return
 			}
-			worker.process(ctx)
+			worker.process()
 		}
 	}
 }

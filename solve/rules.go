@@ -160,8 +160,8 @@ func (r *rules) checkHorizontal(
 	row, col model.Dimension,
 	s *state,
 ) {
-	for i := range r.horizontals[row][col] {
-		r.horizontals[row][col][i].check(s)
+	for _, r := range r.horizontals[row][col] {
+		r.check(s)
 	}
 }
 
@@ -169,8 +169,8 @@ func (r *rules) checkVertical(
 	row, col model.Dimension,
 	s *state,
 ) {
-	for i := range r.verticals[row][col] {
-		r.verticals[row][col][i].check(s)
+	for _, r := range r.verticals[row][col] {
+		r.check(s)
 	}
 }
 

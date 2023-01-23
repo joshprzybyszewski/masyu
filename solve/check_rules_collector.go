@@ -7,6 +7,8 @@ type ruleCheckCollector struct {
 
 	hor [model.MaxPointsPerLine]uint64
 	ver [model.MaxPointsPerLine]uint64
+
+	hasPending bool
 }
 
 func newRuleCheckCollector(
@@ -19,68 +21,83 @@ func newRuleCheckCollector(
 
 func (c *ruleCheckCollector) checkHorizontal(
 	row, col model.Dimension,
+	s *state,
 ) {
-	c.hor[row] |= col.Bit()
+	if !s.isValid() {
+		return
+	}
+
+	b := col.Bit()
+	checkNow := c.hor[row]&b == 0
+	c.hasPending = true
+	c.hor[row] |= b
+	if checkNow {
+		c.rules.checkHorizontal(row, col, s)
+	}
 }
 
 func (c *ruleCheckCollector) checkVertical(
 	row, col model.Dimension,
+	s *state,
 ) {
+	if !s.isValid() {
+		return
+	}
+
+	b := row.Bit()
+	checkNow := c.ver[col]&b == 0
+	c.hasPending = true
 	c.ver[col] |= row.Bit()
+	if checkNow {
+		c.rules.checkHorizontal(row, col, s)
+	}
 }
 
 func (c *ruleCheckCollector) runAllChecks(
 	s *state,
 ) bool {
 
-	for c.hasPending() {
-		c.flush(s)
+	var dim1, dim2 model.Dimension
+	var bit uint64
+	im := model.Dimension(int(s.size) + 2)
+
+	for c.hasPending {
+		c.hasPending = false
+
+		for dim1 = 0; dim1 < im; dim1++ {
+			if c.hor[dim1] != 0 {
+				bit = 1
+				for dim2 = 0; dim2 < im; dim2++ {
+					if c.hor[dim1]&bit != 0 {
+						c.hor[dim1] = c.hor[dim1] ^ bit
+						c.rules.checkHorizontal(dim1, dim2, s)
+						if !s.isValid() {
+							return false
+						}
+					}
+					bit <<= 1
+				}
+			}
+
+			if c.ver[dim1] != 0 {
+				bit = 1
+				for dim2 = 0; dim2 < im; dim2++ {
+					if c.ver[dim1]&bit != 0 {
+						c.ver[dim1] = c.ver[dim1] ^ bit
+						c.rules.checkVertical(dim2, dim1, s)
+						if !s.isValid() {
+							return false
+						}
+					}
+					bit <<= 1
+				}
+			}
+		}
+
 		if !s.isValid() {
 			return false
 		}
 	}
 
 	return s.isValid()
-}
-
-func (c *ruleCheckCollector) hasPending() bool {
-	for i := 0; i < model.MaxPointsPerLine; i++ {
-		if c.hor[i] != 0 || c.ver[i] != 0 {
-			return true
-		}
-	}
-	return false
-}
-
-func (c *ruleCheckCollector) flush(
-	s *state,
-) {
-	hor := c.hor
-	ver := c.ver
-
-	im := int(s.size) + 3
-
-	for row := model.Dimension(0); row < model.Dimension(im); row++ {
-		if hor[row] == 0 {
-			continue
-		}
-		c.hor[row] = 0
-		for col := model.Dimension(0); col < model.Dimension(im); col++ {
-			if hor[row]&col.Bit() != 0 {
-				c.rules.checkHorizontal(row, col, s)
-			}
-		}
-	}
-
-	for col := model.Dimension(0); col < model.Dimension(im); col++ {
-		if ver[col] == 0 {
-			continue
-		}
-		c.ver[col] = 0
-		for row := model.Dimension(0); row < model.Dimension(im); row++ {
-			if ver[col]&row.Bit() != 0 {
-				c.rules.checkVertical(row, col, s)
-			}
-		}
-	}
 }

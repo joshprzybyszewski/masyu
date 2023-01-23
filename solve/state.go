@@ -12,6 +12,7 @@ type state struct {
 
 	size           model.Size
 	lastLinePlaced model.Coord
+	hasInvalid     bool
 
 	paths pathCollector
 
@@ -68,8 +69,8 @@ func (s *state) initialize() {
 
 	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
 		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
-			s.rules.checkHorizontal(row, col)
-			s.rules.checkVertical(row, col)
+			s.rules.checkHorizontal(row, col, s)
+			s.rules.checkVertical(row, col, s)
 		}
 	}
 
@@ -78,22 +79,26 @@ func (s *state) initialize() {
 	}
 }
 
-func (s *state) toSolution() (model.Solution, bool, bool) {
+func (s *state) isValidAndSolved() (bool, bool) {
 	if !s.rules.runAllChecks(s) {
-		return model.Solution{}, false, false
+		return false, false
 	}
 
 	if !s.paths.hasCycle {
 		// is not completed yet
-		return model.Solution{}, false, true
+		return true, false
 	}
 
 	if s.paths.cycleSeenNodes != len(s.nodes) {
 		// there's a cycle, but it doesn't include all of the nodes.
 		// it's invalid.
-		return model.Solution{}, false, false
+		return false, false
 	}
 
+	return true, true
+}
+
+func (s *state) toSolution() (model.Solution, bool) {
 	// we found a state that includes a cycle with all of the nodes.
 	// avoid all of the remaining spots in the state, and see if it's
 	// still valid: this eliminates the bad state of having tertiary paths set.
@@ -111,13 +116,13 @@ func (s *state) toSolution() (model.Solution, bool, bool) {
 	// and force a re-check of all the rules.
 	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
 		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
-			s.rules.checkHorizontal(row, col)
-			s.rules.checkVertical(row, col)
+			s.rules.checkHorizontal(row, col, s)
+			s.rules.checkVertical(row, col, s)
 		}
 	}
 
 	if !s.rules.runAllChecks(s) {
-		return model.Solution{}, false, false
+		return model.Solution{}, false
 	}
 
 	sol := model.Solution{
@@ -129,20 +134,25 @@ func (s *state) toSolution() (model.Solution, bool, bool) {
 		sol.Verticals[i] = (s.verticalLines[i+1]) >> 1
 	}
 
-	return sol, true, true
+	return sol, true
 }
 
 func (s *state) isValid() bool {
+
+	if s.hasInvalid {
+		return false
+	}
+
 	if s.paths.hasCycle && s.paths.cycleSeenNodes != len(s.nodes) {
 		return false
 	}
 
-	for i := 0; i <= int(s.size); i++ {
-		if (s.horizontalAvoids[i])&(s.horizontalLines[i]) != 0 ||
-			(s.verticalLines[i])&(s.verticalAvoids[i]) != 0 {
-			return false
-		}
-	}
+	// for i := 0; i <= int(s.size); i++ {
+	// 	if (s.horizontalAvoids[i])&(s.horizontalLines[i]) != 0 ||
+	// 		(s.verticalLines[i])&(s.verticalAvoids[i]) != 0 {
+	// 		return false
+	// 	}
+	// }
 
 	return true
 }
@@ -186,10 +196,11 @@ func (s *state) avoidHor(r, c model.Dimension) {
 	s.horizontalAvoids[r] |= b
 	if s.horizontalLines[r]&s.horizontalAvoids[r] != 0 {
 		// invalid
+		s.hasInvalid = true
 		return
 	}
 
-	s.rules.checkHorizontal(r, c)
+	s.rules.checkHorizontal(r, c, s)
 }
 
 func (s *state) lineHor(r, c model.Dimension) {
@@ -201,13 +212,14 @@ func (s *state) lineHor(r, c model.Dimension) {
 	s.horizontalLines[r] |= b
 	if s.horizontalLines[r]&s.horizontalAvoids[r] != 0 {
 		// invalid
+		s.hasInvalid = true
 		return
 	}
 
 	s.lastLinePlaced.Row = r
 	s.lastLinePlaced.Col = c
 
-	s.rules.checkHorizontal(r, c)
+	s.rules.checkHorizontal(r, c, s)
 	s.paths.addHorizontal(r, c)
 }
 
@@ -232,10 +244,11 @@ func (s *state) avoidVer(r, c model.Dimension) {
 	s.verticalAvoids[c] |= b
 	if s.verticalLines[c]&s.verticalAvoids[c] != 0 {
 		// invalid
+		s.hasInvalid = true
 		return
 	}
 
-	s.rules.checkVertical(r, c)
+	s.rules.checkVertical(r, c, s)
 }
 
 func (s *state) lineVer(r, c model.Dimension) {
@@ -247,13 +260,14 @@ func (s *state) lineVer(r, c model.Dimension) {
 	s.verticalLines[c] |= b
 	if s.verticalLines[c]&s.verticalAvoids[c] != 0 {
 		// invalid
+		s.hasInvalid = true
 		return
 	}
 
 	s.lastLinePlaced.Row = r
 	s.lastLinePlaced.Col = c
 
-	s.rules.checkVertical(r, c)
+	s.rules.checkVertical(r, c, s)
 	s.paths.addVertical(r, c)
 }
 
