@@ -92,7 +92,7 @@ func getNodeChar(
 }
 
 func (s *Solution) ToAnswer() string {
-	if s == nil {
+	if s == nil || s.Size == 0 {
 		return ``
 	}
 

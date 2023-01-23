@@ -123,8 +123,8 @@ func (s *state) isValid() bool {
 	}
 
 	for i := 0; i <= int(s.size); i++ {
-		if s.horizontalAvoids[i]&s.horizontalLines[i] != 0 ||
-			s.verticalLines[i]&s.verticalAvoids[i] != 0 {
+		if (s.horizontalAvoids[i])&(s.horizontalLines[i]) != 0 ||
+			(s.verticalLines[i])&(s.verticalAvoids[i]) != 0 {
 			return false
 		}
 	}

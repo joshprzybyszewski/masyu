@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"runtime"
-	"sync/atomic"
 
 	"github.com/joshprzybyszewski/masyu/model"
 )
@@ -14,46 +13,61 @@ type workforce struct {
 
 	work chan state
 
-	freeWorkers int32
+	workers [1]worker
 }
 
 func newWorkforce() workforce {
-	return workforce{
+	wf := workforce{
 		solution: make(chan model.Solution, 1),
 		work:     make(chan state, runtime.NumCPU()),
 	}
+
+	for i := range wf.workers {
+		wf.workers[i] = newWorker(
+			func(sol model.Solution) {
+				defer func() {
+					// if the solution channel has been closed, then don't do anything.
+					_ = recover()
+				}()
+				wf.solution <- sol
+			},
+		)
+	}
+
+	return wf
 }
 
 func (w *workforce) start(
 	ctx context.Context,
 ) {
-	atomic.StoreInt32(&w.freeWorkers, int32(runtime.NumCPU()))
-	for i := 0; i < runtime.NumCPU(); i++ {
-		go w.startWorker(ctx)
+	for i := range w.workers {
+		go w.startWorker(
+			ctx,
+			&w.workers[i],
+		)
 	}
 }
 
 func (w *workforce) startWorker(
 	ctx context.Context,
+	worker *worker,
 ) {
+	var ok bool
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case s, ok := <-w.work:
+		case worker.state, ok = <-w.work: // s is on the heap
 			if !ok {
 				return
 			}
-			atomic.AddInt32(&w.freeWorkers, -1)
-			w.process(&s)
-			atomic.AddInt32(&w.freeWorkers, 1)
+			worker.process(ctx)
 		}
 	}
 }
 
 func (w *workforce) stop() {
-	// signal that "all the workers are free:#	"
-	atomic.StoreInt32(&w.freeWorkers, 9001)
 	close(w.work)
 	close(w.solution)
 }
@@ -62,7 +76,7 @@ func (w *workforce) solve(
 	ctx context.Context,
 	s *state,
 ) (model.Solution, error) {
-	w.process(s)
+	w.work <- *s
 
 	select {
 	case <-ctx.Done():
@@ -72,65 +86,5 @@ func (w *workforce) solve(
 			return model.Solution{}, fmt.Errorf("did not find the solution")
 		}
 		return sol, nil
-	}
-}
-
-func (w *workforce) process(
-	s *state,
-) {
-	if atomic.LoadInt32(&w.freeWorkers) > 9000 {
-		return
-	}
-	sol, solved, ok := s.toSolution()
-	if solved {
-		defer func() {
-			// if the solution channel has been closed, then don't do anything.
-			_ = recover()
-		}()
-		w.solution <- sol
-		return
-	}
-	if !ok {
-		return
-	}
-
-	c, isHor, ok := s.getMostInterestingPath()
-	if !ok {
-		return
-	}
-
-	if isHor {
-		s2 := *s
-		s2.lineHor(c.Row, c.Col)
-		w.send(s2)
-
-		s.avoidHor(c.Row, c.Col)
-		w.send(*s)
-		return
-	}
-
-	s2 := *s
-	s2.lineVer(c.Row, c.Col)
-	w.send(s2)
-
-	s.avoidVer(c.Row, c.Col)
-	w.send(*s)
-}
-
-func (w *workforce) send(
-	s state,
-) {
-	fw := atomic.LoadInt32(&w.freeWorkers)
-	if fw > 9000 {
-		return
-	}
-	if fw == 0 {
-		w.process(&s)
-	} else {
-		defer func() {
-			// if the work channel has been closed, then don't do anything.
-			_ = recover()
-		}()
-		w.work <- s
 	}
 }

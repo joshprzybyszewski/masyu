@@ -9,11 +9,41 @@ import (
 	"github.com/joshprzybyszewski/masyu/solve"
 )
 
+func Test150618(t *testing.T) {
+	// go decided that it should run tests in this directory.
+	os.Chdir(`..`)
+
+	iter := model.Iterator(2)
+
+	sr, err := fetch.ReadID(iter, `150,618`)
+	if err != nil {
+		t.Logf("Error fetching input: %q", err)
+		t.Fail()
+	}
+
+	ns := sr.Input.ToNodes()
+	sol, err := solve.FromNodes(
+		iter.GetSize(),
+		ns,
+	)
+	if err != nil {
+		t.Logf("Error fetching input: %q", err)
+		t.Fail()
+	}
+	if sol.ToAnswer() != sr.Answer {
+		t.Logf("Incorrect Answer\n")
+		t.Logf("Exp: %s\n", sr.Answer)
+		t.Logf("Act: %s\n", sol.ToAnswer())
+		t.Logf("Board:\n%s\n\n", sol.Pretty(ns))
+		t.Fail()
+	}
+}
+
 func TestAccuracy(t *testing.T) {
 	// go decided that it should run tests in this directory.
 	os.Chdir(`..`)
 	max := model.MaxIterator
-	max = 4
+	max = 8
 
 	for iter := model.MinIterator; iter <= max; iter++ {
 		t.Run(iter.String(), func(t *testing.T) {
