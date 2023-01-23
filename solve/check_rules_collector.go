@@ -23,34 +23,16 @@ func (c *ruleCheckCollector) checkHorizontal(
 	row, col model.Dimension,
 	s *state,
 ) {
-	if !s.isValid() {
-		return
-	}
-
-	b := col.Bit()
-	checkNow := c.hor[row]&b == 0
 	c.hasPending = true
-	c.hor[row] |= b
-	if checkNow {
-		c.rules.checkHorizontal(row, col, s)
-	}
+	c.hor[row] |= col.Bit()
 }
 
 func (c *ruleCheckCollector) checkVertical(
 	row, col model.Dimension,
 	s *state,
 ) {
-	if !s.isValid() {
-		return
-	}
-
-	b := row.Bit()
-	checkNow := c.ver[col]&b == 0
 	c.hasPending = true
 	c.ver[col] |= row.Bit()
-	if checkNow {
-		c.rules.checkHorizontal(row, col, s)
-	}
 }
 
 func (c *ruleCheckCollector) runAllChecks(
