@@ -85,6 +85,7 @@ func compete(iter model.Iterator) error {
 	}(time.Since(t0))
 
 	if err != nil {
+		_ = fetch.StorePuzzle(&input)
 		return err
 	}
 

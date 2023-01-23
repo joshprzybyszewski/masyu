@@ -17,7 +17,7 @@ func Submit(
 	input *input,
 	sol *model.Solution,
 ) error {
-	defer storePuzzle(input)
+	defer StorePuzzle(input)
 	if input == nil || input.param == `` {
 		return nil
 	}

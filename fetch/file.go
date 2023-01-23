@@ -26,7 +26,7 @@ func storeAnswer(
 	)
 }
 
-func storePuzzle(
+func StorePuzzle(
 	input *input,
 ) error {
 	known, err := Read(input.iter)
