@@ -272,6 +272,20 @@ func (r *rules) addBlackNode(
 			iv,
 		)
 	}
+
+	bv := newBlackValidator(row, col)
+	r.horizontals[row][col-1] = append(r.horizontals[row][col-1],
+		&bv,
+	)
+	r.horizontals[row][col] = append(r.horizontals[row][col],
+		&bv,
+	)
+	r.verticals[row-1][col] = append(r.verticals[row-1][col],
+		&bv,
+	)
+	r.verticals[row][col] = append(r.verticals[row][col],
+		&bv,
+	)
 }
 
 func (r *rules) addWhiteNode(
@@ -360,5 +374,19 @@ func (r *rules) addWhiteNode(
 	)
 	r.verticals[row+1][col-1] = append(r.verticals[row+1][col-1],
 		&vb,
+	)
+
+	wv := newWhiteValidator(row, col)
+	r.horizontals[row][col-1] = append(r.horizontals[row][col-1],
+		&wv,
+	)
+	r.horizontals[row][col] = append(r.horizontals[row][col],
+		&wv,
+	)
+	r.verticals[row-1][col] = append(r.verticals[row-1][col],
+		&wv,
+	)
+	r.verticals[row][col] = append(r.verticals[row][col],
+		&wv,
 	)
 }

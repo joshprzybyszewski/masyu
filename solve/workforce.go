@@ -95,8 +95,6 @@ func (w *workforce) sendWork(
 ) {
 	w.work <- initial
 
-	defer fmt.Printf("completed send work\n")
-
 	var cpy state
 	sendCpy := func() {
 		defer func() {
