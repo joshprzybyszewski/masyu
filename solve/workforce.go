@@ -8,18 +8,27 @@ import (
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
+const (
+	// numWorkers = 1
+	numWorkers = 4
+)
+
 type workforce struct {
 	solution chan model.Solution
 
 	work chan state
 
-	workers [1]worker
+	workers [numWorkers]worker
 }
 
 func newWorkforce() workforce {
 	wf := workforce{
 		solution: make(chan model.Solution, 1),
 		work:     make(chan state, runtime.NumCPU()),
+	}
+
+	if len(wf.workers) > runtime.NumCPU() {
+		panic(`dev error`)
 	}
 
 	for i := range wf.workers {
