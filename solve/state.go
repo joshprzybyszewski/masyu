@@ -53,7 +53,7 @@ func newState(
 	s.lastLinePlaced = s.nodes[0].Coord
 
 	s.initialize()
-	r.initializePending(&s)
+	r.intializeUnknowns(&s)
 
 	return s
 }

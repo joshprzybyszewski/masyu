@@ -16,91 +16,101 @@ func newDefaultRule(
 func (r *rule) checkDefault(
 	s *state,
 ) {
-	rl, ra := s.horAt(r.row, r.col)
-	dl, da := s.verAt(r.row, r.col)
-	ll, la := s.horAt(r.row, r.col-1)
-	ul, ua := s.verAt(r.row-1, r.col)
 
-	var nl, na, dir uint8
+	var nl, na uint8
+
+	rl, ra := s.horAt(r.row, r.col)
 	if rl {
 		nl++
-		dir |= 1
-	}
-	if ra {
+	} else if ra {
 		na++
-		dir |= 1
 	}
+
+	dl, da := s.verAt(r.row, r.col)
 	if dl {
 		nl++
-		dir |= 1 << 1
-	}
-	if da {
+	} else if da {
 		na++
-		dir |= 1 << 1
 	}
+
+	ll, la := s.horAt(r.row, r.col-1)
 	if ll {
 		nl++
-		dir |= 1 << 2
-	}
-	if la {
+		if nl >= 3 {
+			// We should never have 3 or 4 lines coming into a pin.
+			// Write out state that is invalid.
+			s.lineHor(r.row, r.col)
+			s.avoidHor(r.row, r.col)
+			return
+		}
+	} else if la {
 		na++
-		dir |= 1 << 2
 	}
+
+	ul, ua := s.verAt(r.row-1, r.col)
 	if ul {
 		nl++
-		dir |= 1 << 3
-	}
-	if ua {
+		if nl >= 3 {
+			// We should never have 3 or 4 lines coming into a pin.
+			// Write out state that is invalid.
+			s.lineHor(r.row, r.col)
+			s.avoidHor(r.row, r.col)
+			return
+		}
+	} else if ua {
 		na++
-		dir |= 1 << 3
 	}
-	if nl >= 3 {
-		// this is an error state.
-		// Either right or down must be a line.
-		// Write an avoid over them both to trigger an invalid state.
-		s.avoidVer(r.row, r.col)
+
+	if nl+na == 4 && nl == 1 {
+		// All four directions are set, but there's only one line.
+		// Write out state that is invalid.
+		s.lineHor(r.row, r.col)
 		s.avoidHor(r.row, r.col)
 		return
 	}
-	if nl+na == 4 && nl == 1 {
-		// this is an error state.
-		// Either right or down must not be a line.
-		// Write a line over them both to trigger an invalid state.
-		s.lineVer(r.row, r.col)
-		s.lineHor(r.row, r.col)
-		return
-	}
 
-	if nl != 2 && nl+na != 3 {
-		return
-	}
-
-	if dir&1 == 0 {
-		if nl == 1 {
-			s.lineHor(r.row, r.col)
-		} else {
+	if na == 3 {
+		// there is one line left to be drawn: it's an avoid
+		if !ll && !la {
+			s.avoidHor(r.row, r.col-1)
+		} else if !ul && !ua {
+			s.avoidVer(r.row-1, r.col)
+		} else if !rl && !ra {
 			s.avoidHor(r.row, r.col)
-		}
-	}
-	if dir&(1<<1) == 0 {
-		if nl == 1 {
-			s.lineVer(r.row, r.col)
-		} else {
+		} else if !dl && !da {
 			s.avoidVer(r.row, r.col)
 		}
+		return
 	}
-	if dir&(1<<2) == 0 {
-		if nl == 1 {
+	if nl == 1 && na == 2 {
+		// there is one line left to be drawn: it's a line
+		if !ll && !la {
 			s.lineHor(r.row, r.col-1)
-		} else {
-			s.avoidHor(r.row, r.col-1)
-		}
-	}
-	if dir&(1<<3) == 0 {
-		if nl == 1 {
+		} else if !ul && !ua {
 			s.lineVer(r.row-1, r.col)
-		} else {
-			s.avoidVer(r.row-1, r.col)
+		} else if !rl && !ra {
+			s.lineHor(r.row, r.col)
+		} else if !dl && !da {
+			s.lineVer(r.row, r.col)
 		}
+		return
+	}
+
+	if nl != 2 {
+		// otherwise there's not enough information to make a change
+		return
+	}
+
+	if !rl && !ra {
+		s.avoidHor(r.row, r.col)
+	}
+	if !dl && !da {
+		s.avoidVer(r.row, r.col)
+	}
+	if !ll && !la {
+		s.avoidHor(r.row, r.col-1)
+	}
+	if !ul && !ua {
+		s.avoidVer(r.row-1, r.col)
 	}
 }

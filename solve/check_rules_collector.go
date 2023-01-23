@@ -32,11 +32,37 @@ func (c *ruleCheckCollector) checkVertical(
 func (c *ruleCheckCollector) runAllChecks(
 	s *state,
 ) bool {
+
+	// prevHorizontalLines := s.horizontalLines
+	// prevHorizontalAvoids := s.horizontalAvoids
+	// prevVerticalLines := s.verticalLines
+	// prevVerticalAvoids := s.verticalAvoids
+
+	// didChange := func() bool {
+	// 	for i := range prevHorizontalAvoids {
+	// 		if prevHorizontalLines[i] != s.horizontalLines[i] ||
+	// 			prevHorizontalAvoids[i] != s.horizontalAvoids[i] ||
+	// 			prevVerticalLines[i] != s.verticalLines[i] ||
+	// 			prevVerticalAvoids[i] != s.verticalAvoids[i] {
+	// 			return true
+	// 		}
+	// 	}
+
+	// 	return false
+	// }
+
 	for c.hasPending() {
 		c.flush(s)
 		if !s.isValid() {
 			return false
 		}
+		// if !didChange() {
+		// 	return true
+		// }
+		// prevHorizontalLines = s.horizontalLines
+		// prevHorizontalAvoids = s.horizontalAvoids
+		// prevVerticalLines = s.verticalLines
+		// prevVerticalAvoids = s.verticalAvoids
 	}
 
 	return s.isValid()

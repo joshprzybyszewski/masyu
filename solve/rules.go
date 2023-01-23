@@ -27,13 +27,9 @@ type rules struct {
 func newRules(
 	size model.Size,
 ) *rules {
-	r := rules{
+	return &rules{
 		unknowns: make([]path, 0, 2*int(size)*int(size-1)),
 	}
-
-	r.addDefault(size)
-
-	return &r
 }
 
 func (r *rules) addDefault(
@@ -46,24 +42,31 @@ func (r *rules) addDefault(
 		}
 	}
 
-	for long := model.Dimension(1); long <= model.Dimension(size); long++ {
-		for short := model.Dimension(1); short < model.Dimension(size); short++ {
-			r.horizontals[long][short] = append(r.horizontals[long][short],
-				&pins[long][short],
-				&pins[long][short+1],
+	for row := model.Dimension(1); row <= model.Dimension(size); row++ {
+		for col := model.Dimension(1); col < model.Dimension(size); col++ {
+			r.horizontals[row][col] = append(r.horizontals[row][col],
+				&pins[row][col],
+				&pins[row][col+1],
 			)
+		}
+	}
 
-			r.verticals[short][long] = append(r.verticals[short][long],
-				&pins[short][long],
-				&pins[short+1][long],
+	for col := model.Dimension(1); col <= model.Dimension(size); col++ {
+		for row := model.Dimension(1); row < model.Dimension(size); row++ {
+			r.verticals[row][col] = append(r.verticals[row][col],
+				&pins[row][col],
+				&pins[row+1][col],
 			)
 		}
 	}
 }
 
-func (r *rules) initializePending(
+func (r *rules) intializeUnknowns(
 	s *state,
 ) {
+
+	r.addDefault(s.size)
+
 	var l, a bool
 	for row := model.Dimension(1); row <= model.Dimension(s.size); row++ {
 		for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
