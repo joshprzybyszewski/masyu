@@ -333,4 +333,32 @@ func (r *rules) addWhiteNode(
 	r.verticals[row+1][col] = append(r.verticals[row+1][col],
 		&iv,
 	)
+
+	hb := newWhiteHorizontalBranchRule(row, col)
+	r.verticals[row][col-1] = append(r.verticals[row][col-1],
+		&hb,
+	)
+	r.verticals[row-1][col-1] = append(r.verticals[row-1][col-1],
+		&hb,
+	)
+	r.verticals[row][col+1] = append(r.verticals[row][col+1],
+		&hb,
+	)
+	r.verticals[row-1][col+1] = append(r.verticals[row-1][col+1],
+		&hb,
+	)
+
+	vb := newWhiteVerticalBranchRule(row, col)
+	r.verticals[row-1][col] = append(r.verticals[row-1][col],
+		&vb,
+	)
+	r.verticals[row-1][col-1] = append(r.verticals[row-1][col-1],
+		&vb,
+	)
+	r.verticals[row+1][col] = append(r.verticals[row+1][col],
+		&vb,
+	)
+	r.verticals[row+1][col-1] = append(r.verticals[row+1][col-1],
+		&vb,
+	)
 }
