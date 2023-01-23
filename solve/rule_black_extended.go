@@ -18,6 +18,7 @@ func (r *rule) checkBlackL2(
 ) {
 	if s.horAvoidAt(r.row, r.col-2) {
 		s.avoidHor(r.row, r.col-1)
+		s.lineHor(r.row, r.col)
 	}
 }
 
@@ -37,6 +38,7 @@ func (r *rule) checkBlackR2(
 ) {
 	if s.horAvoidAt(r.row, r.col+1) {
 		s.avoidHor(r.row, r.col)
+		s.lineHor(r.row, r.col-1)
 	}
 }
 
@@ -56,6 +58,7 @@ func (r *rule) checkBlackU2(
 ) {
 	if s.verAvoidAt(r.row-2, r.col) {
 		s.avoidVer(r.row-1, r.col)
+		s.lineVer(r.row, r.col)
 	}
 }
 
@@ -75,5 +78,6 @@ func (r *rule) checkBlackD2(
 ) {
 	if s.verAvoidAt(r.row+1, r.col) {
 		s.avoidVer(r.row, r.col)
+		s.lineVer(r.row-1, r.col)
 	}
 }
