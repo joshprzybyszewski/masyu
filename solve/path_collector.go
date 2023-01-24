@@ -19,6 +19,18 @@ func (p *pair) isEmpty() bool {
 	return p.a.Col == 0
 }
 
+func (p *pair) isHorizontallyClose() bool {
+	return !p.isEmpty() &&
+		p.a.Row == p.b.Row &&
+		(p.a.Col == p.b.Col+1 || p.a.Col == p.b.Col-1)
+}
+
+func (p *pair) isVerticallyClose() bool {
+	return !p.isEmpty() &&
+		p.a.Col == p.b.Col &&
+		(p.a.Row == p.b.Row+1 || p.a.Row == p.b.Row-1)
+}
+
 type pathCollector struct {
 	pairs [model.MaxPointsPerLine][model.MaxPointsPerLine]pair
 
@@ -26,6 +38,8 @@ type pathCollector struct {
 
 	hasCycle       bool
 	cycleSeenNodes int
+
+	hasInteresting bool
 }
 
 func newPathCollector(
@@ -38,6 +52,41 @@ func newPathCollector(
 	}
 
 	return pc
+}
+
+func (pc *pathCollector) getInteresting(
+	s *state,
+) (model.Coord, bool, bool) {
+	var c model.Coord
+
+	if !pc.hasInteresting {
+		return c, false, false
+	}
+
+	size := model.Dimension(s.size)
+	var l, a bool
+
+	for c.Row = model.Dimension(1); c.Row < size; c.Row++ {
+		for c.Col = model.Dimension(1); c.Col <= size; c.Col++ {
+			if pc.pairs[c.Row][c.Col].isVerticallyClose() {
+				if l, a = s.verAt(c.Row, c.Col); !l && !a {
+					return c, false, true
+				}
+			}
+		}
+	}
+
+	for c.Row = model.Dimension(1); c.Row <= size; c.Row++ {
+		for c.Col = model.Dimension(1); c.Col < size; c.Col++ {
+			if pc.pairs[c.Row][c.Col].isHorizontallyClose() {
+				if l, a = s.horAt(c.Row, c.Col); !l && !a {
+					return c, true, true
+				}
+			}
+		}
+	}
+
+	return c, false, false
 }
 
 func (pc *pathCollector) isNode(
@@ -100,9 +149,10 @@ func (pc *pathCollector) add(
 	}
 
 	if !l.isEmpty() && !r.isEmpty() {
+		pc.pairs[mya.Row][mya.Col] = newEmptyPair()
+		pc.pairs[myb.Row][myb.Col] = newEmptyPair()
+
 		if l == r {
-			pc.pairs[mya.Row][mya.Col] = newEmptyPair()
-			pc.pairs[myb.Row][myb.Col] = newEmptyPair()
 			if pc.hasCycle {
 				// a second cycle? this is bad news.
 				pc.cycleSeenNodes = -1
@@ -128,8 +178,6 @@ func (pc *pathCollector) add(
 				p.b = r.a
 			}
 		}
-		pc.pairs[mya.Row][mya.Col] = newEmptyPair()
-		pc.pairs[myb.Row][myb.Col] = newEmptyPair()
 		pc.pairs[p.a.Row][p.a.Col] = p
 		pc.pairs[p.b.Row][p.b.Col] = p
 		return
@@ -143,12 +191,10 @@ func (pc *pathCollector) add(
 		pc.pairs[mya.Row][mya.Col] = newEmptyPair()
 		if p.a == mya {
 			p.a = myb
-			pc.pairs[p.a.Row][p.a.Col] = p
-			pc.pairs[p.b.Row][p.b.Col] = p
-			return
+		} else {
+			p.b = myb
 		}
 
-		p.b = myb
 		pc.pairs[p.a.Row][p.a.Col] = p
 		pc.pairs[p.b.Row][p.b.Col] = p
 		return
@@ -161,12 +207,10 @@ func (pc *pathCollector) add(
 	pc.pairs[myb.Row][myb.Col] = newEmptyPair()
 	if p.a == myb {
 		p.a = mya
-		pc.pairs[p.a.Row][p.a.Col] = p
-		pc.pairs[p.b.Row][p.b.Col] = p
-		return
+	} else {
+		p.b = mya
 	}
 
-	p.b = mya
 	pc.pairs[p.a.Row][p.a.Col] = p
 	pc.pairs[p.b.Row][p.b.Col] = p
 }

@@ -148,6 +148,11 @@ func (s *state) isValid() bool {
 }
 
 func (s *state) getMostInterestingPath() (model.Coord, bool, bool) {
+	c, isHor, ok := s.paths.getInteresting(s)
+	if ok {
+		return c, isHor, true
+	}
+
 	var l, a bool
 	for _, pp := range s.rules.rules.unknowns {
 		if pp.IsHorizontal {
