@@ -16,9 +16,13 @@ const (
 
 func solve(
 	s *state,
+	dur time.Duration,
 ) (model.Solution, error) {
+	if dur > maxAttemptDuration {
+		dur = maxAttemptDuration
+	}
 
-	ctx, cancelFn := context.WithTimeout(context.Background(), maxAttemptDuration)
+	ctx, cancelFn := context.WithTimeout(context.Background(), dur)
 	defer cancelFn()
 
 	w := newWorkforce()

@@ -24,3 +24,7 @@ bench: ## Runs benchmarks TODO build these
 .PHONY: lint
 lint: ## Runs linters (via golangci-lint) on golang code
 	golangci-lint run -v ./...
+
+.PHONY: build
+build: ## Executes go build to see what escapes to heap
+	go build -gcflags='-m -m' ./solve/...

@@ -19,13 +19,6 @@ func newWorker(
 }
 
 func (w *worker) process() {
-	// fmt.Printf("Starting Process:\n%s\n", &w.state)
-	w.eliminateInitialAlmostCycles()
-	if w.sendAnswer == nil {
-		return
-	}
-	// fmt.Printf("eliminated cycles:\n%s\n", &w.state)
-
 	w.dfs()
 }
 
@@ -34,9 +27,9 @@ func (w *worker) eliminateInitialAlmostCycles() {
 		return
 	}
 
-	solvedState := eliminateInitialAlmostCycles(w.state)
-	if solvedState != nil {
-		sol, ok := solvedState.toSolution()
+	ok := eliminateInitialAlmostCycles(&w.state)
+	if ok {
+		sol, ok := w.state.toSolution()
 		if ok {
 			w.sendAnswer(sol)
 			w.sendAnswer = nil
@@ -46,6 +39,8 @@ func (w *worker) eliminateInitialAlmostCycles() {
 }
 
 func (w *worker) dfs() {
+	w.eliminateInitialAlmostCycles()
+
 	if w.sendAnswer == nil {
 		return
 	}

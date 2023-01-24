@@ -3,6 +3,7 @@ package solve_test
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/joshprzybyszewski/masyu/fetch"
 	"github.com/joshprzybyszewski/masyu/model"
@@ -43,9 +44,10 @@ func TestSpecifics(t *testing.T) {
 			}
 
 			ns := sr.Input.ToNodes()
-			sol, err := solve.FromNodes(
+			sol, err := solve.FromNodesWithTimeout(
 				tc.iter.GetSize(),
 				ns,
+				time.Second,
 			)
 			if err != nil {
 				t.Logf("Error fetching input: %q", err)
@@ -66,7 +68,6 @@ func TestAccuracy(t *testing.T) {
 	// go decided that it should run tests in this directory.
 	os.Chdir(`..`)
 	max := model.MaxIterator
-	max = 8
 
 	for iter := model.MinIterator; iter <= max; iter++ {
 		t.Run(iter.String(), func(t *testing.T) {
@@ -80,11 +81,17 @@ func TestAccuracy(t *testing.T) {
 			}
 
 			for _, sr := range srs {
+				sr := sr
+				if sr.Answer == `` {
+					t.Logf("Unknown answer: %+v", sr)
+					t.Fail()
+				}
 				t.Run(sr.Input.ID, func(t *testing.T) {
 					ns := sr.Input.ToNodes()
-					sol, err := solve.FromNodes(
+					sol, err := solve.FromNodesWithTimeout(
 						iter.GetSize(),
 						ns,
+						time.Duration(iter+1)*100*time.Millisecond,
 					)
 					if err != nil {
 						t.Logf("Error fetching input: %q", err)
@@ -119,12 +126,18 @@ func BenchmarkAll(b *testing.B) {
 			}
 
 			for _, sr := range srs {
+				sr := sr
+				if sr.Answer == `` {
+					b.Logf("Unknown answer: %+v", sr)
+					b.Fail()
+				}
 				b.Run("PuzzleID "+sr.Input.ID, func(b *testing.B) {
 					var sol model.Solution
 					for n := 0; n < b.N; n++ {
-						sol, err = solve.FromNodes(
+						sol, err = solve.FromNodesWithTimeout(
 							iter.GetSize(),
 							sr.Input.ToNodes(),
+							time.Duration(iter+1)*100*time.Millisecond,
 						)
 						if err != nil {
 							b.Logf("got unexpected error: %q", err)

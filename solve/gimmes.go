@@ -45,14 +45,14 @@ func findGimmes(
 }
 
 func eliminateInitialAlmostCycles(
-	s state,
-) *state {
-	var prev state
+	s *state,
+) bool {
+	prev := *s
 	var valid, solved bool
-	c, isHor, ok := s.paths.getNearlyCycle(&s)
+	c, isHor, ok := s.paths.getNearlyCycle(s)
 
 	for ok {
-		prev = s
+		prev = *s
 		if isHor {
 			s.lineHor(c.Row, c.Col)
 		} else {
@@ -63,7 +63,7 @@ func eliminateInitialAlmostCycles(
 		if solved {
 			_, ok := s.toSolution()
 			if ok {
-				return &s
+				return true
 			}
 		}
 		if valid {
@@ -73,14 +73,14 @@ func eliminateInitialAlmostCycles(
 			panic(`how?`)
 		}
 
-		s = prev
+		*s = prev
 		if isHor {
 			s.avoidHor(c.Row, c.Col)
 		} else {
 			s.avoidVer(c.Row, c.Col)
 		}
 
-		c, isHor, ok = s.paths.getNearlyCycle(&s)
+		c, isHor, ok = s.paths.getNearlyCycle(s)
 	}
-	return nil
+	return false
 }

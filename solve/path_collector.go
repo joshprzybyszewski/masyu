@@ -64,6 +64,7 @@ func (pc *pathCollector) getInteresting(
 	size := model.Dimension(s.size)
 	var l, a bool
 
+	// TODO we can quarter the iterations if we look in all four corners
 	for c.Row = model.Dimension(1); c.Row <= size; c.Row++ {
 		for c.Col = model.Dimension(1); c.Col <= size; c.Col++ {
 			if pc.pairs[c.Row][c.Col].isEmpty() {
@@ -89,10 +90,14 @@ func (pc *pathCollector) getNearlyCycle(
 	s *state,
 ) (model.Coord, bool, bool) {
 	var c model.Coord
+	if pc.hasCycle {
+		return c, false, false
+	}
 
 	size := model.Dimension(s.size)
 	var l, a bool
 
+	// TODO we can quarter the iterations if we look in all four corners
 	// TODO think of a way to make this look-up avoid the entire state iteration
 	for c.Col = model.Dimension(1); c.Col <= size; c.Col++ {
 		for c.Row = model.Dimension(1); c.Row < size; c.Row++ {

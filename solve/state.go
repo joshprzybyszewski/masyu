@@ -50,6 +50,11 @@ func newState(
 
 	s.initialize()
 
+	ok := eliminateInitialAlmostCycles(&s)
+	if ok {
+		return s
+	}
+
 	r.populateUnknowns(&s)
 
 	return s
@@ -85,7 +90,7 @@ func (s *state) isValidAndSolved() (bool, bool) {
 
 	if !s.paths.hasCycle {
 		// is not completed yet
-		return true, false
+		return !s.hasInvalid, false
 	}
 
 	if s.paths.cycleSeenNodes != len(s.nodes) {
@@ -94,7 +99,7 @@ func (s *state) isValidAndSolved() (bool, bool) {
 		return false, false
 	}
 
-	return true, true
+	return !s.hasInvalid, true
 }
 
 func (s *state) toSolution() (model.Solution, bool) {
