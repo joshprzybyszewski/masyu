@@ -38,8 +38,6 @@ type pathCollector struct {
 
 	hasCycle       bool
 	cycleSeenNodes int
-
-	hasInteresting bool
 }
 
 func newPathCollector(
@@ -57,32 +55,66 @@ func newPathCollector(
 func (pc *pathCollector) getInteresting(
 	s *state,
 ) (model.Coord, bool, bool) {
-	var c model.Coord
-
-	if !pc.hasInteresting {
-		return c, false, false
+	// TODO think of a way to make this look-up avoid the entire state iteration
+	c, isHor, ok := pc.getNearlyCycle(s)
+	if ok {
+		return c, isHor, true
 	}
 
 	size := model.Dimension(s.size)
 	var l, a bool
 
-	for c.Row = model.Dimension(1); c.Row < size; c.Row++ {
+	for c.Row = model.Dimension(1); c.Row <= size; c.Row++ {
 		for c.Col = model.Dimension(1); c.Col <= size; c.Col++ {
-			if pc.pairs[c.Row][c.Col].isVerticallyClose() {
+			if pc.pairs[c.Row][c.Col].isEmpty() {
+				continue
+			}
+			if !pc.pairs[c.Row+1][c.Col].isEmpty() {
 				if l, a = s.verAt(c.Row, c.Col); !l && !a {
 					return c, false, true
+				}
+			}
+			if !pc.pairs[c.Row][c.Col+1].isEmpty() {
+				if l, a = s.horAt(c.Row, c.Col); !l && !a {
+					return c, true, true
 				}
 			}
 		}
 	}
 
+	return c, false, false
+}
+
+func (pc *pathCollector) getNearlyCycle(
+	s *state,
+) (model.Coord, bool, bool) {
+	var c model.Coord
+
+	size := model.Dimension(s.size)
+	var l, a bool
+
+	// TODO think of a way to make this look-up avoid the entire state iteration
+	for c.Col = model.Dimension(1); c.Col <= size; c.Col++ {
+		for c.Row = model.Dimension(1); c.Row < size; c.Row++ {
+			if !pc.pairs[c.Row][c.Col].isVerticallyClose() {
+				continue
+			}
+			if l, a = s.verAt(c.Row, c.Col); !l && !a {
+				return c, false, true
+			}
+			c.Row++
+		}
+	}
+
 	for c.Row = model.Dimension(1); c.Row <= size; c.Row++ {
 		for c.Col = model.Dimension(1); c.Col < size; c.Col++ {
-			if pc.pairs[c.Row][c.Col].isHorizontallyClose() {
-				if l, a = s.horAt(c.Row, c.Col); !l && !a {
-					return c, true, true
-				}
+			if !pc.pairs[c.Row][c.Col].isHorizontallyClose() {
+				continue
 			}
+			if l, a = s.horAt(c.Row, c.Col); !l && !a {
+				return c, true, true
+			}
+			c.Col++
 		}
 	}
 

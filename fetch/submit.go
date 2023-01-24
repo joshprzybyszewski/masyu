@@ -80,7 +80,7 @@ func buildHallOfFameSubmission(
 		AttrOr(`value`, `unset`)
 
 	if solParams == `unset` {
-		fmt.Printf("\n\n\npage:\n\n%s\n", resp)
+		// fmt.Printf("\n\n\npage:\n\n%s\n", resp)
 		return nil, fmt.Errorf(`something was wrong`)
 	}
 

@@ -56,6 +56,7 @@ func main() {
 				fmt.Printf("Error: %+v\n", err)
 				// panic(err)
 			}
+			time.Sleep(time.Second)
 		}
 	}
 }

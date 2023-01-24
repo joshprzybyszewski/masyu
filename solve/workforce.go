@@ -86,6 +86,18 @@ func (w *workforce) solve(
 	ctx context.Context,
 	s *state,
 ) (model.Solution, error) {
+	valid, solved := s.isValidAndSolved()
+	if solved {
+		sol, ok := s.toSolution()
+		if ok {
+			// fmt.Printf("ALREADY SOLVED!\n")
+			return sol, nil
+		}
+		panic(`dev error!`)
+	} else if !valid {
+		panic(`dev error!`)
+	}
+
 	go w.sendWork(ctx, *s)
 
 	select {
@@ -108,7 +120,10 @@ func (w *workforce) sendWork(
 
 	var cpy state
 	sendCpy := func() {
-		// fmt.Printf("sending\n")
+		if !cpy.rules.runAllChecks(&cpy) {
+			return
+		}
+		// fmt.Printf("sending\n%s\n", &cpy)
 		defer func() {
 			// if the work channel has been closed, then don't do anything.
 			_ = recover()
@@ -116,34 +131,56 @@ func (w *workforce) sendWork(
 		w.work <- cpy
 	}
 	var l, a bool
-
-	whites := make([]model.Coord, 0, len(initial.nodes))
-	for _, n := range initial.nodes {
-		if n.IsBlack {
-			continue
-		}
-		if l, a = initial.horAt(n.Row, n.Col); !l && !a {
-			whites = append(whites, n.Coord)
-		}
-	}
-	start := 0
-	var decisions, bit uint32
 	var i int
 
+	whites := make([]model.Coord, 0, len(initial.nodes))
+	for i = len(initial.nodes) - 1; i >= 0; i-- {
+		if initial.nodes[i].IsBlack {
+			continue
+		}
+		if l, a = initial.horAt(initial.nodes[i].Row, initial.nodes[i].Col); l || a {
+			continue
+		}
+		if l, a = initial.verAt(initial.nodes[i].Row, initial.nodes[i].Col); l || a {
+			continue
+		}
+		if l, a = initial.horAt(initial.nodes[i].Row, initial.nodes[i].Col+1); l || a {
+			continue
+		}
+		if l, a = initial.verAt(initial.nodes[i].Row+1, initial.nodes[i].Col); l || a {
+			continue
+		}
+		whites = append(whites, initial.nodes[i].Coord)
+	}
+	start := 0
+	var decisions, bit uint64
+
 	for start < len(whites) {
-		for decisions = 0; decisions < 0xFFFFFFFF; decisions++ {
+		decisions = 0
+		for {
 			cpy = initial
-			for bit, i = 0x01, 0; i < 8; i++ {
+			for bit, i = 0x01, 0; i < 32; i++ {
 				if start+i >= len(whites) {
 					break
 				}
 
 				if decisions&bit == bit {
 					cpy.lineHor(whites[start+i].Row, whites[start+i].Col)
+					bit <<= 1
+					if decisions&bit == bit {
+						cpy.lineHor(whites[start+i].Row, whites[start+i].Col+1)
+					} else {
+						cpy.avoidHor(whites[start+i].Row, whites[start+i].Col+1)
+					}
 				} else {
 					cpy.lineVer(whites[start+i].Row, whites[start+i].Col)
+					bit <<= 1
+					if decisions&bit == bit {
+						cpy.lineVer(whites[start+i].Row+1, whites[start+i].Col)
+					} else {
+						cpy.avoidVer(whites[start+i].Row+1, whites[start+i].Col)
+					}
 				}
-
 				bit <<= 1
 			}
 
@@ -154,7 +191,12 @@ func (w *workforce) sendWork(
 			}
 
 			sendCpy()
+			if decisions == 0xFFFFFFFFFFFFFFFF {
+				break
+			}
+			decisions++
 		}
 		start += 32
 	}
+	// fmt.Printf("sent all white permutations\n")
 }

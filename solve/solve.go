@@ -11,6 +11,7 @@ const (
 	// maxAttemptDuration = 5 * time.Second
 	// maxAttemptDuration = 15 * time.Second
 	maxAttemptDuration = time.Minute
+	// maxAttemptDuration = time.Hour
 )
 
 func solve(

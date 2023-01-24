@@ -19,6 +19,33 @@ func newWorker(
 }
 
 func (w *worker) process() {
+	// fmt.Printf("Starting Process:\n%s\n", &w.state)
+	w.eliminateInitialAlmostCycles()
+	if w.sendAnswer == nil {
+		return
+	}
+	// fmt.Printf("eliminated cycles:\n%s\n", &w.state)
+
+	w.dfs()
+}
+
+func (w *worker) eliminateInitialAlmostCycles() {
+	if w.sendAnswer == nil {
+		return
+	}
+
+	solvedState := eliminateInitialAlmostCycles(w.state)
+	if solvedState != nil {
+		sol, ok := solvedState.toSolution()
+		if ok {
+			w.sendAnswer(sol)
+			w.sendAnswer = nil
+			return
+		}
+	}
+}
+
+func (w *worker) dfs() {
 	if w.sendAnswer == nil {
 		return
 	}
@@ -44,21 +71,21 @@ func (w *worker) process() {
 	if isHor {
 		s := w.state
 		w.state.lineHor(c.Row, c.Col)
-		w.process()
+		w.dfs()
 
 		w.state = s
 
 		w.state.avoidHor(c.Row, c.Col)
-		w.process()
+		w.dfs()
 		return
 	}
 
 	s := w.state
 	w.state.lineVer(c.Row, c.Col)
-	w.process()
+	w.dfs()
 
 	w.state = s
 
 	w.state.avoidVer(c.Row, c.Col)
-	w.process()
+	w.dfs()
 }
