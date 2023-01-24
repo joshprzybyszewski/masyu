@@ -125,11 +125,11 @@ func (w *workforce) sendWork(
 		}
 	}
 	start := 0
-	var decisions, bit uint8
+	var decisions, bit uint32
 	var i int
 
 	for start < len(whites) {
-		for decisions = 0; decisions < 255; decisions++ {
+		for decisions = 0; decisions < 0xFFFFFFFF; decisions++ {
 			cpy = initial
 			for bit, i = 0x01, 0; i < 8; i++ {
 				if start+i >= len(whites) {
@@ -153,6 +153,6 @@ func (w *workforce) sendWork(
 
 			sendCpy()
 		}
-		start += 8
+		start += 32
 	}
 }
