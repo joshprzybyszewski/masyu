@@ -44,6 +44,8 @@ func newState(
 	}
 	s.paths = newPathCollector(s.nodes)
 
+	findGimmes(&s)
+
 	r.populateRules(&s)
 
 	s.initialize()

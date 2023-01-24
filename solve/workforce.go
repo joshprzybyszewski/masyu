@@ -103,10 +103,12 @@ func (w *workforce) sendWork(
 	ctx context.Context,
 	initial state,
 ) {
+	// fmt.Printf("initial\n%s\n\n", &initial)
 	w.work <- initial
 
 	var cpy state
 	sendCpy := func() {
+		// fmt.Printf("sending\n")
 		defer func() {
 			// if the work channel has been closed, then don't do anything.
 			_ = recover()
