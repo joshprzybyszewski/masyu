@@ -32,28 +32,15 @@ func (w *worker) process() {
 		return
 	}
 
-	c, isHor, ok := w.state.getMostInterestingPath()
-	if !ok {
-		return
-	}
+	perms := getSimpleNextPermutations(&w.state)
 
-	if isHor {
-		s := w.state
-		w.state.lineHor(c.Row, c.Col)
+	beforeAll := w.state
+	for _, perm := range perms {
+		perm(&w.state)
 		w.process()
-
-		w.state = s
-
-		w.state.avoidHor(c.Row, c.Col)
-		w.process()
-		return
+		if w.sendAnswer == nil {
+			return
+		}
+		w.state = beforeAll
 	}
-
-	s := w.state
-	w.state.lineVer(c.Row, c.Col)
-	w.process()
-
-	w.state = s
-	w.state.avoidVer(c.Row, c.Col)
-	w.process()
 }
