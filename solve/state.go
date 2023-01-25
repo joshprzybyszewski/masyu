@@ -71,80 +71,24 @@ func (s *state) initialize() {
 	s.horizontalAvoids[s.size+1] = all64Bits
 	s.verticalAvoids[s.size+1] = all64Bits
 
-	if !s.checkEntireRuleset() {
+	if !checkEntireRuleset(s) {
 		fmt.Printf("Invalid State:\n%s\n", s)
 		panic(`state initialization is not valid?`)
 	}
 }
 
-func (s *state) checkEntireRuleset() bool {
-	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
-		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
-			s.rules.checkHorizontal(row, col, s)
-			s.rules.checkVertical(row, col, s)
-		}
-	}
-
-	return s.rules.runAllChecks(s)
-}
-
-func (s *state) isValidAndSolved() (bool, bool) {
-	if s.hasInvalid {
-		return false, false
-	}
-
-	if !s.rules.runAllChecks(s) {
-		return false, false
-	}
-
-	if !s.hasValidCrossings() {
-		// fmt.Printf("invalid crossings:\n%s\n", s)
-		return false, false
-	}
-
-	if !s.paths.hasCycle {
-		// is not completed yet
-		return !s.hasInvalid, false
-	}
-
-	if s.paths.cycleSeenNodes != len(s.nodes) {
-		// there's a cycle, but it doesn't include all of the nodes.
-		// it's invalid.
-		return false, false
-	}
-
-	return !s.hasInvalid, true
-}
-
-func (s *state) toSolution() (model.Solution, bool) {
-	// we found a state that includes a cycle with all of the nodes.
-	// avoid all of the remaining spots in the state, and see if it's
-	// still valid: this eliminates the bad state of having tertiary paths set.
-	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
-		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
-			if !s.horLineAt(row, col) {
-				s.avoidHor(row, col)
-			}
-			if !s.verLineAt(row, col) {
-				s.avoidVer(row, col)
-			}
-		}
-	}
-
-	if !s.checkEntireRuleset() {
-		return model.Solution{}, false
-	}
-
+func (s *state) toSolution() model.Solution {
 	sol := model.Solution{
 		Size: s.size,
 	}
 
+	// each line needs to be shifted by one.
 	for i := 0; i < int(s.size); i++ {
 		sol.Horizontals[i] = (s.horizontalLines[i+1]) >> 1
 		sol.Verticals[i] = (s.verticalLines[i+1]) >> 1
 	}
 
-	return sol, true
+	return sol
 }
 
 func (s *state) isValid() bool {

@@ -25,15 +25,11 @@ func FromNodesWithTimeout(
 
 	s := newState(size, ns)
 
-	valid, solved := s.isValidAndSolved()
-	if solved {
-		sol, ok := s.toSolution()
-		if ok {
-			return sol, nil
-		}
-	}
-	if !valid {
-		panic(`how?`)
+	ss := settle(&s)
+	if ss == solved {
+		return s.toSolution(), nil
+	} else if ss == invalid {
+		panic(`bad initialization`)
 	}
 
 	return solve(

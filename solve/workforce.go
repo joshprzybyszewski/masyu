@@ -86,16 +86,12 @@ func (w *workforce) solve(
 	ctx context.Context,
 	s *state,
 ) (model.Solution, error) {
-	_ = s.checkEntireRuleset()
-
-	valid, solved := s.isValidAndSolved()
-	if solved {
-		sol, ok := s.toSolution()
-		if ok {
-			return sol, nil
-		}
-		panic(`dev error!`)
-	} else if !valid {
+	// TODO maybe we need to keep a "check entire ruleset" call?
+	// _ = s.checkEntireRuleset()
+	ss := settle(s)
+	if ss == solved {
+		return s.toSolution(), nil
+	} else if ss == invalid {
 		panic(`dev error!`)
 	}
 
@@ -124,7 +120,15 @@ func (w *workforce) sendWork(
 
 	var cpy state
 	sendCpy := func() {
-		if !cpy.rules.runAllChecks(&cpy) {
+		ss := settle(&cpy)
+		if ss == solved {
+			defer func() {
+				// if the work channel has been closed, then don't do anything.
+				_ = recover()
+			}()
+			w.solution <- cpy.toSolution()
+			return
+		} else if ss == invalid {
 			return
 		}
 		defer func() {
