@@ -54,6 +54,22 @@ func findGimmes(
 				s.avoidVer(n.Row-1, n.Col)
 				s.avoidVer(n.Row-2, n.Col)
 			}
+
+			if !whites[n.Row][n.Col-1] && whites[n.Row][n.Col+1] && !whites[n.Row][n.Col+2] {
+				r := newPairWhiteHorizontalRule(n.Row, n.Col)
+				if n.Col > 1 {
+					s.rules.rules.addHorizontalRule(n.Row, n.Col-2, &r)
+				}
+				s.rules.rules.addHorizontalRule(n.Row, n.Col+2, &r)
+			}
+
+			if !whites[n.Row-1][n.Col] && whites[n.Row+1][n.Col] && !whites[n.Row+2][n.Col] {
+				r := newPairWhiteVerticalRule(n.Row, n.Col)
+				if n.Row > 1 {
+					s.rules.rules.addVerticalRule(n.Row-2, n.Col, &r)
+				}
+				s.rules.rules.addVerticalRule(n.Row+2, n.Col, &r)
+			}
 		}
 	}
 }

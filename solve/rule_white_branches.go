@@ -16,7 +16,7 @@ func newWhiteHorizontalBranchRule(
 func (r *rule) checkWhiteHorizontalBranch(
 	s *state,
 ) {
-	// [MICRO] this could be minutely faster from manual bitmasking
+	// TODO [MICRO] this could be minutely faster from manual bitmasking
 	if !s.verAvoidAt(r.row, r.col-1) ||
 		!s.verAvoidAt(r.row-1, r.col-1) ||
 		!s.verAvoidAt(r.row, r.col+1) ||
@@ -42,7 +42,7 @@ func newWhiteVerticalBranchRule(
 func (r *rule) checkWhiteVerticalBranch(
 	s *state,
 ) {
-	// [MICRO] this could be minutely faster from manual bitmasking
+	// TODO [MICRO] this could be minutely faster from manual bitmasking
 	if !s.horAvoidAt(r.row-1, r.col) ||
 		!s.horAvoidAt(r.row-1, r.col-1) ||
 		!s.horAvoidAt(r.row+1, r.col) ||
