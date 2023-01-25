@@ -11,6 +11,8 @@ import (
 )
 
 func TestSpecifics(t *testing.T) {
+	fetch.DisableHTTPCalls()
+	solve.SetTestTimeout()
 	// go decided that it should run tests in this directory.
 	os.Chdir(`..`)
 
@@ -65,6 +67,8 @@ func TestSpecifics(t *testing.T) {
 }
 
 func TestAccuracy(t *testing.T) {
+	fetch.DisableHTTPCalls()
+	solve.SetTestTimeout()
 	// go decided that it should run tests in this directory.
 	os.Chdir(`..`)
 	max := model.MaxIterator
@@ -111,6 +115,8 @@ func TestAccuracy(t *testing.T) {
 }
 
 func BenchmarkAll(b *testing.B) {
+	fetch.DisableHTTPCalls()
+	solve.SetTestTimeout()
 	// go decided that it should run benchmarks in this directory.
 	os.Chdir(`..`)
 

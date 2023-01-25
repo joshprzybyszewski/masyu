@@ -86,7 +86,6 @@ func (w *workforce) solve(
 	ctx context.Context,
 	s *state,
 ) (model.Solution, error) {
-	// TODO maybe we need to keep a "check entire ruleset" call?
 	_ = checkEntireRuleset(s)
 	ss := settle(s)
 	if ss == solved {
@@ -112,12 +111,12 @@ func (w *workforce) sendWork(
 	ctx context.Context,
 	initial state,
 ) {
-	w.work <- initial
-
 	defer func() {
 		// if the work channel has been closed, then don't do anything.
 		_ = recover()
 	}()
+
+	w.work <- initial
 
 	perms := getInitialPermutations(ctx, initial)
 	if ctx.Err() != nil {

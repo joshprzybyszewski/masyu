@@ -7,11 +7,11 @@ import (
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
-const (
+var (
 	// maxAttemptDuration = 5 * time.Second
 	maxAttemptDuration = 45 * time.Second
 	// maxAttemptDuration = 20 * time.Minute
-	// maxAttemptDuration = 2 * time.Hour
+	// maxAttemptDuration = time.Hour
 )
 
 func solve(

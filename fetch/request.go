@@ -8,12 +8,20 @@ import (
 	"strings"
 )
 
+var (
+	requestsDisabled = false
+)
+
 func doRequest(
 	method string,
 	url string,
 	header http.Header,
 	data io.Reader,
 ) ([]byte, error) {
+
+	if requestsDisabled {
+		return nil, nil
+	}
 
 	req, err := http.NewRequest(method, url, data)
 	if err != nil {
