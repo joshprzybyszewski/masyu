@@ -280,7 +280,13 @@ func (s *state) getNode(r, c model.Dimension) byte {
 		}
 		return 'W'
 	}
-	if r == 0 || c == 0 || r > model.Dimension(s.size) || c > model.Dimension(s.size) {
+	if r == 0 {
+		return '0' + byte(c%10)
+	}
+	if c == 0 {
+		return '0' + byte(r%10)
+	}
+	if r > model.Dimension(s.size) || c > model.Dimension(s.size) {
 		return ' '
 	}
 	return '*'

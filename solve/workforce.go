@@ -123,15 +123,20 @@ func (w *workforce) sendWork(
 		return
 	}
 
+	tmp := initial
 	var ss settledState
 	for _, perm := range perms {
-		ss = settle(perm)
+		perm(&tmp)
+
+		ss = settle(&tmp)
 		if ss == solved {
-			w.solution <- perm.toSolution()
+			w.solution <- tmp.toSolution()
 			return
 		} else if ss == validUnsolved {
-			w.work <- *perm
+			w.work <- tmp
 		}
+
+		tmp = initial
 	}
 
 }

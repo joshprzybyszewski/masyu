@@ -11,10 +11,18 @@ const (
 	maxAllowedEmptyRow = 7
 )
 
+type horizontalCrossingPermState struct {
+	knownCol model.Dimension
+	// numCrossings is the number of lines at and before the knownCol
+	numCrossings int
+
+	perms applyFn
+}
+
 func getInitialPermutations(
 	ctx context.Context,
 	initial state,
-) []*state {
+) []applyFn {
 	row := getBestStartingRow(&initial)
 	if row == 0 {
 		// couldn't find a good starting row?
@@ -35,15 +43,21 @@ func getInitialPermutations(
 
 	perms := getPermutationsForRow(
 		ctx,
-		initial,
+		&initial,
 		row,
+		horizontalCrossingPermState{
+			knownCol:     0,
+			numCrossings: 0,
+			perms: func(s *state) {
+			},
+		},
 	)
 
 	goalCrossings := int(initial.size) / 2
 
 	sort.Slice(perms, func(i, j int) bool {
-		il, _ := getNumLinesInRow(perms[i], row)
-		jl, _ := getNumLinesInRow(perms[j], row)
+		il := perms[i].numCrossings
+		jl := perms[j].numCrossings
 
 		di := goalCrossings - il
 		if di < 0 {
@@ -63,7 +77,11 @@ func getInitialPermutations(
 		return il > jl
 	})
 
-	return perms
+	output := make([]applyFn, 0, len(perms))
+	for _, c := range perms {
+		output = append(output, c.perms)
+	}
+	return output
 }
 
 func getBestStartingRow(
@@ -113,73 +131,67 @@ func getBestStartingRow(
 
 func getPermutationsForRow(
 	ctx context.Context,
-	prev state,
+	s *state,
 	row model.Dimension,
-) []*state {
+	cur horizontalCrossingPermState,
+) []horizontalCrossingPermState {
 	if ctx.Err() != nil {
 		return nil
 	}
 
-	numLines, col := getNumLinesInRow(&prev, row)
+	col := getNextEmptyCol(s, row, cur.knownCol+1)
 	if col == 0 {
 		// there wasn't an empty column found.
-		if numLines%2 == 0 {
+		if cur.numCrossings%2 == 0 {
 			// if this row is valid, then return it.
-			return []*state{
-				&prev,
+			return []horizontalCrossingPermState{
+				cur,
 			}
 		}
 		return nil
-	} else if numLines >= 0 {
-		// an empty column was found, and we know about some existing lines
-		// either avoid or draw the final empty column and return this state.
-		if numLines%2 == 0 {
-			prev.avoidVer(row, col)
-		} else {
-			prev.lineVer(row, col)
-		}
-		return []*state{
-			&prev,
-		}
 	}
-	// there's at least two empty columns left. Populate the empty column
-	// and avoid it, and append the results together
 
-	cpy := prev
-	cpy.avoidVer(row, col)
 	output := getPermutationsForRow(
 		ctx,
-		cpy,
+		s,
 		row,
+		horizontalCrossingPermState{
+			knownCol:     col,
+			numCrossings: cur.numCrossings,
+			perms: func(s *state) {
+				s.avoidVer(row, col)
+				cur.perms(s)
+			},
+		},
 	)
 
-	prev.lineVer(row, col)
 	output = append(output, getPermutationsForRow(
 		ctx,
-		prev,
+		s,
 		row,
+		horizontalCrossingPermState{
+			knownCol:     col,
+			numCrossings: cur.numCrossings + 1,
+			perms: func(s *state) {
+				s.lineVer(row, col)
+				cur.perms(s)
+			},
+		},
 	)...)
 
 	return output
 }
 
-func getNumLinesInRow(
+func getNextEmptyCol(
 	s *state,
-	row model.Dimension,
-) (int, model.Dimension) {
-	numLines := 0
-	var emptyCol model.Dimension
+	row, col model.Dimension,
+) model.Dimension {
 	var l, a bool
-	for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
+	for ; col <= model.Dimension(s.size); col++ {
 		l, a = s.verAt(row, col)
-		if l {
-			numLines++
-		} else if !a {
-			if emptyCol != 0 {
-				return -1, emptyCol
-			}
-			emptyCol = col
+		if !l && !a {
+			return col
 		}
 	}
-	return numLines, emptyCol
+	return 0
 }
