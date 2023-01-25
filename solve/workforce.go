@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"time"
 
 	"github.com/joshprzybyszewski/masyu/model"
 )
@@ -87,7 +88,7 @@ func (w *workforce) solve(
 	s *state,
 ) (model.Solution, error) {
 	// TODO maybe we need to keep a "check entire ruleset" call?
-	// _ = s.checkEntireRuleset()
+	_ = checkEntireRuleset(s)
 	ss := settle(s)
 	if ss == solved {
 		return s.toSolution(), nil
@@ -114,95 +115,28 @@ func (w *workforce) sendWork(
 ) {
 	w.work <- initial
 
-	// TODO instead of sending out "completed" white nodes, send out a completed
-	// "row" or "col" of the puzzle (because we know there must be an even number of
-	// lines through every row/col)
+	defer func() {
+		// if the work channel has been closed, then don't do anything.
+		_ = recover()
+	}()
 
-	var cpy state
-	sendCpy := func() {
-		ss := settle(&cpy)
+	// fmt.Printf("initial\n%s\n", &initial)
+	t0 := time.Now()
+	perms := getInitialPermutations(ctx, initial)
+	fmt.Printf("\nfetched %d initial permutations in %s\n\n", len(perms), time.Since(t0))
+	if ctx.Err() != nil {
+		return
+	}
+
+	var ss settledState
+	for _, perm := range perms {
+		ss = settle(perm)
 		if ss == solved {
-			defer func() {
-				// if the work channel has been closed, then don't do anything.
-				_ = recover()
-			}()
-			w.solution <- cpy.toSolution()
+			w.solution <- perm.toSolution()
 			return
-		} else if ss == invalid {
-			return
+		} else if ss == validUnsolved {
+			w.work <- *perm
 		}
-		defer func() {
-			// if the work channel has been closed, then don't do anything.
-			_ = recover()
-		}()
-		w.work <- cpy
 	}
-	var l, a bool
-	var i int
 
-	whites := make([]model.Coord, 0, len(initial.nodes))
-	for i = len(initial.nodes) - 1; i >= 0; i-- {
-		if initial.nodes[i].IsBlack {
-			continue
-		}
-		if l, a = initial.horAt(initial.nodes[i].Row, initial.nodes[i].Col); l || a {
-			continue
-		}
-		if l, a = initial.verAt(initial.nodes[i].Row, initial.nodes[i].Col); l || a {
-			continue
-		}
-		if l, a = initial.horAt(initial.nodes[i].Row, initial.nodes[i].Col+1); l || a {
-			continue
-		}
-		if l, a = initial.verAt(initial.nodes[i].Row+1, initial.nodes[i].Col); l || a {
-			continue
-		}
-		whites = append(whites, initial.nodes[i].Coord)
-	}
-	start := 0
-	var decisions, bit uint64
-
-	for start < len(whites) {
-		decisions = 0
-		for {
-			cpy = initial
-			for bit, i = 0x01, 0; i < 32; i++ {
-				if start+i >= len(whites) {
-					break
-				}
-
-				if decisions&bit == bit {
-					cpy.lineHor(whites[start+i].Row, whites[start+i].Col)
-					bit <<= 1
-					if decisions&bit == bit {
-						cpy.lineHor(whites[start+i].Row, whites[start+i].Col+1)
-					} else {
-						cpy.avoidHor(whites[start+i].Row, whites[start+i].Col+1)
-					}
-				} else {
-					cpy.lineVer(whites[start+i].Row, whites[start+i].Col)
-					bit <<= 1
-					if decisions&bit == bit {
-						cpy.lineVer(whites[start+i].Row+1, whites[start+i].Col)
-					} else {
-						cpy.avoidVer(whites[start+i].Row+1, whites[start+i].Col)
-					}
-				}
-				bit <<= 1
-			}
-
-			select {
-			case <-ctx.Done():
-				return
-			default:
-			}
-
-			sendCpy()
-			if decisions == 0xFFFFFFFFFFFFFFFF {
-				break
-			}
-			decisions++
-		}
-		start += 32
-	}
 }
