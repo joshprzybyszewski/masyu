@@ -176,7 +176,7 @@ func (s *state) lineHor(r, c model.Dimension) {
 
 	s.crossings.lineHor(c)
 	s.rules.checkHorizontal(r, c, s)
-	s.paths.addHorizontal(r, c)
+	s.paths.addHorizontal(r, c, s)
 }
 
 func (s *state) verAt(r, c model.Dimension) (bool, bool) {
@@ -223,7 +223,7 @@ func (s *state) lineVer(r, c model.Dimension) {
 
 	s.crossings.lineVer(r)
 	s.rules.checkVertical(r, c, s)
-	s.paths.addVertical(r, c)
+	s.paths.addVertical(r, c, s)
 }
 
 const (

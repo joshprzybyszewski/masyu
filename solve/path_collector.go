@@ -20,14 +20,12 @@ func (p *pair) isEmpty() bool {
 }
 
 func (p *pair) isHorizontallyClose() bool {
-	return !p.isEmpty() &&
-		p.a.Row == p.b.Row &&
+	return p.a.Row == p.b.Row &&
 		(p.a.Col == p.b.Col+1 || p.a.Col == p.b.Col-1)
 }
 
 func (p *pair) isVerticallyClose() bool {
-	return !p.isEmpty() &&
-		p.a.Col == p.b.Col &&
+	return p.a.Col == p.b.Col &&
 		(p.a.Row == p.b.Row+1 || p.a.Row == p.b.Row-1)
 }
 
@@ -81,47 +79,6 @@ func (pc *pathCollector) getInteresting(
 	return c, false, false
 }
 
-func (pc *pathCollector) getNearlyCycle(
-	s *state,
-) (model.Coord, bool, int, bool) {
-	// TODO make this faster
-	var c model.Coord
-	if pc.hasCycle {
-		return c, false, -1, false
-	}
-
-	size := model.Dimension(s.size)
-	var l, a bool
-
-	// TODO we can quarter the iterations if we look in all four corners
-	// TODO think of a way to make this look-up avoid the entire state iteration
-	for c.Col = model.Dimension(1); c.Col <= size; c.Col++ {
-		for c.Row = model.Dimension(1); c.Row < size; c.Row++ {
-			if !pc.pairs[c.Row][c.Col].isVerticallyClose() {
-				continue
-			}
-			if l, a = s.verAt(c.Row, c.Col); !l && !a {
-				return c, false, pc.pairs[c.Row][c.Col].numSeenNodes, true
-			}
-			c.Row++
-		}
-	}
-
-	for c.Row = model.Dimension(1); c.Row <= size; c.Row++ {
-		for c.Col = model.Dimension(1); c.Col < size; c.Col++ {
-			if !pc.pairs[c.Row][c.Col].isHorizontallyClose() {
-				continue
-			}
-			if l, a = s.horAt(c.Row, c.Col); !l && !a {
-				return c, true, pc.pairs[c.Row][c.Col].numSeenNodes, true
-			}
-			c.Col++
-		}
-	}
-
-	return c, false, -1, false
-}
-
 func (pc *pathCollector) isNode(
 	c model.Coord,
 ) bool {
@@ -130,6 +87,7 @@ func (pc *pathCollector) isNode(
 
 func (pc *pathCollector) addHorizontal(
 	row, col model.Dimension,
+	s *state,
 ) {
 	mya := model.Coord{
 		Row: row,
@@ -140,11 +98,15 @@ func (pc *pathCollector) addHorizontal(
 		Col: col + 1,
 	}
 
-	pc.add(mya, myb)
+	pc.add(
+		mya, myb,
+		s,
+	)
 }
 
 func (pc *pathCollector) addVertical(
 	row, col model.Dimension,
+	s *state,
 ) {
 	mya := model.Coord{
 		Row: row,
@@ -154,11 +116,15 @@ func (pc *pathCollector) addVertical(
 		Row: row + 1,
 		Col: col,
 	}
-	pc.add(mya, myb)
+	pc.add(
+		mya, myb,
+		s,
+	)
 }
 
 func (pc *pathCollector) add(
 	mya, myb model.Coord,
+	s *state,
 ) {
 	l := pc.pairs[mya.Row][mya.Col]
 	r := pc.pairs[myb.Row][myb.Col]
@@ -213,6 +179,10 @@ func (pc *pathCollector) add(
 		}
 		pc.pairs[p.a.Row][p.a.Col] = p
 		pc.pairs[p.b.Row][p.b.Col] = p
+		pc.checkNewPair(
+			p,
+			s,
+		)
 		return
 	}
 
@@ -230,6 +200,10 @@ func (pc *pathCollector) add(
 
 		pc.pairs[p.a.Row][p.a.Col] = p
 		pc.pairs[p.b.Row][p.b.Col] = p
+		pc.checkNewPair(
+			p,
+			s,
+		)
 		return
 	}
 
@@ -246,4 +220,55 @@ func (pc *pathCollector) add(
 
 	pc.pairs[p.a.Row][p.a.Col] = p
 	pc.pairs[p.b.Row][p.b.Col] = p
+
+	pc.checkNewPair(
+		p,
+		s,
+	)
+}
+
+func (pc *pathCollector) checkNewPair(
+	p pair,
+	s *state,
+) {
+	if pc.hasCycle || s.hasInvalid {
+		return
+	}
+	if p.isEmpty() {
+		return
+	}
+
+	h := p.isHorizontallyClose()
+	if !h && !p.isVerticallyClose() {
+		return
+	}
+
+	r := p.a.Row
+	if p.b.Row < r {
+		r = p.b.Row
+	}
+	c := p.a.Col
+	if p.b.Col < c {
+		c = p.b.Col
+	}
+
+	// only need to check the state when we're about to write a line.
+	// re-writing an avoid is no problem.
+	if p.numSeenNodes == len(s.nodes) {
+		if h {
+			if !s.horAvoidAt(r, c) {
+				s.lineHor(r, c)
+			}
+		} else {
+			if !s.verAvoidAt(r, c) {
+				s.lineVer(r, c)
+			}
+		}
+	} else {
+		if h {
+			s.avoidHor(r, c)
+		} else {
+			s.avoidVer(r, c)
+		}
+	}
 }

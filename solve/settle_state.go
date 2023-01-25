@@ -40,7 +40,7 @@ func settle(
 		return ss
 	}
 
-	return eliminateCycles(s)
+	return validUnsolved
 }
 
 func settleCycle(
@@ -152,45 +152,6 @@ func checkEntireRuleset(s *state) bool {
 	}
 
 	return s.rules.runAllChecks(s)
-}
-
-func eliminateCycles(
-	s *state,
-) settledState {
-
-	c, isHor, seenNodes, hasNearlyCycle := s.paths.getNearlyCycle(s)
-	if !hasNearlyCycle {
-		return validUnsolved
-	}
-
-	if seenNodes == len(s.nodes) {
-		if isHor {
-			s.lineHor(c.Row, c.Col)
-		} else {
-			s.lineVer(c.Row, c.Col)
-		}
-		return settle(s)
-	}
-
-	for hasNearlyCycle {
-		if isHor {
-			s.avoidHor(c.Row, c.Col)
-		} else {
-			s.avoidVer(c.Row, c.Col)
-		}
-
-		if s.hasInvalid || s.paths.hasCycle {
-			break
-		}
-
-		c, isHor, seenNodes, hasNearlyCycle = s.paths.getNearlyCycle(s)
-		if seenNodes == len(s.nodes) {
-			// error state: this should have been caught immediately
-			panic(`unexpected state`)
-		}
-	}
-
-	return settle(s)
 }
 
 func completeCrossings(
