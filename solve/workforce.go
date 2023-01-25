@@ -118,6 +118,10 @@ func (w *workforce) sendWork(
 ) {
 	w.work <- initial
 
+	// TODO instead of sending out "completed" white nodes, send out a completed
+	// "row" or "col" of the puzzle (because we know there must be an even number of
+	// lines through every row/col)
+
 	var cpy state
 	sendCpy := func() {
 		if !cpy.rules.runAllChecks(&cpy) {

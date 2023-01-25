@@ -76,6 +76,8 @@ CHECK_CYCLES:
 }
 
 func (w *worker) dfs() {
+	// TODO before we eliminate "nearly cycles", we could check if there are any
+	// rows/cols that have only one un-written line.
 	if !w.eliminateNearlyCycles() {
 		return
 	}
