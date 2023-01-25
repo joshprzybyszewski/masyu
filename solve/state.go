@@ -20,9 +20,11 @@ type state struct {
 
 	paths pathCollector
 
+	// [row]colBitMask
 	horizontalLines  [model.MaxPointsPerLine]uint64
 	horizontalAvoids [model.MaxPointsPerLine]uint64
 
+	// [col]rowBitMask
 	verticalLines  [model.MaxPointsPerLine]uint64
 	verticalAvoids [model.MaxPointsPerLine]uint64
 }
@@ -282,45 +284,4 @@ func (s *state) getNode(r, c model.Dimension) byte {
 		return ' '
 	}
 	return '*'
-}
-
-func (s *state) hasValidCrossings() bool {
-	bit := uint64(1 << 1)
-	for i := 1; i <= int(s.size); i++ {
-		if !s.hasValidCrossingsForVerticalBit(bit) ||
-			!s.hasValidCrossingsForHorizontalBit(bit) {
-			return false
-		}
-		bit <<= 1
-	}
-
-	return true
-}
-
-func (s *state) hasValidCrossingsForVerticalBit(
-	bit uint64,
-) bool {
-	var l uint8
-	for i := 1; i <= int(s.size); i++ {
-		if s.horizontalLines[i]&bit == bit {
-			l++
-		} else if s.horizontalAvoids[i]&bit != bit {
-			return true
-		}
-	}
-	return l%2 == 0
-}
-
-func (s *state) hasValidCrossingsForHorizontalBit(
-	bit uint64,
-) bool {
-	var l uint8
-	for i := 1; i <= int(s.size); i++ {
-		if s.verticalLines[i]&bit == bit {
-			l++
-		} else if s.verticalAvoids[i]&bit != bit {
-			return true
-		}
-	}
-	return l%2 == 0
 }
