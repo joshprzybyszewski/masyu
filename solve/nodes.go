@@ -1,6 +1,7 @@
 package solve
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/joshprzybyszewski/masyu/model"
@@ -29,6 +30,7 @@ func FromNodesWithTimeout(
 	if ss == solved {
 		return s.toSolution(), nil
 	} else if ss == invalid {
+		fmt.Printf("%s\n", &s)
 		panic(`bad initialization`)
 	}
 

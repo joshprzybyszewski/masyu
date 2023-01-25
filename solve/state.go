@@ -20,6 +20,8 @@ type state struct {
 
 	paths pathCollector
 
+	crossings crossings
+
 	// [row]colBitMask
 	horizontalLines  [model.MaxPointsPerLine]uint64
 	horizontalAvoids [model.MaxPointsPerLine]uint64
@@ -38,9 +40,10 @@ func newState(
 	rcc := newRuleCheckCollector(r)
 
 	s := state{
-		nodes: make([]model.Node, len(ns)),
-		size:  size,
-		rules: &rcc,
+		nodes:     make([]model.Node, len(ns)),
+		size:      size,
+		crossings: newCrossings(size),
+		rules:     &rcc,
 	}
 
 	// offset all of the input nodes by positive one
@@ -154,6 +157,7 @@ func (s *state) avoidHor(r, c model.Dimension) {
 		return
 	}
 
+	s.crossings.avoidHor(c)
 	s.rules.checkHorizontal(r, c, s)
 }
 
@@ -170,6 +174,7 @@ func (s *state) lineHor(r, c model.Dimension) {
 		return
 	}
 
+	s.crossings.lineHor(c)
 	s.rules.checkHorizontal(r, c, s)
 	s.paths.addHorizontal(r, c)
 }
@@ -199,6 +204,7 @@ func (s *state) avoidVer(r, c model.Dimension) {
 		return
 	}
 
+	s.crossings.avoidVer(r)
 	s.rules.checkVertical(r, c, s)
 }
 
@@ -215,6 +221,7 @@ func (s *state) lineVer(r, c model.Dimension) {
 		return
 	}
 
+	s.crossings.lineVer(r)
 	s.rules.checkVertical(r, c, s)
 	s.paths.addVertical(r, c)
 }

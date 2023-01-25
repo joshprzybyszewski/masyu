@@ -196,76 +196,9 @@ func eliminateCycles(
 func completeCrossings(
 	s *state,
 ) settledState {
-	// TODO make this faster. probably by storing it off in a separate struct
-
-	var changed bool
-	var bit uint64
-	var dim2, tmp model.Dimension
-	var numLines uint8
-
-	for dim1 := model.Dimension(1); dim1 < model.Dimension(s.size); dim1++ {
-		bit = 1 << dim1
-		numLines = 0
-		dim2 = 0
-		for tmp = 1; tmp <= model.Dimension(s.size); tmp++ {
-			if s.horizontalLines[tmp]&bit == bit {
-				numLines++
-			} else if s.horizontalAvoids[tmp]&bit != bit {
-				if dim2 == 0 {
-					dim2 = tmp
-				} else {
-					dim2 = model.Dimension(s.size + 1)
-					break
-				}
-			}
-		}
-		if dim2 == 0 {
-			// we got through the whole vertical line, and all of them had
-			// either a line or an avoid.
-			if numLines%2 == 1 {
-				return invalid
-			}
-		} else if dim2 <= model.Dimension(s.size) {
-			changed = true
-			if numLines%2 == 0 {
-				s.avoidHor(dim2, dim1)
-			} else {
-				s.lineHor(dim2, dim1)
-			}
-		}
-
-		numLines = 0
-		dim2 = 0
-		for tmp = 1; tmp <= model.Dimension(s.size); tmp++ {
-			if s.verticalLines[tmp]&bit == bit {
-				numLines++
-			} else if s.verticalAvoids[tmp]&bit != bit {
-				if dim2 == 0 {
-					dim2 = tmp
-				} else {
-					dim2 = model.Dimension(s.size + 1)
-					break
-				}
-			}
-		}
-		if dim2 == 0 {
-			// we got through the whole horizontal line, and all of them had
-			// either a line or an avoid.
-			if numLines%2 == 1 {
-				return invalid
-			}
-		} else if dim2 <= model.Dimension(s.size) {
-			changed = true
-			if numLines%2 == 0 {
-				s.avoidVer(dim1, dim2)
-			} else {
-				s.lineVer(dim1, dim2)
-			}
-		}
-	}
-
-	if changed {
+	if s.crossings.complete(s) {
 		return settle(s)
 	}
+
 	return validUnsolved
 }
