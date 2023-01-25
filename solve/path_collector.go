@@ -55,11 +55,7 @@ func newPathCollector(
 func (pc *pathCollector) getInteresting(
 	s *state,
 ) (model.Coord, bool, bool) {
-	// TODO think of a way to make this look-up avoid the entire state iteration
-	c, isHor, ok := pc.getNearlyCycle(s)
-	if ok {
-		return c, isHor, true
-	}
+	var c model.Coord
 
 	size := model.Dimension(s.size)
 	var l, a bool
@@ -67,17 +63,16 @@ func (pc *pathCollector) getInteresting(
 	// TODO we can quarter the iterations if we look in all four corners
 	for c.Row = model.Dimension(1); c.Row <= size; c.Row++ {
 		for c.Col = model.Dimension(1); c.Col <= size; c.Col++ {
-			if pc.pairs[c.Row][c.Col].isEmpty() {
-				continue
-			}
-			if !pc.pairs[c.Row+1][c.Col].isEmpty() {
-				if l, a = s.verAt(c.Row, c.Col); !l && !a {
-					return c, false, true
+			if !pc.pairs[c.Row][c.Col].isEmpty() {
+				if !pc.pairs[c.Row+1][c.Col].isEmpty() {
+					if l, a = s.verAt(c.Row, c.Col); !l && !a {
+						return c, false, true
+					}
 				}
-			}
-			if !pc.pairs[c.Row][c.Col+1].isEmpty() {
-				if l, a = s.horAt(c.Row, c.Col); !l && !a {
-					return c, true, true
+				if !pc.pairs[c.Row][c.Col+1].isEmpty() {
+					if l, a = s.horAt(c.Row, c.Col); !l && !a {
+						return c, true, true
+					}
 				}
 			}
 		}
@@ -88,10 +83,10 @@ func (pc *pathCollector) getInteresting(
 
 func (pc *pathCollector) getNearlyCycle(
 	s *state,
-) (model.Coord, bool, bool) {
+) (model.Coord, bool, int, bool) {
 	var c model.Coord
 	if pc.hasCycle {
-		return c, false, false
+		return c, false, -1, false
 	}
 
 	size := model.Dimension(s.size)
@@ -105,7 +100,7 @@ func (pc *pathCollector) getNearlyCycle(
 				continue
 			}
 			if l, a = s.verAt(c.Row, c.Col); !l && !a {
-				return c, false, true
+				return c, false, pc.pairs[c.Row][c.Col].numSeenNodes, true
 			}
 			c.Row++
 		}
@@ -117,13 +112,13 @@ func (pc *pathCollector) getNearlyCycle(
 				continue
 			}
 			if l, a = s.horAt(c.Row, c.Col); !l && !a {
-				return c, true, true
+				return c, true, pc.pairs[c.Row][c.Col].numSeenNodes, true
 			}
 			c.Col++
 		}
 	}
 
-	return c, false, false
+	return c, false, -1, false
 }
 
 func (pc *pathCollector) isNode(

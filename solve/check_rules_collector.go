@@ -76,9 +76,6 @@ func (c *ruleCheckCollector) runAllChecks(
 					bit <<= 1
 				}
 			}
-			if !s.isValid() {
-				return false
-			}
 		}
 
 		if !s.isValid() {

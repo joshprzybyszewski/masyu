@@ -50,11 +50,6 @@ func newState(
 
 	s.initialize()
 
-	ok := eliminateInitialAlmostCycles(&s)
-	if ok {
-		return s
-	}
-
 	r.populateUnknowns(&s)
 
 	return s
@@ -71,6 +66,12 @@ func (s *state) initialize() {
 	s.horizontalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
 	s.verticalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
 
+	if !s.checkEntireRuleset() {
+		panic(`state initialization is not valid?`)
+	}
+}
+
+func (s *state) checkEntireRuleset() bool {
 	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
 		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
 			s.rules.checkHorizontal(row, col, s)
@@ -78,12 +79,14 @@ func (s *state) initialize() {
 		}
 	}
 
-	if !s.rules.runAllChecks(s) {
-		panic(`state initialization is not valid?`)
-	}
+	return s.rules.runAllChecks(s)
 }
 
 func (s *state) isValidAndSolved() (bool, bool) {
+	if s.hasInvalid {
+		return false, false
+	}
+
 	if !s.rules.runAllChecks(s) {
 		return false, false
 	}
@@ -117,15 +120,7 @@ func (s *state) toSolution() (model.Solution, bool) {
 		}
 	}
 
-	// and force a re-check of all the rules.
-	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
-		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
-			s.rules.checkHorizontal(row, col, s)
-			s.rules.checkVertical(row, col, s)
-		}
-	}
-
-	if !s.rules.runAllChecks(s) {
+	if !s.checkEntireRuleset() {
 		return model.Solution{}, false
 	}
 

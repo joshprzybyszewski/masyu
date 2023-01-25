@@ -86,11 +86,12 @@ func (w *workforce) solve(
 	ctx context.Context,
 	s *state,
 ) (model.Solution, error) {
+	_ = s.checkEntireRuleset()
+
 	valid, solved := s.isValidAndSolved()
 	if solved {
 		sol, ok := s.toSolution()
 		if ok {
-			// fmt.Printf("ALREADY SOLVED!\n")
 			return sol, nil
 		}
 		panic(`dev error!`)
@@ -115,7 +116,6 @@ func (w *workforce) sendWork(
 	ctx context.Context,
 	initial state,
 ) {
-	// fmt.Printf("initial\n%s\n\n", &initial)
 	w.work <- initial
 
 	var cpy state
@@ -123,7 +123,6 @@ func (w *workforce) sendWork(
 		if !cpy.rules.runAllChecks(&cpy) {
 			return
 		}
-		// fmt.Printf("sending\n%s\n", &cpy)
 		defer func() {
 			// if the work channel has been closed, then don't do anything.
 			_ = recover()
@@ -198,5 +197,4 @@ func (w *workforce) sendWork(
 		}
 		start += 32
 	}
-	// fmt.Printf("sent all white permutations\n")
 }

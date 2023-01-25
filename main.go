@@ -63,6 +63,7 @@ func main() {
 
 func compete(iter model.Iterator) error {
 
+	fmt.Printf("Starting %s\n\t%s\n\n\n", iter, time.Now())
 	input, err := fetch.Puzzle(iter)
 	if *fetchNewPuzzles {
 		input, err = fetch.GetNewPuzzle(iter)

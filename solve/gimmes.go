@@ -1,8 +1,6 @@
 package solve
 
 import (
-	"fmt"
-
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
@@ -42,45 +40,4 @@ func findGimmes(
 			}
 		}
 	}
-}
-
-func eliminateInitialAlmostCycles(
-	s *state,
-) bool {
-	prev := *s
-	var valid, solved bool
-	c, isHor, ok := s.paths.getNearlyCycle(s)
-
-	for ok {
-		prev = *s
-		if isHor {
-			s.lineHor(c.Row, c.Col)
-		} else {
-			s.lineVer(c.Row, c.Col)
-		}
-
-		valid, solved = s.isValidAndSolved()
-		if solved {
-			_, ok := s.toSolution()
-			if ok {
-				return true
-			}
-		}
-		if valid {
-			fmt.Printf("Connecting %v (isHorizontal: %v)\n", c, isHor)
-			fmt.Printf("before:\n%s\n", &prev)
-			fmt.Printf("after:\n%s\n", &s)
-			panic(`how?`)
-		}
-
-		*s = prev
-		if isHor {
-			s.avoidHor(c.Row, c.Col)
-		} else {
-			s.avoidVer(c.Row, c.Col)
-		}
-
-		c, isHor, ok = s.paths.getNearlyCycle(s)
-	}
-	return false
 }
