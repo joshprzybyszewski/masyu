@@ -196,6 +196,7 @@ func eliminateCycles(
 func completeCrossings(
 	s *state,
 ) settledState {
+	// TODO make this faster. probably by storing it off in a separate struct
 
 	var changed bool
 	var bit uint64

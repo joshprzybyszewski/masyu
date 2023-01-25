@@ -6,6 +6,10 @@ import (
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
+const (
+	maxStatesForNextAttempt = 2
+)
+
 type applyFn func(*state)
 
 func getSimpleNextPermutations(
@@ -38,41 +42,16 @@ func getSimpleNextPermutations(
 	}
 }
 
+// TODO use this?
 func getAdvancedNextPermutations(
 	cur *state,
 ) []applyFn {
 
 	// TODO consider making the row/col distinction based on how many are already filled?
 
-	col := getBestNextStartingCol(cur)
-	if col == 0 {
-		row := getBestNextStartingRow(cur)
-		if row == 0 {
-			// couldn't find a good starting row?
-			return getSimpleNextPermutations(cur)
-		}
-
-		states := getPermutationsForRow(
-			cur,
-			row,
-			horizontalCrossingPermState{
-				knownCol:     0,
-				numCrossings: getNumLinesInRow(cur, row),
-				perms: func(s *state) {
-					if getNextEmptyCol(s, row, 0) != 0 {
-						panic(`didn't fill the whole row?`)
-					}
-					if getNumLinesInRow(s, row)%2 != 0 {
-						panic(`didn't place the right amount of lines`)
-					}
-				},
-			},
-		)
-
-		return getPermutationsFromStates(
-			cur.size,
-			states,
-		)
+	numEmpty, col := getBestNextStartingCol(cur)
+	if col == 0 || numEmpty > maxStatesForNextAttempt {
+		return getAdvancedNextPermutationsRow(cur)
 	}
 
 	states := getPermutationsForCol(
@@ -98,9 +77,44 @@ func getAdvancedNextPermutations(
 	)
 }
 
+func getAdvancedNextPermutationsRow(
+	cur *state,
+) []applyFn {
+	numEmpty, row := getBestNextStartingRow(cur)
+	if row == 0 || numEmpty > maxStatesForNextAttempt {
+		// couldn't find a good starting row?
+		return getSimpleNextPermutations(cur)
+	}
+
+	states := getPermutationsForRow(
+		cur,
+		row,
+		horizontalCrossingPermState{
+			knownCol:     0,
+			numCrossings: getNumLinesInRow(cur, row),
+			perms: func(s *state) {
+				if getNextEmptyCol(s, row, 0) != 0 {
+					panic(`didn't fill the whole row?`)
+				}
+				if getNumLinesInRow(s, row)%2 != 0 {
+					panic(`didn't place the right amount of lines`)
+				}
+			},
+		},
+	)
+	if len(states) > maxStatesForNextAttempt {
+		return getSimpleNextPermutations(cur)
+	}
+
+	return getPermutationsFromStates(
+		cur.size,
+		states,
+	)
+}
+
 func getBestNextStartingRow(
 	s *state,
-) model.Dimension {
+) (int, model.Dimension) {
 	var knownBest [40]struct {
 		row model.Dimension
 
@@ -131,16 +145,16 @@ func getBestNextStartingRow(
 
 	for numEmpty := 1; numEmpty < len(knownBest); numEmpty++ {
 		if knownBest[numEmpty].row > 0 {
-			return knownBest[numEmpty].row
+			return numEmpty, knownBest[numEmpty].row
 		}
 	}
 	// it's unlikely that all rows are filled...
-	return 0
+	return 0, 0
 }
 
 func getBestNextStartingCol(
 	s *state,
-) model.Dimension {
+) (int, model.Dimension) {
 	var knownBest [40]struct {
 		col model.Dimension
 
@@ -171,12 +185,12 @@ func getBestNextStartingCol(
 
 	for numEmpty := 1; numEmpty < len(knownBest); numEmpty++ {
 		if knownBest[numEmpty].col > 0 {
-			return knownBest[numEmpty].col
+			return numEmpty, knownBest[numEmpty].col
 		}
 	}
 
 	// it's unlikely that all rows are filled...
-	return 0
+	return 0, 0
 }
 
 type verticalCrossingPermState struct {

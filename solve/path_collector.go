@@ -84,6 +84,7 @@ func (pc *pathCollector) getInteresting(
 func (pc *pathCollector) getNearlyCycle(
 	s *state,
 ) (model.Coord, bool, int, bool) {
+	// TODO make this faster
 	var c model.Coord
 	if pc.hasCycle {
 		return c, false, -1, false
