@@ -7,6 +7,10 @@ import (
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
+const (
+	all64Bits uint64 = 0xFFFFFFFFFFFFFFFF
+)
+
 type state struct {
 	rules *ruleCheckCollector
 	nodes []model.Node
@@ -62,10 +66,10 @@ func (s *state) initialize() {
 		s.verticalAvoids[i] |= avoid
 		s.horizontalAvoids[i] |= avoid
 	}
-	s.horizontalAvoids[0] = 0xFFFFFFFFFFFFFFFF
-	s.verticalAvoids[0] = 0xFFFFFFFFFFFFFFFF
-	s.horizontalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
-	s.verticalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
+	s.horizontalAvoids[0] = all64Bits
+	s.verticalAvoids[0] = all64Bits
+	s.horizontalAvoids[s.size+1] = all64Bits
+	s.verticalAvoids[s.size+1] = all64Bits
 
 	if !s.checkEntireRuleset() {
 		fmt.Printf("Invalid State:\n%s\n", s)
@@ -90,6 +94,11 @@ func (s *state) isValidAndSolved() (bool, bool) {
 	}
 
 	if !s.rules.runAllChecks(s) {
+		return false, false
+	}
+
+	if !s.hasValidCrossings() {
+		// fmt.Printf("invalid crossings:\n%s\n", s)
 		return false, false
 	}
 
@@ -329,4 +338,45 @@ func (s *state) getNode(r, c model.Dimension) byte {
 		return ' '
 	}
 	return '*'
+}
+
+func (s *state) hasValidCrossings() bool {
+	bit := uint64(1 << 1)
+	for i := 1; i <= int(s.size); i++ {
+		if !s.hasValidCrossingsForVerticalBit(bit) ||
+			!s.hasValidCrossingsForHorizontalBit(bit) {
+			return false
+		}
+		bit <<= 1
+	}
+
+	return true
+}
+
+func (s *state) hasValidCrossingsForVerticalBit(
+	bit uint64,
+) bool {
+	var l uint8
+	for i := 1; i <= int(s.size); i++ {
+		if s.horizontalLines[i]&bit == bit {
+			l++
+		} else if s.horizontalAvoids[i]&bit != bit {
+			return true
+		}
+	}
+	return l%2 == 0
+}
+
+func (s *state) hasValidCrossingsForHorizontalBit(
+	bit uint64,
+) bool {
+	var l uint8
+	for i := 1; i <= int(s.size); i++ {
+		if s.verticalLines[i]&bit == bit {
+			l++
+		} else if s.verticalAvoids[i]&bit != bit {
+			return true
+		}
+	}
+	return l%2 == 0
 }
