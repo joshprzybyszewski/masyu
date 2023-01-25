@@ -118,7 +118,7 @@ func (w *workforce) sendWork(
 
 	w.work <- initial
 
-	perms := getInitialPermutations(ctx, initial)
+	perms := getInitialPermutations(initial)
 	if ctx.Err() != nil {
 		return
 	}

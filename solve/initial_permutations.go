@@ -1,7 +1,6 @@
 package solve
 
 import (
-	"context"
 	"sort"
 
 	"github.com/joshprzybyszewski/masyu/model"
@@ -19,45 +18,15 @@ type horizontalCrossingPermState struct {
 	perms applyFn
 }
 
-func getInitialPermutations(
-	ctx context.Context,
-	initial state,
+func getPermutationsFromStates(
+	s model.Size,
+	states []horizontalCrossingPermState,
 ) []applyFn {
-	row := getBestStartingRow(&initial)
-	if row == 0 {
-		// couldn't find a good starting row?
-		return nil
-	}
+	goalCrossings := int(s) / 2
 
-	col := model.Dimension(1)
-	max := model.Dimension(initial.size) + 1
-	var l, a bool
-
-	for col < max {
-		l, a = initial.verAt(row, col)
-		if !l && !a {
-			break
-		}
-		col++
-	}
-
-	perms := getPermutationsForRow(
-		ctx,
-		&initial,
-		row,
-		horizontalCrossingPermState{
-			knownCol:     0,
-			numCrossings: 0,
-			perms: func(s *state) {
-			},
-		},
-	)
-
-	goalCrossings := int(initial.size) / 2
-
-	sort.Slice(perms, func(i, j int) bool {
-		il := perms[i].numCrossings
-		jl := perms[j].numCrossings
+	sort.Slice(states, func(i, j int) bool {
+		il := states[i].numCrossings
+		jl := states[j].numCrossings
 
 		di := goalCrossings - il
 		if di < 0 {
@@ -77,14 +46,46 @@ func getInitialPermutations(
 		return il > jl
 	})
 
-	output := make([]applyFn, 0, len(perms))
-	for _, c := range perms {
+	output := make([]applyFn, 0, len(states))
+	for _, c := range states {
 		output = append(output, c.perms)
 	}
 	return output
 }
 
-func getBestStartingRow(
+func getInitialPermutations(
+	initial state,
+) []applyFn {
+	row := getBestInitialStartingRow(&initial)
+	if row == 0 {
+		// couldn't find a good starting row?
+		return nil
+	}
+
+	states := getPermutationsForRow(
+		&initial,
+		row,
+		horizontalCrossingPermState{
+			knownCol:     0,
+			numCrossings: getNumLinesInRow(&initial, row),
+			perms: func(s *state) {
+				if getNextEmptyCol(s, row, 0) != 0 {
+					panic(`didn't fill the whole row?`)
+				}
+				if getNumLinesInRow(s, row)%2 != 0 {
+					panic(`didn't place the right amount of lines`)
+				}
+			},
+		},
+	)
+
+	return getPermutationsFromStates(
+		initial.size,
+		states,
+	)
+}
+
+func getBestInitialStartingRow(
 	s *state,
 ) model.Dimension {
 	var knownBest [40]struct {
@@ -130,15 +131,10 @@ func getBestStartingRow(
 }
 
 func getPermutationsForRow(
-	ctx context.Context,
 	s *state,
 	row model.Dimension,
 	cur horizontalCrossingPermState,
 ) []horizontalCrossingPermState {
-	if ctx.Err() != nil {
-		return nil
-	}
-
 	col := getNextEmptyCol(s, row, cur.knownCol+1)
 	if col == 0 {
 		// there wasn't an empty column found.
@@ -152,7 +148,6 @@ func getPermutationsForRow(
 	}
 
 	output := getPermutationsForRow(
-		ctx,
 		s,
 		row,
 		horizontalCrossingPermState{
@@ -166,7 +161,6 @@ func getPermutationsForRow(
 	)
 
 	output = append(output, getPermutationsForRow(
-		ctx,
 		s,
 		row,
 		horizontalCrossingPermState{
@@ -194,4 +188,17 @@ func getNextEmptyCol(
 		}
 	}
 	return 0
+}
+
+func getNumLinesInRow(
+	s *state,
+	row model.Dimension,
+) int {
+	numLines := 0
+	for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
+		if s.verLineAt(row, col) {
+			numLines++
+		}
+	}
+	return numLines
 }

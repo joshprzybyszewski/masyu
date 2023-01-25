@@ -41,7 +41,7 @@ func main() {
 	}
 
 	for i := 0; i < *numIterations; i++ {
-		for iter := model.Iterator(*iterStart); iter <= model.Iterator(*iterFinish); iter++ {
+		for iter := model.Iterator(*iterFinish); iter >= model.Iterator(*iterStart); iter-- {
 			if *skipLarge && iter >= 13 && iter <= 15 {
 				// These are the massive ones
 				continue

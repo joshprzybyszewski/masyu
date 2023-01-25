@@ -34,6 +34,8 @@ func (w *worker) process() {
 
 	perms := getSimpleNextPermutations(&w.state)
 
+	// fmt.Printf("iterating %d permuations\n", len(perms))
+
 	beforeAll := w.state
 	for _, perm := range perms {
 		perm(&w.state)
