@@ -1,6 +1,7 @@
 package solve
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/joshprzybyszewski/masyu/model"
@@ -67,6 +68,7 @@ func (s *state) initialize() {
 	s.verticalAvoids[s.size+1] = 0xFFFFFFFFFFFFFFFF
 
 	if !s.checkEntireRuleset() {
+		fmt.Printf("Invalid State:\n%s\n", s)
 		panic(`state initialization is not valid?`)
 	}
 }

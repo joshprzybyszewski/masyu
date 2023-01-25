@@ -28,6 +28,22 @@ func findGimmes(
 			if blacks[n.Row+1][n.Col] {
 				s.avoidVer(n.Row, n.Col)
 			}
+
+			// Thanks [wikipedia](https://en.wikipedia.org/wiki/Masyu#Solution_methods)
+			// If there are two whites diagonal to a black, then the black cannot go
+			// between the whites.
+			if whites[n.Row-1][n.Col-1] && whites[n.Row+1][n.Col-1] {
+				s.lineHor(n.Row, n.Col)
+			}
+			if whites[n.Row-1][n.Col+1] && whites[n.Row+1][n.Col+1] {
+				s.lineHor(n.Row, n.Col-1)
+			}
+			if whites[n.Row-1][n.Col-1] && whites[n.Row-1][n.Col+1] {
+				s.lineVer(n.Row, n.Col)
+			}
+			if whites[n.Row+1][n.Col-1] && whites[n.Row+1][n.Col+1] {
+				s.lineVer(n.Row-1, n.Col)
+			}
 		} else {
 			// three or more whites in a row/col require an X in between
 			if n.Col > 2 && whites[n.Row][n.Col-1] && whites[n.Row][n.Col-2] {
