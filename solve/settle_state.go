@@ -71,6 +71,16 @@ func settleCycle(
 		return invalid
 	}
 
+	// re-validate our assumptions after checking all the rules
+	if s.hasInvalid {
+		return invalid
+	}
+
+	if s.paths.cycleSeenNodes != len(s.nodes) {
+		// there's a cycle, but it doesn't include all of the nodes.
+		return invalid
+	}
+
 	return solved
 }
 

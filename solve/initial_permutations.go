@@ -2,25 +2,23 @@ package solve
 
 import (
 	"context"
-	"fmt"
-	"time"
+	"sort"
 
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
 const (
-	maxAllowedEmptyRow = 9
+	maxAllowedEmptyRow = 7
 )
 
 func getInitialPermutations(
 	ctx context.Context,
 	initial state,
 ) []*state {
-	t0 := time.Now()
-	row := getMostEmptyRow(&initial)
-	fmt.Printf("got most empty row (%d) in %s\n", row, time.Since(t0))
+	row := getBestStartingRow(&initial)
 	if row == 0 {
-		panic(`couldn't find one!`)
+		// couldn't find a good starting row?
+		return nil
 	}
 
 	col := model.Dimension(1)
@@ -35,21 +33,50 @@ func getInitialPermutations(
 		col++
 	}
 
-	return getPermutationsForRow(
+	perms := getPermutationsForRow(
 		ctx,
 		initial,
 		row,
-		col,
 	)
+
+	goalCrossings := int(initial.size) / 2
+
+	sort.Slice(perms, func(i, j int) bool {
+		il, _ := getNumLinesInRow(perms[i], row)
+		jl, _ := getNumLinesInRow(perms[j], row)
+
+		di := goalCrossings - il
+		if di < 0 {
+			di = -di
+		}
+
+		dj := goalCrossings - jl
+		if dj < 0 {
+			dj = -dj
+		}
+		if di != dj {
+			// whichever is closer to the goal number of crossings
+			return di < dj
+		}
+
+		// whichever has more lines
+		return il > jl
+	})
+
+	return perms
 }
 
-func getMostEmptyRow(
+func getBestStartingRow(
 	s *state,
 ) model.Dimension {
-	var bestRow, col model.Dimension
+	var knownBest [40]struct {
+		row model.Dimension
+
+		numRulesAffected int
+	}
+	var col model.Dimension
 	numEmpty := 0
 	numRulesAffected := 0
-	bestAffected := 0
 
 	var l, a bool
 
@@ -64,39 +91,48 @@ func getMostEmptyRow(
 				numRulesAffected += len(s.rules.rules.verticals[row][col])
 			}
 		}
-
-		if numEmpty <= maxAllowedEmptyRow && numRulesAffected >= bestAffected {
-			bestAffected = numRulesAffected
-			bestRow = row
+		if numRulesAffected >= knownBest[numEmpty].numRulesAffected {
+			knownBest[numEmpty].numRulesAffected = numRulesAffected
+			knownBest[numEmpty].row = row
 		}
 	}
 
-	return bestRow
+	for numEmpty := maxAllowedEmptyRow; numEmpty > 0; numEmpty-- {
+		if knownBest[numEmpty].row > 0 {
+			return knownBest[numEmpty].row
+		}
+	}
+	for numEmpty := maxAllowedEmptyRow + 1; numEmpty < len(knownBest); numEmpty++ {
+		if knownBest[numEmpty].row > 0 {
+			return knownBest[numEmpty].row
+		}
+	}
+	// it's unlikely that all rows are filled...
+	return 0
 }
 
 func getPermutationsForRow(
 	ctx context.Context,
 	prev state,
-	row, col model.Dimension,
+	row model.Dimension,
 ) []*state {
 	if ctx.Err() != nil {
 		return nil
 	}
 
-	c2 := col + 1
-	max := model.Dimension(prev.size) + 1
-	var l, a bool
-	numLines := 0
-	for c2 < max {
-		l, a = prev.verAt(row, c2)
-		if l {
-			numLines++
-		} else if !a {
-			break
+	numLines, col := getNumLinesInRow(&prev, row)
+	if col == 0 {
+		// there wasn't an empty column found.
+		if numLines%2 == 0 {
+			// if this row is valid, then return it.
+			return []*state{
+				&prev,
+			}
 		}
-		c2++
-	}
-	if c2 == max {
+		return nil
+	} else if numLines >= 0 {
+		// an empty column was found, and we know about some existing lines
+		// either avoid or draw the final empty column and return this state.
 		if numLines%2 == 0 {
 			prev.avoidVer(row, col)
 		} else {
@@ -106,23 +142,44 @@ func getPermutationsForRow(
 			&prev,
 		}
 	}
+	// there's at least two empty columns left. Populate the empty column
+	// and avoid it, and append the results together
 
 	cpy := prev
-	prev.lineVer(row, col)
 	cpy.avoidVer(row, col)
-
 	output := getPermutationsForRow(
-		ctx,
-		prev,
-		row,
-		c2,
-	)
-	output = append(output, getPermutationsForRow(
 		ctx,
 		cpy,
 		row,
-		c2,
+	)
+
+	prev.lineVer(row, col)
+	output = append(output, getPermutationsForRow(
+		ctx,
+		prev,
+		row,
 	)...)
 
 	return output
+}
+
+func getNumLinesInRow(
+	s *state,
+	row model.Dimension,
+) (int, model.Dimension) {
+	numLines := 0
+	var emptyCol model.Dimension
+	var l, a bool
+	for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
+		l, a = s.verAt(row, col)
+		if l {
+			numLines++
+		} else if !a {
+			if emptyCol != 0 {
+				return -1, emptyCol
+			}
+			emptyCol = col
+		}
+	}
+	return numLines, emptyCol
 }

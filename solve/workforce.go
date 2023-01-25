@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"runtime"
-	"time"
 
 	"github.com/joshprzybyszewski/masyu/model"
 )
@@ -120,10 +119,7 @@ func (w *workforce) sendWork(
 		_ = recover()
 	}()
 
-	// fmt.Printf("initial\n%s\n", &initial)
-	t0 := time.Now()
 	perms := getInitialPermutations(ctx, initial)
-	fmt.Printf("\nfetched %d initial permutations in %s\n\n", len(perms), time.Since(t0))
 	if ctx.Err() != nil {
 		return
 	}
