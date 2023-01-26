@@ -32,18 +32,31 @@ func (w *worker) process() {
 		return
 	}
 
-	// perms := getSimpleNextPermutations(&w.state)
-	perms := getAdvancedNextPermutations(&w.state)
-
-	// fmt.Printf("iterating %d permuations\n", len(perms))
+	pf := newPermuatationsFactory()
+	pf.populate(&w.state)
 
 	beforeAll := w.state
-	for _, perm := range perms {
-		perm(&w.state)
+	for i := uint8(0); i < pf.numVals; i++ {
+		pf.vals[i](&w.state)
 		w.process()
 		if w.sendAnswer == nil {
 			return
 		}
 		w.state = beforeAll
 	}
+
+	// perms := getSimpleNextPermutations(&w.state)
+	// perms := getAdvancedNextPermutations(&w.state)
+
+	// // fmt.Printf("iterating %d permuations\n", len(perms))
+
+	// beforeAll := w.state
+	// for _, perm := range perms {
+	// 	perm(&w.state)
+	// 	w.process()
+	// 	if w.sendAnswer == nil {
+	// 		return
+	// 	}
+	// 	w.state = beforeAll
+	// }
 }

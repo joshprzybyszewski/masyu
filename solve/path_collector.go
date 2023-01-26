@@ -1,6 +1,8 @@
 package solve
 
 import (
+	"fmt"
+
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
@@ -255,20 +257,23 @@ func (pc *pathCollector) checkNewPair(
 	// only need to check the state when we're about to write a line.
 	// re-writing an avoid is no problem.
 	if p.numSeenNodes == len(s.nodes) {
-		prev := *s
+		cpy := *s
 		if h {
-			if !s.horAvoidAt(r, c) {
-				s.lineHor(r, c)
+			if !cpy.horAvoidAt(r, c) {
+				cpy.lineHor(r, c)
 			}
 		} else {
-			if !s.verAvoidAt(r, c) {
-				s.lineVer(r, c)
+			if !cpy.verAvoidAt(r, c) {
+				cpy.lineVer(r, c)
 			}
 		}
-		if settle(s) == solved {
+		if settle(&cpy) == solved {
+			*s = cpy
 			return
 		}
-		*s = prev
+		if len(s.rules.rules.unknowns) == 0 {
+			fmt.Printf("tried capping off, but it didn't solve\n%v\n%d, %d\n\n", h, r, c)
+		}
 	}
 
 	if h {

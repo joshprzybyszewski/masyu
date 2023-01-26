@@ -11,6 +11,10 @@ const (
 	all64Bits uint64 = 0xFFFFFFFFFFFFFFFF
 )
 
+var (
+	isInitializing = false
+)
+
 type state struct {
 	rules *ruleCheckCollector
 	nodes []model.Node
@@ -82,6 +86,9 @@ func (s *state) initialize() {
 }
 
 func (s *state) toSolution() model.Solution {
+	// if s.hasInvalid || !s.paths.hasCycle || s.rules.hasPending {
+	// 	panic(`bruh`)
+	// }
 	sol := model.Solution{
 		Size: s.size,
 	}
@@ -140,6 +147,10 @@ func (s *state) avoidHor(r, c model.Dimension) {
 	if s.horizontalLines[r]&s.horizontalAvoids[r] != 0 {
 		// invalid
 		s.hasInvalid = true
+		if len(s.rules.rules.unknowns) == 0 {
+			fmt.Printf("r, c = (%d, %d)\n%s\n", r, c, s)
+			panic(`tried setting invalid in initialization`)
+		}
 		return
 	}
 
@@ -157,6 +168,10 @@ func (s *state) lineHor(r, c model.Dimension) {
 	if s.horizontalLines[r]&s.horizontalAvoids[r] != 0 {
 		// invalid
 		s.hasInvalid = true
+		if len(s.rules.rules.unknowns) == 0 {
+			fmt.Printf("r, c = (%d, %d)\n%s\n", r, c, s)
+			panic(`tried setting invalid in initialization`)
+		}
 		return
 	}
 
@@ -187,6 +202,10 @@ func (s *state) avoidVer(r, c model.Dimension) {
 	if s.verticalLines[c]&s.verticalAvoids[c] != 0 {
 		// invalid
 		s.hasInvalid = true
+		if len(s.rules.rules.unknowns) == 0 {
+			fmt.Printf("r, c = (%d, %d)\n%s\n", r, c, s)
+			panic(`tried setting invalid in initialization`)
+		}
 		return
 	}
 
@@ -204,6 +223,10 @@ func (s *state) lineVer(r, c model.Dimension) {
 	if s.verticalLines[c]&s.verticalAvoids[c] != 0 {
 		// invalid
 		s.hasInvalid = true
+		if len(s.rules.rules.unknowns) == 0 {
+			fmt.Printf("r, c = (%d, %d)\n%s\n", r, c, s)
+			panic(`tried setting invalid in initialization`)
+		}
 		return
 	}
 

@@ -113,28 +113,37 @@ func (w *workforce) sendWork(
 ) {
 	defer func() {
 		// if the work channel has been closed, then don't do anything.
-		_ = recover()
+		r := recover()
+		if r != nil {
+			fmt.Printf("caught: %+v\n", r)
+		}
 	}()
 
 	w.work <- initial
 
-	perms := getInitialPermutations(initial)
+	pf := newIntialPermutationsFactory()
+	pf.populate(&initial)
 	if ctx.Err() != nil {
 		return
 	}
 
 	tmp := initial
-	var ss settledState
-	for _, perm := range perms {
-		perm(&tmp)
-
-		ss = settle(&tmp)
-		if ss == solved {
-			w.solution <- tmp.toSolution()
-			return
-		} else if ss == validUnsolved {
-			w.work <- tmp
+	// var ss settledState
+	for i := uint8(0); i < pf.numVals; i++ {
+		if i >= uint8(len(pf.vals)) {
+			pf.moreSpace[i](&tmp)
+		} else {
+			pf.vals[i](&tmp)
 		}
+		w.work <- tmp
+
+		// ss = settle(&tmp)
+		// if ss == solved {
+		// 	w.solution <- tmp.toSolution()
+		// 	return
+		// } else if ss == validUnsolved {
+		// 	w.work <- tmp
+		// }
 
 		tmp = initial
 	}

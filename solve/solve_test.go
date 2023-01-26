@@ -20,6 +20,9 @@ func TestSpecifics(t *testing.T) {
 		iter model.Iterator
 		id   string
 	}{{
+		iter: 0,
+		id:   `5,734,527`,
+		// }, {
 		// 	iter: 2,
 		// 	id:   `150,618`,
 		// }, {
@@ -35,8 +38,8 @@ func TestSpecifics(t *testing.T) {
 		// 	iter: 3,
 		// 	id:   `5,995,199`,
 		// }, {
-		iter: 6,
-		id:   `7,191,910`,
+		// iter: 6,
+		// id:   `7,191,910`,
 		// }, {
 		// 	iter: 8,
 		// 	id:   `5,573,288`,
@@ -49,7 +52,7 @@ func TestSpecifics(t *testing.T) {
 		tc := tc
 		t.Run(tc.iter.String()+` `+tc.id, func(t *testing.T) {
 			sr, err := fetch.ReadID(tc.iter, tc.id)
-			if err != nil {
+			if err != nil || sr.Input == nil {
 				t.Logf("Error fetching input: %q", err)
 				t.Fail()
 			}

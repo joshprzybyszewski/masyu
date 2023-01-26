@@ -2,64 +2,69 @@ package solve
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
-const (
-	maxEmpty = 4
-)
-
 type applyFn func(*state)
 
-func getSimpleNextPermutations(
-	s *state,
-) []applyFn {
+type permutationsFactorySubstate struct {
+	// known is the last known row/col with a value
+	known model.Dimension
+	// numCrossings is the number of lines currently known to be in this row/col
+	numCrossings int
 
-	c, isHor, ok := s.getMostInterestingPath()
-	if !ok {
-		return nil
-	}
-
-	if isHor {
-		return []applyFn{
-			func(s *state) {
-				s.lineHor(c.Row, c.Col)
-			},
-			func(s *state) {
-				s.avoidHor(c.Row, c.Col)
-			},
-		}
-	}
-
-	return []applyFn{
-		func(s *state) {
-			s.lineVer(c.Row, c.Col)
-		},
-		func(s *state) {
-			s.avoidVer(c.Row, c.Col)
-		},
-	}
+	perms applyFn
 }
 
-// TODO use this?
-func getAdvancedNextPermutations(
+type permutationsFactory struct {
+	vals    [8]applyFn
+	numVals uint8
+}
+
+func newPermuatationsFactory() permutationsFactory {
+	return permutationsFactory{}
+}
+
+func (pf *permutationsFactory) save(
+	a applyFn,
+) {
+	pf.vals[pf.numVals] = a
+	pf.numVals++
+}
+
+func (pf *permutationsFactory) hasRoomForNumEmpty(
+	numEmpty int,
+) bool {
+	if pf.numVals > 0 {
+		return false
+	}
+	numPerms := 1 << (numEmpty - 1)
+	rem := len(pf.vals) - int(pf.numVals)
+	return numPerms <= rem
+}
+
+func (pf *permutationsFactory) populate(
 	cur *state,
-) []applyFn {
+) {
+	pf.populateBestColumn(cur)
+	pf.populateBestRow(cur)
+	pf.populateSimple(cur)
+}
 
-	// TODO consider making the row/col distinction based on how many are already filled?
-
-	numEmpty, col := getBestNextStartingCol(cur)
-	if col == 0 || numEmpty > maxEmpty {
-		return getAdvancedNextPermutationsRow(cur)
+func (pf *permutationsFactory) populateBestColumn(
+	cur *state,
+) {
+	numEmpty, col := pf.getBestNextStartingCol(cur)
+	if col == 0 || !pf.hasRoomForNumEmpty(numEmpty) {
+		return
 	}
 
-	states := getPermutationsForCol(
+	pf.buildColumn(
 		cur,
 		col,
-		verticalCrossingPermState{
-			knownRow:     0,
+		permutationsFactorySubstate{
+			known:        0,
 			numCrossings: getNumLinesInCol(cur, col),
 			perms: func(s *state) {
 				if s.hasInvalid {
@@ -77,53 +82,151 @@ func getAdvancedNextPermutations(
 		},
 	)
 
-	return getPermutationsFromVerticalStates(
-		cur.size,
-		states,
-	)
 }
 
-func getAdvancedNextPermutationsRow(
-	cur *state,
-) []applyFn {
-	numEmpty, row := getBestNextStartingRow(cur)
-	if row == 0 || numEmpty > maxEmpty {
-		// couldn't find a good starting row?
-		return getSimpleNextPermutations(cur)
+func (pf *permutationsFactory) buildColumn(
+	s *state,
+	col model.Dimension,
+	cur permutationsFactorySubstate,
+) {
+	row := getNextEmptyRow(s, cur.known+1, col)
+	if row == 0 {
+		// there wasn't an empty column found.
+		if cur.numCrossings%2 == 0 {
+			pf.save(cur.perms)
+		}
+		return
 	}
 
-	states := getPermutationsForRow(
+	a := permutationsFactorySubstate{
+		known:        row,
+		numCrossings: cur.numCrossings,
+		perms: func(s *state) {
+			s.avoidHor(row, col)
+			cur.perms(s)
+		},
+	}
+	l := permutationsFactorySubstate{
+		known:        row,
+		numCrossings: cur.numCrossings + 1,
+		perms: func(s *state) {
+			s.lineHor(row, col)
+			cur.perms(s)
+		},
+	}
+
+	if a.numCrossings >= int(s.size)/2 {
+		pf.buildColumn(s, col, a)
+		pf.buildColumn(s, col, l)
+	} else {
+		pf.buildColumn(s, col, l)
+		pf.buildColumn(s, col, a)
+	}
+}
+
+func (pf *permutationsFactory) populateBestRow(
+	cur *state,
+) {
+	numEmpty, row := pf.getBestNextStartingRow(cur)
+	if row == 0 || !pf.hasRoomForNumEmpty(numEmpty) {
+		// couldn't find a good starting row?
+		return
+	}
+
+	pf.buildRow(
 		cur,
 		row,
-		horizontalCrossingPermState{
-			knownCol:     0,
+		permutationsFactorySubstate{
+			known:        0,
 			numCrossings: getNumLinesInRow(cur, row),
 			perms: func(s *state) {
 				if s.hasInvalid {
 					return
 				}
 				if getNextEmptyCol(s, row, 0) != 0 {
-					fmt.Printf("Unfilled Row\nRow: %d\n%s\n", row, s)
+					fmt.Printf("Didn't fill the whole row\nRow: %d\n%s\n", row, s)
 					panic(`didn't fill the whole row?`)
 				}
 				if getNumLinesInRow(s, row)%2 != 0 {
-					fmt.Printf("Wrong Num Lines\nRow: %d\n%s\n", row, s)
+					fmt.Printf("Wrong Number of Lines\nRow: %d\n%s\n", row, s)
 					panic(`didn't place the right amount of lines`)
 				}
 			},
 		},
 	)
-	if len(states) > maxEmpty {
-		return getSimpleNextPermutations(cur)
-	}
-
-	return getPermutationsFromStates(
-		cur.size,
-		states,
-	)
 }
 
-func getBestNextStartingRow(
+func (pf *permutationsFactory) buildRow(
+	s *state,
+	row model.Dimension,
+	cur permutationsFactorySubstate,
+) {
+
+	col := getNextEmptyCol(s, row, cur.known+1)
+	if col == 0 {
+		if cur.numCrossings%2 == 0 {
+			pf.save(cur.perms)
+		}
+		return
+	}
+
+	a := permutationsFactorySubstate{
+		known:        col,
+		numCrossings: cur.numCrossings,
+		perms: func(s *state) {
+			s.avoidVer(row, col)
+			cur.perms(s)
+		},
+	}
+
+	l := permutationsFactorySubstate{
+		known:        col,
+		numCrossings: cur.numCrossings + 1,
+		perms: func(s *state) {
+			s.lineVer(row, col)
+			cur.perms(s)
+		},
+	}
+
+	if a.numCrossings >= int(s.size)/2 {
+		pf.buildRow(s, row, a)
+		pf.buildRow(s, row, l)
+	} else {
+		pf.buildRow(s, row, l)
+		pf.buildRow(s, row, a)
+	}
+}
+
+func (pf *permutationsFactory) populateSimple(
+	s *state,
+) {
+	if pf.numVals > 0 {
+		return
+	}
+
+	c, isHor, ok := s.getMostInterestingPath()
+	if !ok {
+		return
+	}
+
+	if isHor {
+		pf.save(func(s *state) {
+			s.avoidHor(c.Row, c.Col)
+		})
+		pf.save(func(s *state) {
+			s.lineHor(c.Row, c.Col)
+		})
+	} else {
+		pf.save(func(s *state) {
+			s.avoidVer(c.Row, c.Col)
+		})
+		pf.save(func(s *state) {
+			s.lineVer(c.Row, c.Col)
+		})
+	}
+}
+
+func (pf *permutationsFactory) getBestNextStartingRow(
 	s *state,
 ) (int, model.Dimension) {
 	var rowByNumEmpty [40]model.Dimension
@@ -132,16 +235,10 @@ func getBestNextStartingRow(
 		rowByNumEmpty[s.size-model.Size(s.crossings.rows[row]+s.crossings.rowsAvoid[row])] = row
 	}
 
-	for numEmpty := 2; numEmpty < len(rowByNumEmpty); numEmpty++ {
-		if rowByNumEmpty[numEmpty] > 0 {
-			return numEmpty, rowByNumEmpty[numEmpty]
-		}
-	}
-	// it's unlikely that all rows are filled...
-	return 0, 0
+	return pf.chooseStart(rowByNumEmpty)
 }
 
-func getBestNextStartingCol(
+func (pf *permutationsFactory) getBestNextStartingCol(
 	s *state,
 ) (int, model.Dimension) {
 	var colByNumEmpty [40]model.Dimension
@@ -150,68 +247,20 @@ func getBestNextStartingCol(
 		colByNumEmpty[s.size-model.Size(s.crossings.cols[col]+s.crossings.colsAvoid[col])] = col
 	}
 
-	for numEmpty := 1; numEmpty <= int(s.size); numEmpty++ {
-		if colByNumEmpty[numEmpty] > 0 {
-			return numEmpty, colByNumEmpty[numEmpty]
+	return pf.chooseStart(colByNumEmpty)
+}
+
+func (pf *permutationsFactory) chooseStart(
+	byNumEmpty [40]model.Dimension,
+) (int, model.Dimension) {
+	for numEmpty := 2; numEmpty < len(byNumEmpty); numEmpty++ {
+		if byNumEmpty[numEmpty] > 0 {
+			return numEmpty, byNumEmpty[numEmpty]
 		}
 	}
 
 	// it's unlikely that all rows are filled...
 	return 0, 0
-}
-
-type verticalCrossingPermState struct {
-	knownRow model.Dimension
-	// numCrossings is the number of lines currently known to be in this row
-	numCrossings int
-
-	perms applyFn
-}
-
-func getPermutationsForCol(
-	s *state,
-	col model.Dimension,
-	cur verticalCrossingPermState,
-) []verticalCrossingPermState {
-	row := getNextEmptyRow(s, cur.knownRow+1, col)
-	if row == 0 {
-		// there wasn't an empty column found.
-		if cur.numCrossings%2 == 0 {
-			// if this row is valid, then return it.
-			return []verticalCrossingPermState{
-				cur,
-			}
-		}
-		return nil
-	}
-
-	output := getPermutationsForCol(
-		s,
-		col,
-		verticalCrossingPermState{
-			knownRow:     row,
-			numCrossings: cur.numCrossings,
-			perms: func(s *state) {
-				s.avoidHor(row, col)
-				cur.perms(s)
-			},
-		},
-	)
-
-	output = append(output, getPermutationsForCol(
-		s,
-		col,
-		verticalCrossingPermState{
-			knownRow:     row,
-			numCrossings: cur.numCrossings + 1,
-			perms: func(s *state) {
-				s.lineHor(row, col)
-				cur.perms(s)
-			},
-		},
-	)...)
-
-	return output
 }
 
 func getNextEmptyRow(
@@ -235,37 +284,23 @@ func getNumLinesInCol(
 	return int(s.crossings.cols[col])
 }
 
-func getPermutationsFromVerticalStates(
-	s model.Size,
-	states []verticalCrossingPermState,
-) []applyFn {
-	goalCrossings := int(s) / 2
-
-	sort.Slice(states, func(i, j int) bool {
-		il := states[i].numCrossings
-		jl := states[j].numCrossings
-
-		di := goalCrossings - il
-		if di < 0 {
-			di = -di
+func getNextEmptyCol(
+	s *state,
+	row, col model.Dimension,
+) model.Dimension {
+	var l, a bool
+	for ; col <= model.Dimension(s.size); col++ {
+		l, a = s.verAt(row, col)
+		if !l && !a {
+			return col
 		}
-
-		dj := goalCrossings - jl
-		if dj < 0 {
-			dj = -dj
-		}
-		if di != dj {
-			// whichever is closer to the goal number of crossings
-			return di < dj
-		}
-
-		// whichever has more lines
-		return il > jl
-	})
-
-	output := make([]applyFn, 0, len(states))
-	for _, c := range states {
-		output = append(output, c.perms)
 	}
-	return output
+	return 0
+}
+
+func getNumLinesInRow(
+	s *state,
+	row model.Dimension,
+) int {
+	return int(s.crossings.rows[row])
 }
