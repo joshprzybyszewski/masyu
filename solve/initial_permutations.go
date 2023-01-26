@@ -1,6 +1,7 @@
 package solve
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/joshprzybyszewski/masyu/model"
@@ -69,10 +70,15 @@ func getInitialPermutations(
 			knownCol:     0,
 			numCrossings: getNumLinesInRow(&initial, row),
 			perms: func(s *state) {
+				if s.hasInvalid {
+					return
+				}
 				if getNextEmptyCol(s, row, 0) != 0 {
+					fmt.Printf("HasEmptyCol\nRow: %d\n%s\n", row, s)
 					panic(`didn't fill the whole row?`)
 				}
 				if getNumLinesInRow(s, row)%2 != 0 {
+					fmt.Printf("WrongLines\nRow: %d\n%s\n", row, s)
 					panic(`didn't place the right amount of lines`)
 				}
 			},
@@ -154,8 +160,8 @@ func getPermutationsForRow(
 			knownCol:     col,
 			numCrossings: cur.numCrossings,
 			perms: func(s *state) {
-				cur.perms(s)
 				s.avoidVer(row, col)
+				cur.perms(s)
 			},
 		},
 	)
@@ -167,8 +173,8 @@ func getPermutationsForRow(
 			knownCol:     col,
 			numCrossings: cur.numCrossings + 1,
 			perms: func(s *state) {
-				cur.perms(s)
 				s.lineVer(row, col)
+				cur.perms(s)
 			},
 		},
 	)...)

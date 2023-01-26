@@ -35,7 +35,6 @@ func newState(
 	size model.Size,
 	ns []model.Node,
 ) state {
-
 	r := newRules(size)
 	rcc := newRuleCheckCollector(r)
 

@@ -255,6 +255,7 @@ func (pc *pathCollector) checkNewPair(
 	// only need to check the state when we're about to write a line.
 	// re-writing an avoid is no problem.
 	if p.numSeenNodes == len(s.nodes) {
+		prev := *s
 		if h {
 			if !s.horAvoidAt(r, c) {
 				s.lineHor(r, c)
@@ -264,11 +265,15 @@ func (pc *pathCollector) checkNewPair(
 				s.lineVer(r, c)
 			}
 		}
-	} else {
-		if h {
-			s.avoidHor(r, c)
-		} else {
-			s.avoidVer(r, c)
+		if settle(s) == solved {
+			return
 		}
+		*s = prev
+	}
+
+	if h {
+		s.avoidHor(r, c)
+	} else {
+		s.avoidVer(r, c)
 	}
 }

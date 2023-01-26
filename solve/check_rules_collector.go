@@ -1,6 +1,8 @@
 package solve
 
-import "github.com/joshprzybyszewski/masyu/model"
+import (
+	"github.com/joshprzybyszewski/masyu/model"
+)
 
 type ruleCheckCollector struct {
 	rules *rules

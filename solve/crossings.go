@@ -29,6 +29,9 @@ func (c *crossings) lineHor(
 	col model.Dimension,
 	s *state,
 ) {
+	if col == 0 {
+		return
+	}
 	c.cols[col]++
 	if c.colsAvoid[col]+c.cols[col] == c.target {
 		c.completeCol(col, s)
@@ -40,6 +43,9 @@ func (c *crossings) avoidHor(
 	col model.Dimension,
 	s *state,
 ) {
+	if col == 0 {
+		return
+	}
 	c.colsAvoid[col]++
 	if c.colsAvoid[col]+c.cols[col] == c.target {
 		c.completeCol(col, s)
@@ -51,6 +57,9 @@ func (c *crossings) completeCol(
 	s *state,
 ) {
 	row := getEmptyCrossingInColumn(s, col)
+	// if l, a := s.horAt(row, col); l || a {
+	// 	panic(`this shouldn't happen`)
+	// }
 	if c.cols[col]%2 == 0 {
 		s.avoidHor(row, col)
 	} else {
@@ -62,6 +71,9 @@ func (c *crossings) lineVer(
 	row model.Dimension,
 	s *state,
 ) {
+	if row == 0 {
+		return
+	}
 	c.rows[row]++
 	if c.rowsAvoid[row]+c.rows[row] == c.target {
 		c.completeRow(row, s)
@@ -72,6 +84,9 @@ func (c *crossings) avoidVer(
 	row model.Dimension,
 	s *state,
 ) {
+	if row == 0 {
+		return
+	}
 	c.rowsAvoid[row]++
 	if c.rowsAvoid[row]+c.rows[row] == c.target {
 		c.completeRow(row, s)
@@ -83,6 +98,9 @@ func (c *crossings) completeRow(
 	s *state,
 ) {
 	col := getEmptyCrossingInRow(s, row)
+	// if l, a := s.verAt(row, col); l || a {
+	// 	panic(`this shouldn't happen`)
+	// }
 	if c.rows[row]%2 == 0 {
 		s.avoidVer(row, col)
 	} else {

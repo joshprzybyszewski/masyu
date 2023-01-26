@@ -19,96 +19,173 @@ func (r *rule) checkDefault(
 	s *state,
 ) {
 
-	var nl, na uint8
-
-	rl, ra := s.horAt(r.row, r.col)
-	if rl {
-		nl++
-	} else if ra {
-		na++
-	}
-
-	dl, da := s.verAt(r.row, r.col)
-	if dl {
-		nl++
-	} else if da {
-		na++
-	}
-
-	ll, la := s.horAt(r.row, r.col-1)
-	if ll {
-		if nl == 2 {
-			// We should never have 3 or 4 lines coming into a pin.
-			r.setInvalid(s)
-			return
-		}
-		nl++
-	} else if la {
-		na++
-	}
-
-	ul, ua := s.verAt(r.row-1, r.col)
-	if ul {
-		if nl == 2 {
-			// We should never have 3 or 4 lines coming into a pin.
-			r.setInvalid(s)
-			return
-		}
-		nl++
-	} else if ua {
-		na++
-	}
-
-	if nl+na == 4 {
-		if nl == 1 {
-			// All four directions are set, but there's only one line.
-			r.setInvalid(s)
-		}
-		return
-	}
-
-	if na == 3 {
-		// there is one line left to be drawn: it's an avoid
-		if !ll && !la {
+	l, a := s.horAt(r.row, r.col)
+	if l {
+		// RIGHT
+		l, a = s.verAt(r.row, r.col)
+		if l {
+			// RIGHT + DOWN
 			s.avoidHor(r.row, r.col-1)
-		} else if !ul && !ua {
 			s.avoidVer(r.row-1, r.col)
-		} else if !rl && !ra {
-			s.avoidHor(r.row, r.col)
-		} else if !dl && !da {
-			s.avoidVer(r.row, r.col)
+		} else if a {
+			// RIGHT + !DOWN
+			l, a = s.horAt(r.row, r.col-1)
+			if l {
+				// RIGHT + !DOWN + LEFT
+				s.avoidVer(r.row-1, r.col)
+			} else if a {
+				// RIGHT + !DOWN + !LEFT
+				s.lineVer(r.row-1, r.col)
+			} else {
+				// RIGHT + !DOWN + uLEFT
+				l, a = s.verAt(r.row-1, r.col)
+				if l {
+					// RIGHT + !DOWN + UP
+					s.avoidHor(r.row, r.col-1)
+				} else if a {
+					// RIGHT + !DOWN + !UP
+					s.lineHor(r.row, r.col-1)
+				}
+			}
+		} else {
+			// RIGHT + uDOWN
+			l, a = s.horAt(r.row, r.col-1)
+			if l {
+				// RIGHT + LEFT
+				s.avoidVer(r.row-1, r.col)
+				s.avoidVer(r.row, r.col)
+			} else if a {
+				// RIGHT + uDOWN + !LEFT
+				l, a = s.verAt(r.row-1, r.col)
+				if l {
+					// RIGHT + uDOWN + !LEFT + UP
+					s.avoidVer(r.row, r.col)
+				} else if a {
+					// RIGHT + uDOWN + !LEFT + !UP
+					s.lineVer(r.row, r.col)
+				}
+			} else {
+				// RIGHT + uDOWN + uLEFT
+				if s.verLineAt(r.row-1, r.col) {
+					// RIGHT + uDOWN + uLEFT + UP
+					s.avoidVer(r.row, r.col)
+					s.avoidHor(r.row, r.col-1)
+				}
+			}
 		}
-		return
-	}
-	if nl == 1 && na == 2 {
-		// there is one line left to be drawn: it's a line
-		if !ll && !la {
-			s.lineHor(r.row, r.col-1)
-		} else if !ul && !ua {
-			s.lineVer(r.row-1, r.col)
-		} else if !rl && !ra {
-			s.lineHor(r.row, r.col)
-		} else if !dl && !da {
-			s.lineVer(r.row, r.col)
+	} else if a {
+		// !RIGHT
+		l, a = s.verAt(r.row, r.col)
+		if l {
+			// !RIGHT + DOWN
+			l, a = s.horAt(r.row, r.col-1)
+			if l {
+				// !RIGHT + DOWN + LEFT
+				s.avoidVer(r.row-1, r.col)
+			} else if a {
+				// !RIGHT + DOWN + !LEFT
+				s.lineVer(r.row-1, r.col)
+			} else {
+				// !RIGHT + DOWN + uLEFT
+				l, a = s.verAt(r.row-1, r.col)
+				if l {
+					// !RIGHT + DOWN + UP
+					s.avoidHor(r.row, r.col-1)
+				} else if a {
+					// !RIGHT + DOWN + !UP
+					s.lineHor(r.row, r.col-1)
+				}
+			}
+		} else if a {
+			// !RIGHT + !DOWN
+			l, a = s.horAt(r.row, r.col-1)
+			if l {
+				// !RIGHT + !DOWN + LEFT
+				s.lineVer(r.row-1, r.col)
+			} else if a {
+				// !RIGHT + !DOWN + !LEFT
+				s.avoidVer(r.row-1, r.col)
+			} else {
+				// !RIGHT + !DOWN + uLEFT
+				l, a = s.verAt(r.row-1, r.col)
+				if l {
+					// !RIGHT + !DOWN + UP
+					s.lineHor(r.row, r.col-1)
+				} else if a {
+					// !RIGHT + !DOWN + !UP
+					s.avoidHor(r.row, r.col-1)
+				}
+			}
+		} else {
+			// !RIGHT + uDOWN
+			l, a = s.horAt(r.row, r.col-1)
+			if l {
+				// !RIGHT + uDOWN + LEFT
+				l, a = s.verAt(r.row-1, r.col)
+				if l {
+					// !RIGHT + uDOWN + LEFT + UP
+					s.avoidVer(r.row, r.col)
+				} else if a {
+					// !RIGHT + uDOWN + LEFT + !UP
+					s.lineVer(r.row, r.col)
+				}
+			} else if a {
+				// !RIGHT + uDOWN + !LEFT
+				l, a = s.verAt(r.row-1, r.col)
+				if l {
+					// !RIGHT + uDOWN + !LEFT + UP
+					s.lineVer(r.row, r.col)
+				} else if a {
+					// !RIGHT + uDOWN + !LEFT + !UP
+					s.avoidVer(r.row, r.col)
+				}
+			}
 		}
-		return
-	}
-
-	if nl != 2 {
-		// otherwise there's not enough information to make a change
-		return
-	}
-
-	if !rl && !ra {
-		s.avoidHor(r.row, r.col)
-	}
-	if !dl && !da {
-		s.avoidVer(r.row, r.col)
-	}
-	if !ll && !la {
-		s.avoidHor(r.row, r.col-1)
-	}
-	if !ul && !ua {
-		s.avoidVer(r.row-1, r.col)
+	} else {
+		// uRIGHT
+		l, a = s.verAt(r.row, r.col)
+		if l {
+			// uRIGHT + DOWN
+			l, a = s.horAt(r.row, r.col-1)
+			if l {
+				// uRIGHT + DOWN + LEFT
+				s.avoidHor(r.row, r.col)
+				s.avoidVer(r.row-1, r.col)
+			} else if a {
+				// uRIGHT + DOWN + !LEFT
+				l, a = s.verAt(r.row-1, r.col)
+				if l {
+					// uRIGHT + DOWN + !LEFT + UP
+					s.avoidHor(r.row, r.col)
+				} else if a {
+					// uRIGHT + DOWN + !LEFT + !UP
+					s.lineHor(r.row, r.col)
+				} // else uRIGHT + DOWN + !LEFT + uUP
+			} // else uRIGHT + DOWN + uLEFT
+		} else if a {
+			// uRIGHT + !DOWN
+			l, a = s.horAt(r.row, r.col-1)
+			if l {
+				// uRIGHT + !DOWN + LEFT
+				l, a = s.verAt(r.row-1, r.col)
+				if l {
+					// uRIGHT + !DOWN + LEFT + UP
+					s.avoidHor(r.row, r.col)
+				} else if a {
+					// uRIGHT + !DOWN + LEFT + !UP
+					s.lineHor(r.row, r.col)
+				}
+			} else if a {
+				// uRIGHT + !DOWN + !LEFT
+				l, a = s.verAt(r.row-1, r.col)
+				if l {
+					// uRIGHT + !DOWN + !LEFT + UP
+					s.lineHor(r.row, r.col)
+				} else if a {
+					// uRIGHT + !DOWN + !LEFT + !UP
+					s.avoidHor(r.row, r.col)
+				}
+			} // else uRIGHT + !DOWN + uLEFT
+		} // else uRIGHT + uDOWN
 	}
 }

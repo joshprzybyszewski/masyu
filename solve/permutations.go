@@ -1,6 +1,7 @@
 package solve
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/joshprzybyszewski/masyu/model"
@@ -61,10 +62,15 @@ func getAdvancedNextPermutations(
 			knownRow:     0,
 			numCrossings: getNumLinesInCol(cur, col),
 			perms: func(s *state) {
+				if s.hasInvalid {
+					return
+				}
 				if getNextEmptyRow(s, col, 0) != 0 {
+					fmt.Printf("Didn't fill the whole column\nColumn: %d\n%s\n", col, s)
 					panic(`didn't fill the whole col?`)
 				}
 				if getNumLinesInCol(s, col)%2 != 0 {
+					fmt.Printf("Wrong Number of Lines\nColumn: %d\n%s\n", col, s)
 					panic(`didn't place the right amount of lines`)
 				}
 			},
@@ -93,10 +99,15 @@ func getAdvancedNextPermutationsRow(
 			knownCol:     0,
 			numCrossings: getNumLinesInRow(cur, row),
 			perms: func(s *state) {
+				if s.hasInvalid {
+					return
+				}
 				if getNextEmptyCol(s, row, 0) != 0 {
+					fmt.Printf("Unfilled Row\nRow: %d\n%s\n", row, s)
 					panic(`didn't fill the whole row?`)
 				}
 				if getNumLinesInRow(s, row)%2 != 0 {
+					fmt.Printf("Wrong Num Lines\nRow: %d\n%s\n", row, s)
 					panic(`didn't place the right amount of lines`)
 				}
 			},
@@ -181,8 +192,8 @@ func getPermutationsForCol(
 			knownRow:     row,
 			numCrossings: cur.numCrossings,
 			perms: func(s *state) {
-				cur.perms(s)
 				s.avoidHor(row, col)
+				cur.perms(s)
 			},
 		},
 	)
@@ -194,8 +205,8 @@ func getPermutationsForCol(
 			knownRow:     row,
 			numCrossings: cur.numCrossings + 1,
 			perms: func(s *state) {
-				cur.perms(s)
 				s.lineHor(row, col)
+				cur.perms(s)
 			},
 		},
 	)...)
