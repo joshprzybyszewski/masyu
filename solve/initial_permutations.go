@@ -154,8 +154,8 @@ func getPermutationsForRow(
 			knownCol:     col,
 			numCrossings: cur.numCrossings,
 			perms: func(s *state) {
-				s.avoidVer(row, col)
 				cur.perms(s)
+				s.avoidVer(row, col)
 			},
 		},
 	)
@@ -167,8 +167,8 @@ func getPermutationsForRow(
 			knownCol:     col,
 			numCrossings: cur.numCrossings + 1,
 			perms: func(s *state) {
-				s.lineVer(row, col)
 				cur.perms(s)
+				s.lineVer(row, col)
 			},
 		},
 	)...)
@@ -194,11 +194,5 @@ func getNumLinesInRow(
 	s *state,
 	row model.Dimension,
 ) int {
-	numLines := 0
-	for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
-		if s.verLineAt(row, col) {
-			numLines++
-		}
-	}
-	return numLines
+	return int(s.crossings.rows[row])
 }

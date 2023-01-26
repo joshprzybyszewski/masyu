@@ -32,7 +32,8 @@ func (w *worker) process() {
 		return
 	}
 
-	perms := getSimpleNextPermutations(&w.state)
+	// perms := getSimpleNextPermutations(&w.state)
+	perms := getAdvancedNextPermutations(&w.state)
 
 	// fmt.Printf("iterating %d permuations\n", len(perms))
 

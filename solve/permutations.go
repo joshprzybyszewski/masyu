@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	maxStatesForNextAttempt = 2
+	maxEmpty = 4
 )
 
 type applyFn func(*state)
@@ -50,7 +50,7 @@ func getAdvancedNextPermutations(
 	// TODO consider making the row/col distinction based on how many are already filled?
 
 	numEmpty, col := getBestNextStartingCol(cur)
-	if col == 0 || numEmpty > maxStatesForNextAttempt {
+	if col == 0 || numEmpty > maxEmpty {
 		return getAdvancedNextPermutationsRow(cur)
 	}
 
@@ -81,7 +81,7 @@ func getAdvancedNextPermutationsRow(
 	cur *state,
 ) []applyFn {
 	numEmpty, row := getBestNextStartingRow(cur)
-	if row == 0 || numEmpty > maxStatesForNextAttempt {
+	if row == 0 || numEmpty > maxEmpty {
 		// couldn't find a good starting row?
 		return getSimpleNextPermutations(cur)
 	}
@@ -102,7 +102,7 @@ func getAdvancedNextPermutationsRow(
 			},
 		},
 	)
-	if len(states) > maxStatesForNextAttempt {
+	if len(states) > maxEmpty {
 		return getSimpleNextPermutations(cur)
 	}
 
@@ -115,37 +115,15 @@ func getAdvancedNextPermutationsRow(
 func getBestNextStartingRow(
 	s *state,
 ) (int, model.Dimension) {
-	var knownBest [40]struct {
-		row model.Dimension
-
-		numRulesAffected int
-	}
-	var col model.Dimension
-	numEmpty := 0
-	numRulesAffected := 0
-
-	var l, a bool
+	var rowByNumEmpty [40]model.Dimension
 
 	for row := model.Dimension(1); row < model.Dimension(s.size); row++ {
-		numEmpty = 0
-		numRulesAffected = 0
-
-		for col = model.Dimension(1); col <= model.Dimension(s.size); col++ {
-			l, a = s.verAt(row, col)
-			if !l && !a {
-				numEmpty++
-				numRulesAffected += len(s.rules.rules.verticals[row][col])
-			}
-		}
-		if numRulesAffected >= knownBest[numEmpty].numRulesAffected {
-			knownBest[numEmpty].numRulesAffected = numRulesAffected
-			knownBest[numEmpty].row = row
-		}
+		rowByNumEmpty[s.size-model.Size(s.crossings.rows[row]+s.crossings.rowsAvoid[row])] = row
 	}
 
-	for numEmpty := 1; numEmpty < len(knownBest); numEmpty++ {
-		if knownBest[numEmpty].row > 0 {
-			return numEmpty, knownBest[numEmpty].row
+	for numEmpty := 2; numEmpty < len(rowByNumEmpty); numEmpty++ {
+		if rowByNumEmpty[numEmpty] > 0 {
+			return numEmpty, rowByNumEmpty[numEmpty]
 		}
 	}
 	// it's unlikely that all rows are filled...
@@ -155,37 +133,15 @@ func getBestNextStartingRow(
 func getBestNextStartingCol(
 	s *state,
 ) (int, model.Dimension) {
-	var knownBest [40]struct {
-		col model.Dimension
-
-		numRulesAffected int
-	}
-	var row model.Dimension
-	numEmpty := 0
-	numRulesAffected := 0
-
-	var l, a bool
+	var colByNumEmpty [40]model.Dimension
 
 	for col := model.Dimension(1); col < model.Dimension(s.size); col++ {
-		numEmpty = 0
-		numRulesAffected = 0
-
-		for row = model.Dimension(1); row <= model.Dimension(s.size); row++ {
-			l, a = s.horAt(row, col)
-			if !l && !a {
-				numEmpty++
-				numRulesAffected += len(s.rules.rules.horizontals[row][col])
-			}
-		}
-		if numRulesAffected >= knownBest[numEmpty].numRulesAffected {
-			knownBest[numEmpty].numRulesAffected = numRulesAffected
-			knownBest[numEmpty].col = col
-		}
+		colByNumEmpty[s.size-model.Size(s.crossings.cols[col]+s.crossings.colsAvoid[col])] = col
 	}
 
-	for numEmpty := 1; numEmpty < len(knownBest); numEmpty++ {
-		if knownBest[numEmpty].col > 0 {
-			return numEmpty, knownBest[numEmpty].col
+	for numEmpty := 1; numEmpty <= int(s.size); numEmpty++ {
+		if colByNumEmpty[numEmpty] > 0 {
+			return numEmpty, colByNumEmpty[numEmpty]
 		}
 	}
 
@@ -225,8 +181,8 @@ func getPermutationsForCol(
 			knownRow:     row,
 			numCrossings: cur.numCrossings,
 			perms: func(s *state) {
-				s.avoidHor(row, col)
 				cur.perms(s)
+				s.avoidHor(row, col)
 			},
 		},
 	)
@@ -238,8 +194,8 @@ func getPermutationsForCol(
 			knownRow:     row,
 			numCrossings: cur.numCrossings + 1,
 			perms: func(s *state) {
-				s.lineHor(row, col)
 				cur.perms(s)
+				s.lineHor(row, col)
 			},
 		},
 	)...)
@@ -265,13 +221,7 @@ func getNumLinesInCol(
 	s *state,
 	col model.Dimension,
 ) int {
-	numLines := 0
-	for row := model.Dimension(1); row <= model.Dimension(s.size); row++ {
-		if s.horLineAt(row, col) {
-			numLines++
-		}
-	}
-	return numLines
+	return int(s.crossings.cols[col])
 }
 
 func getPermutationsFromVerticalStates(
