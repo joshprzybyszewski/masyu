@@ -10,6 +10,7 @@ const (
 	invalid       settledState = 1
 	solved        settledState = 2
 	validUnsolved settledState = 3
+	unexpected    settledState = 4
 )
 
 // returns true if the state is still valid
@@ -44,9 +45,9 @@ func settleCycle(
 ) settledState {
 
 	// Please only call this if the state has a cycle
-	// if s.paths.hasCycle {
-	// 	return unexpected
-	// }
+	if !s.paths.hasCycle {
+		panic(`wtf`)
+	}
 
 	if s.paths.cycleSeenNodes != len(s.nodes) {
 		// there's a cycle, but it doesn't include all of the nodes.

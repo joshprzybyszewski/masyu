@@ -96,19 +96,6 @@ func (s *state) toSolution() model.Solution {
 	return sol
 }
 
-func (s *state) isValid() bool {
-
-	if s.hasInvalid {
-		return false
-	}
-
-	if s.paths.hasCycle && s.paths.cycleSeenNodes != len(s.nodes) {
-		return false
-	}
-
-	return true
-}
-
 func (s *state) getMostInterestingPath() (model.Coord, bool, bool) {
 	c, isHor, ok := s.paths.getInteresting(s)
 	if ok {

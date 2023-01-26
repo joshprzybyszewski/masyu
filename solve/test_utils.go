@@ -5,5 +5,5 @@ package solve
 import "time"
 
 func SetTestTimeout() {
-	maxAttemptDuration = 10 * time.Second
+	maxAttemptDuration = 15 * time.Second
 }

@@ -174,7 +174,7 @@ func getBestNextStartingCol(
 			l, a = s.horAt(row, col)
 			if !l && !a {
 				numEmpty++
-				numRulesAffected += len(s.rules.rules.verticals[row][col])
+				numRulesAffected += len(s.rules.rules.horizontals[row][col])
 			}
 		}
 		if numRulesAffected >= knownBest[numEmpty].numRulesAffected {
