@@ -34,6 +34,9 @@ func TestSpecifics(t *testing.T) {
 	}, {
 		iter: 3,
 		id:   `5,995,199`,
+	}, {
+		iter: 9,
+		id:   `3,118,955`,
 	}}
 
 	for _, tc := range testCases {
@@ -49,7 +52,7 @@ func TestSpecifics(t *testing.T) {
 			sol, err := solve.FromNodesWithTimeout(
 				tc.iter.GetSize(),
 				ns,
-				time.Second,
+				5*time.Second,
 			)
 			if err != nil {
 				t.Logf("Error fetching input: %q", err)

@@ -146,7 +146,7 @@ func (s *state) horAvoidAt(r, c model.Dimension) bool {
 
 func (s *state) avoidHor(r, c model.Dimension) {
 	b := c.Bit()
-	if s.horizontalAvoids[r]&b == b {
+	if s.hasInvalid || s.horizontalAvoids[r]&b == b {
 		// already avoided
 		return
 	}
@@ -163,7 +163,7 @@ func (s *state) avoidHor(r, c model.Dimension) {
 
 func (s *state) lineHor(r, c model.Dimension) {
 	b := c.Bit()
-	if s.horizontalLines[r]&b == b {
+	if s.hasInvalid || s.horizontalLines[r]&b == b {
 		// already a line
 		return
 	}
@@ -193,7 +193,7 @@ func (s *state) verAvoidAt(r, c model.Dimension) bool {
 
 func (s *state) avoidVer(r, c model.Dimension) {
 	b := r.Bit()
-	if s.verticalAvoids[c]&b == b {
+	if s.hasInvalid || s.verticalAvoids[c]&b == b {
 		// already avoided
 		return
 	}
@@ -210,7 +210,7 @@ func (s *state) avoidVer(r, c model.Dimension) {
 
 func (s *state) lineVer(r, c model.Dimension) {
 	b := r.Bit()
-	if s.verticalLines[c]&b == b {
+	if s.hasInvalid || s.verticalLines[c]&b == b {
 		// already avoided
 		return
 	}

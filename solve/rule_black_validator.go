@@ -1,6 +1,8 @@
 package solve
 
-import "github.com/joshprzybyszewski/masyu/model"
+import (
+	"github.com/joshprzybyszewski/masyu/model"
+)
 
 func newBlackValidator(
 	row, col model.Dimension,
@@ -70,5 +72,43 @@ func (r *rule) checkBlackValid(
 	} else if a && av == 1 {
 		r.setInvalid(s)
 		return
+	}
+
+	// TODO
+	// return
+	l, a = s.horAt(r.row, r.col)
+	if l {
+		if s.horAvoidAt(r.row, r.col+1) {
+			r.setInvalid(s)
+		}
+		if s.horLineAt(r.row, r.col-1) {
+			r.setInvalid(s)
+		}
+	} else if a {
+		if s.horAvoidAt(r.row, r.col-1) {
+			r.setInvalid(s)
+		}
+	} else if s.horLineAt(r.row, r.col-1) {
+		if r.col < 2 || s.horAvoidAt(r.row, r.col-2) {
+			r.setInvalid(s)
+		}
+	}
+
+	l, a = s.verAt(r.row, r.col)
+	if l {
+		if s.verAvoidAt(r.row+1, r.col) {
+			r.setInvalid(s)
+		}
+		if s.verLineAt(r.row-1, r.col) {
+			r.setInvalid(s)
+		}
+	} else if a {
+		if s.verAvoidAt(r.row-1, r.col) {
+			r.setInvalid(s)
+		}
+	} else if s.verLineAt(r.row-1, r.col) {
+		if r.row < 2 || s.verAvoidAt(r.row-2, r.col) {
+			r.setInvalid(s)
+		}
 	}
 }

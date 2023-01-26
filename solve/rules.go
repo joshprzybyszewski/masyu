@@ -307,8 +307,16 @@ func (r *rules) addWhiteNode(
 	r.addVerticalRule(row+1, col-1, &vb)
 
 	wv := newWhiteValidator(row, col)
+	// if col > 1 {
+	// 	r.addHorizontalRule(row, col-2, &wv)
+	// }
 	r.addHorizontalRule(row, col-1, &wv)
 	r.addHorizontalRule(row, col, &wv)
+	// r.addHorizontalRule(row, col+1, &wv)
+	// if row > 1 {
+	// 	r.addVerticalRule(row-2, col, &wv)
+	// }
 	r.addVerticalRule(row-1, col, &wv)
 	r.addVerticalRule(row, col, &wv)
+	// r.addVerticalRule(row+1, col, &wv)
 }
