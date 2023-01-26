@@ -4,9 +4,9 @@ import "github.com/joshprzybyszewski/masyu/model"
 
 func newInvertHorizontalBlack(
 	nodeRow, nodeCol model.Dimension,
-) *rule {
+) rule {
 	if nodeRow < 2 || nodeCol < 2 {
-		return nil
+		panic(`dev error`)
 	}
 
 	r := rule{
@@ -14,7 +14,7 @@ func newInvertHorizontalBlack(
 		col: nodeCol,
 	}
 	r.check = r.checkInvertHorizontalBlack
-	return &r
+	return r
 }
 
 func (r *rule) checkInvertHorizontalBlack(
@@ -44,23 +44,19 @@ func (r *rule) checkInvertHorizontalBlack(
 		s.avoidVer(r.row-1, r.col)
 		s.lineVer(r.row, r.col)
 		s.lineVer(r.row+1, r.col)
-		return
-	}
-
-	if s.verAvoidAt(r.row+1, r.col) {
+	} else if s.verAvoidAt(r.row+1, r.col) {
 		// the turn can't go down. Send it up instead.
 		s.avoidVer(r.row, r.col)
 		s.lineVer(r.row-1, r.col)
 		s.lineVer(r.row-2, r.col)
-		return
 	}
 }
 
 func newInvertVerticalBlack(
 	nodeRow, nodeCol model.Dimension,
-) *rule {
+) rule {
 	if nodeRow < 2 || nodeCol < 2 {
-		return nil
+		panic(`dev error`)
 	}
 
 	r := rule{
@@ -68,7 +64,7 @@ func newInvertVerticalBlack(
 		col: nodeCol,
 	}
 	r.check = r.checkInvertVerticalBlack
-	return &r
+	return r
 }
 
 func (r *rule) checkInvertVerticalBlack(
@@ -104,14 +100,10 @@ func (r *rule) checkInvertVerticalBlack(
 		s.avoidHor(r.row, r.col-1)
 		s.lineHor(r.row, r.col)
 		s.lineHor(r.row, r.col+1)
-		return
-	}
-
-	if s.horAvoidAt(r.row, r.col+1) {
+	} else if s.horAvoidAt(r.row, r.col+1) {
 		// the turn can't go right. Send it left instead.
 		s.avoidHor(r.row, r.col)
 		s.lineHor(r.row, r.col-1)
 		s.lineHor(r.row, r.col-2)
-		return
 	}
 }

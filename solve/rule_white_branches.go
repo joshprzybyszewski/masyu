@@ -25,7 +25,8 @@ func (r *rule) checkWhiteHorizontalBranch(
 	}
 	// all four possible branches for a horizontal white node are avoided.
 	// Therefore, this must be a vertical node
-	r.setVerticalWhite(s)
+	s.verAt(r.row-1, r.col)
+	s.verAt(r.row, r.col)
 }
 
 func newWhiteVerticalBranchRule(
@@ -51,5 +52,6 @@ func (r *rule) checkWhiteVerticalBranch(
 	}
 	// all four possible branches for a vertical white node are avoided.
 	// Therefore, this must be a horizontal node
-	r.setHorizontalWhite(s)
+	s.horAt(r.row, r.col-1)
+	s.horAt(r.row, r.col)
 }

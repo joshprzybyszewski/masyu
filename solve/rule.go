@@ -13,6 +13,4 @@ type rule struct {
 
 func (r *rule) setInvalid(s *state) {
 	s.hasInvalid = true
-	// s.lineHor(r.row, r.col)
-	// s.avoidHor(r.row, r.col)
 }

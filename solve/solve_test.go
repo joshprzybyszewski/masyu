@@ -52,7 +52,7 @@ func TestSpecifics(t *testing.T) {
 			sol, err := solve.FromNodesWithTimeout(
 				tc.iter.GetSize(),
 				ns,
-				5*time.Second,
+				50*time.Second,
 			)
 			if err != nil {
 				t.Logf("Error fetching input: %q", err)

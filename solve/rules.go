@@ -177,34 +177,36 @@ func (r *rules) addVerticalRule(
 func (r *rules) addBlackNode(
 	row, col model.Dimension,
 ) {
-	left := newBlackL1Rule(row, col)
-	r.addHorizontalRule(row, col-1, &left)
 
-	right := newBlackR1Rule(row, col)
-	r.addHorizontalRule(row, col, &right)
-
-	up := newBlackU1Rule(row, col)
-	r.addVerticalRule(row-1, col, &up)
-
-	down := newBlackD1Rule(row, col)
-	r.addVerticalRule(row, col, &down)
+	// ensure the black node is valid
+	bv := newBlackValidator(row, col)
+	if col > 1 {
+		r.addHorizontalRule(row, col-2, &bv)
+	}
+	r.addHorizontalRule(row, col-1, &bv)
+	r.addHorizontalRule(row, col, &bv)
+	r.addHorizontalRule(row, col+1, &bv)
+	if row > 1 {
+		r.addVerticalRule(row-2, col, &bv)
+	}
+	r.addVerticalRule(row-1, col, &bv)
+	r.addVerticalRule(row, col, &bv)
+	r.addVerticalRule(row+1, col, &bv)
 
 	// Look at extended "avoids"
 	if col > 1 {
 		left2 := newBlackL2Rule(row, col)
 		r.addHorizontalRule(row, col-2, &left2)
+		right2 := newBlackR2Rule(row, col)
+		r.addHorizontalRule(row, col+1, &right2)
 	}
-
-	right2 := newBlackR2Rule(row, col)
-	r.addHorizontalRule(row, col+1, &right2)
 
 	if row > 1 {
 		up2 := newBlackU2Rule(row, col)
 		r.addVerticalRule(row-2, col, &up2)
+		down2 := newBlackD2Rule(row, col)
+		r.addVerticalRule(row+1, col, &down2)
 	}
-
-	down2 := newBlackD2Rule(row, col)
-	r.addVerticalRule(row+1, col, &down2)
 
 	// Look at branches off the adjacencies.
 	leftBranch := newBlackLBranchRule(row, col)
@@ -224,63 +226,38 @@ func (r *rules) addBlackNode(
 	r.addHorizontalRule(row+1, col-1, &downBranch)
 
 	// look at inversions for black nodes
-	if ih := newInvertHorizontalBlack(row, col); ih != nil {
-		r.addHorizontalRule(row, col-2, ih)
-		r.addHorizontalRule(row, col+1, ih)
-		r.addVerticalRule(row-2, col, ih)
-		r.addVerticalRule(row+1, col, ih)
-	}
+	if row > 1 && col > 1 {
+		ih := newInvertHorizontalBlack(row, col)
+		r.addHorizontalRule(row, col-2, &ih)
+		r.addHorizontalRule(row, col+1, &ih)
+		r.addVerticalRule(row-2, col, &ih)
+		r.addVerticalRule(row+1, col, &ih)
 
-	if iv := newInvertVerticalBlack(row, col); iv != nil {
-		r.addHorizontalRule(row, col-2, iv)
-		r.addHorizontalRule(row, col+1, iv)
-		r.addVerticalRule(row-2, col, iv)
-		r.addVerticalRule(row+1, col, iv)
+		iv := newInvertVerticalBlack(row, col)
+		r.addHorizontalRule(row, col-2, &iv)
+		r.addHorizontalRule(row, col+1, &iv)
+		r.addVerticalRule(row-2, col, &iv)
+		r.addVerticalRule(row+1, col, &iv)
 	}
-
-	// ensure the black node is valid
-	bv := newBlackValidator(row, col)
-	if col > 1 {
-		r.addHorizontalRule(row, col-2, &bv)
-	}
-	r.addHorizontalRule(row, col-1, &bv)
-	r.addHorizontalRule(row, col, &bv)
-	r.addHorizontalRule(row, col+1, &bv)
-	if row > 1 {
-		r.addVerticalRule(row-2, col, &bv)
-	}
-	r.addVerticalRule(row-1, col, &bv)
-	r.addVerticalRule(row, col, &bv)
-	r.addVerticalRule(row+1, col, &bv)
 }
 
 func (r *rules) addWhiteNode(
 	row, col model.Dimension,
 ) {
-	left := newWhiteL1Rule(row, col)
-	r.addHorizontalRule(row, col-1, &left)
 
-	right := newWhiteR1Rule(row, col)
-	r.addHorizontalRule(row, col, &right)
-
-	up := newWhiteU1Rule(row, col)
-	r.addVerticalRule(row-1, col, &up)
-
-	down := newWhiteD1Rule(row, col)
-	r.addVerticalRule(row, col, &down)
-
-	ah := newAdvancedHorizontalWhite(row, col)
+	wv := newWhiteValidator(row, col)
 	if col > 1 {
-		r.addHorizontalRule(row, col-2, &ah)
-
+		r.addHorizontalRule(row, col-2, &wv)
 	}
-	r.addHorizontalRule(row, col+1, &ah)
-
-	av := newAdvancedVerticalWhite(row, col)
+	r.addHorizontalRule(row, col-1, &wv)
+	r.addHorizontalRule(row, col, &wv)
+	r.addHorizontalRule(row, col+1, &wv)
 	if row > 1 {
-		r.addVerticalRule(row-2, col, &av)
+		r.addVerticalRule(row-2, col, &wv)
 	}
-	r.addVerticalRule(row+1, col, &av)
+	r.addVerticalRule(row-1, col, &wv)
+	r.addVerticalRule(row, col, &wv)
+	r.addVerticalRule(row+1, col, &wv)
 
 	ih := newInvertHorizontalWhite(row, col)
 	if col > 1 {
@@ -305,18 +282,4 @@ func (r *rules) addWhiteNode(
 	r.addVerticalRule(row-1, col-1, &vb)
 	r.addVerticalRule(row+1, col, &vb)
 	r.addVerticalRule(row+1, col-1, &vb)
-
-	wv := newWhiteValidator(row, col)
-	// if col > 1 {
-	// 	r.addHorizontalRule(row, col-2, &wv)
-	// }
-	r.addHorizontalRule(row, col-1, &wv)
-	r.addHorizontalRule(row, col, &wv)
-	// r.addHorizontalRule(row, col+1, &wv)
-	// if row > 1 {
-	// 	r.addVerticalRule(row-2, col, &wv)
-	// }
-	r.addVerticalRule(row-1, col, &wv)
-	r.addVerticalRule(row, col, &wv)
-	// r.addVerticalRule(row+1, col, &wv)
 }

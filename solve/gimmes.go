@@ -21,6 +21,13 @@ func findGimmes(
 
 	for _, n := range s.nodes {
 		if n.IsBlack {
+			if n.Col <= 2 {
+				s.avoidHor(n.Row, n.Col-1)
+			}
+			if n.Row <= 2 {
+				s.avoidVer(n.Row-1, n.Col)
+			}
+
 			// blacks next to each other require an X in between
 			if blacks[n.Row][n.Col+1] {
 				s.avoidHor(n.Row, n.Col)

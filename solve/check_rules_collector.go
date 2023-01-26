@@ -50,9 +50,9 @@ func (c *ruleCheckCollector) runAllChecks(
 
 		for dim1 = 0; dim1 < im; dim1++ {
 			if c.hor[dim1] != 0 {
-				bit = 1
 				tmp = c.hor[dim1]
 				c.hor[dim1] = 0
+				bit = 1
 				for dim2 = 0; dim2 < im; dim2++ {
 					if tmp&bit == bit {
 						for _, r = range c.rules.horizontals[dim1][dim2] {
@@ -64,9 +64,9 @@ func (c *ruleCheckCollector) runAllChecks(
 			}
 
 			if c.ver[dim1] != 0 {
-				bit = 1
 				tmp = c.ver[dim1]
 				c.ver[dim1] = 0
+				bit = 1
 				for dim2 = 0; dim2 < im; dim2++ {
 					if tmp&bit == bit {
 						for _, r = range c.rules.verticals[dim2][dim1] {

@@ -16,16 +16,14 @@ func newInvertHorizontalWhite(
 func (r *rule) checkInvertHorizontalWhite(
 	s *state,
 ) {
-	if !s.horLineAt(r.row, r.col+1) ||
-		!s.horLineAt(r.row, r.col-2) {
-		return
+	if s.horLineAt(r.row, r.col+1) &&
+		s.horLineAt(r.row, r.col-2) {
+		// In this case:
+		// * - * ? W ? * - *
+		// We know that the white node cannot be horizontal.
+		s.avoidHor(r.row, r.col)
+		s.avoidHor(r.row, r.col-1)
 	}
-
-	// In this case:
-	// * - * ? W ? * - *
-	// We know that the white node cannot be horizontal.
-
-	r.setVerticalWhite(s)
 }
 
 func newInvertVerticalWhite(
@@ -42,22 +40,21 @@ func newInvertVerticalWhite(
 func (r *rule) checkInvertVerticalWhite(
 	s *state,
 ) {
-	if !s.verLineAt(r.row+1, r.col) ||
-		!s.verLineAt(r.row-2, r.col) {
-		return
+	if s.verLineAt(r.row+1, r.col) &&
+		s.verLineAt(r.row-2, r.col) {
+		// In this case:
+		// *
+		// |
+		// *
+		// ?
+		// W
+		// ?
+		// *
+		// |
+		// *
+		// We know that the white node cannot be vertical.
+
+		s.avoidVer(r.row-1, r.col)
+		s.avoidVer(r.row, r.col)
 	}
-
-	// In this case:
-	// *
-	// |
-	// *
-	// ?
-	// W
-	// ?
-	// *
-	// |
-	// *
-	// We know that the white node cannot be vertical.
-
-	r.setHorizontalWhite(s)
 }
