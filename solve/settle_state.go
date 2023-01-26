@@ -7,9 +7,9 @@ import (
 type settledState uint8
 
 const (
-	invalid settledState = iota
-	solved
-	validUnsolved
+	invalid       settledState = 1
+	solved        settledState = 2
+	validUnsolved settledState = 3
 )
 
 // returns true if the state is still valid
@@ -24,7 +24,7 @@ func settle(
 		return settleCycle(s)
 	}
 
-	if !s.rules.runAllChecks(s) {
+	if s.rules.runAllChecks(s) == invalid {
 		return invalid
 	}
 
@@ -34,10 +34,6 @@ func settle(
 
 	if s.paths.hasCycle {
 		return settleCycle(s)
-	}
-
-	if ss := completeCrossings(s); ss != validUnsolved {
-		return ss
 	}
 
 	return validUnsolved
@@ -67,17 +63,12 @@ func settleCycle(
 		return invalid
 	}
 
-	if !checkEntireRuleset(s) {
+	if checkEntireRuleset(s) == invalid {
 		return invalid
 	}
 
 	// re-validate our assumptions after checking all the rules
-	if s.hasInvalid {
-		return invalid
-	}
-
-	if s.paths.cycleSeenNodes != len(s.nodes) {
-		// there's a cycle, but it doesn't include all of the nodes.
+	if s.hasInvalid || s.paths.cycleSeenNodes != len(s.nodes) {
 		return invalid
 	}
 
@@ -143,23 +134,15 @@ func avoidAllUnknowns(
 	}
 }
 
-func checkEntireRuleset(s *state) bool {
-	for row := model.Dimension(0); row <= model.Dimension(s.size+1); row++ {
-		for col := model.Dimension(0); col <= model.Dimension(s.size+1); col++ {
-			s.rules.checkHorizontal(row, col, s)
-			s.rules.checkVertical(row, col, s)
+func checkEntireRuleset(s *state) settledState {
+	max := model.Dimension(s.size + 1)
+	var col model.Dimension
+	for row := model.Dimension(0); row <= max; row++ {
+		for col = model.Dimension(0); col <= max; col++ {
+			s.rules.checkHorizontal(row, col)
+			s.rules.checkVertical(row, col)
 		}
 	}
 
 	return s.rules.runAllChecks(s)
-}
-
-func completeCrossings(
-	s *state,
-) settledState {
-	if s.crossings.complete(s) {
-		return settle(s)
-	}
-
-	return validUnsolved
 }

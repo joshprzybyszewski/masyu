@@ -76,7 +76,7 @@ func (s *state) initialize() {
 	s.horizontalAvoids[s.size+1] = all64Bits
 	s.verticalAvoids[s.size+1] = all64Bits
 
-	if !checkEntireRuleset(s) {
+	if checkEntireRuleset(s) == invalid {
 		fmt.Printf("Invalid State:\n%s\n", s)
 		panic(`state initialization is not valid?`)
 	}
@@ -157,8 +157,8 @@ func (s *state) avoidHor(r, c model.Dimension) {
 		return
 	}
 
-	s.crossings.avoidHor(c)
-	s.rules.checkHorizontal(r, c, s)
+	s.rules.checkHorizontal(r, c)
+	s.crossings.avoidHor(c, s)
 }
 
 func (s *state) lineHor(r, c model.Dimension) {
@@ -174,8 +174,8 @@ func (s *state) lineHor(r, c model.Dimension) {
 		return
 	}
 
-	s.crossings.lineHor(c)
-	s.rules.checkHorizontal(r, c, s)
+	s.rules.checkHorizontal(r, c)
+	s.crossings.lineHor(c, s)
 	s.paths.addHorizontal(r, c, s)
 }
 
@@ -204,8 +204,8 @@ func (s *state) avoidVer(r, c model.Dimension) {
 		return
 	}
 
-	s.crossings.avoidVer(r)
-	s.rules.checkVertical(r, c, s)
+	s.rules.checkVertical(r, c)
+	s.crossings.avoidVer(r, s)
 }
 
 func (s *state) lineVer(r, c model.Dimension) {
@@ -221,8 +221,8 @@ func (s *state) lineVer(r, c model.Dimension) {
 		return
 	}
 
-	s.crossings.lineVer(r)
-	s.rules.checkVertical(r, c, s)
+	s.rules.checkVertical(r, c)
+	s.crossings.lineVer(r, s)
 	s.paths.addVertical(r, c, s)
 }
 

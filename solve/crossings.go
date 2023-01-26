@@ -1,6 +1,8 @@
 package solve
 
-import "github.com/joshprzybyszewski/masyu/model"
+import (
+	"github.com/joshprzybyszewski/masyu/model"
+)
 
 type crossings struct {
 	// [col]numLines/AvoidsInThatCol
@@ -12,8 +14,7 @@ type crossings struct {
 	rowsAvoid [model.MaxPointsPerLine]model.Dimension
 
 	// This is the "target" for an _almost_ empty row/col
-	target            model.Dimension
-	hasNearlyComplete bool
+	target model.Dimension
 }
 
 func newCrossings(
@@ -26,74 +27,67 @@ func newCrossings(
 
 func (c *crossings) lineHor(
 	col model.Dimension,
+	s *state,
 ) {
 	c.cols[col]++
 	if c.colsAvoid[col]+c.cols[col] == c.target {
-		c.hasNearlyComplete = true
+		c.completeCol(col, s)
 	}
+
 }
 
 func (c *crossings) avoidHor(
 	col model.Dimension,
+	s *state,
 ) {
 	c.colsAvoid[col]++
 	if c.colsAvoid[col]+c.cols[col] == c.target {
-		c.hasNearlyComplete = true
+		c.completeCol(col, s)
+	}
+}
+
+func (c *crossings) completeCol(
+	col model.Dimension,
+	s *state,
+) {
+	row := getEmptyCrossingInColumn(s, col)
+	if c.cols[col]%2 == 0 {
+		s.avoidHor(row, col)
+	} else {
+		s.lineHor(row, col)
 	}
 }
 
 func (c *crossings) lineVer(
 	row model.Dimension,
+	s *state,
 ) {
 	c.rows[row]++
 	if c.rowsAvoid[row]+c.rows[row] == c.target {
-		c.hasNearlyComplete = true
+		c.completeRow(row, s)
 	}
 }
 
 func (c *crossings) avoidVer(
 	row model.Dimension,
+	s *state,
 ) {
 	c.rowsAvoid[row]++
 	if c.rowsAvoid[row]+c.rows[row] == c.target {
-		c.hasNearlyComplete = true
+		c.completeRow(row, s)
 	}
 }
 
-func (c *crossings) complete(
+func (c *crossings) completeRow(
+	row model.Dimension,
 	s *state,
-) bool {
-	if !c.hasNearlyComplete {
-		return false
+) {
+	col := getEmptyCrossingInRow(s, row)
+	if c.rows[row]%2 == 0 {
+		s.avoidVer(row, col)
+	} else {
+		s.lineVer(row, col)
 	}
-
-	c.hasNearlyComplete = false
-	changed := false
-
-	var other model.Dimension
-
-	for i := model.Dimension(1); i < model.Dimension(s.size); i++ {
-		if c.cols[i]+c.colsAvoid[i] == c.target {
-			changed = true
-			other = getEmptyCrossingInColumn(s, i)
-			if c.cols[i]%2 == 0 {
-				s.avoidHor(other, i)
-			} else {
-				s.lineHor(other, i)
-			}
-		}
-		if c.rows[i]+c.rowsAvoid[i] == c.target {
-			changed = true
-			other = getEmptyCrossingInRow(s, i)
-			if c.rows[i]%2 == 0 {
-				s.avoidVer(i, other)
-			} else {
-				s.lineVer(i, other)
-			}
-		}
-	}
-
-	return changed
 }
 
 func getEmptyCrossingInColumn(
