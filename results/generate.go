@@ -17,6 +17,10 @@ import (
 
 const (
 	numPuzzlesPerIter = 10
+
+	readmeFilename     = `README.md`
+	resultsStartMarker = `<resultsMarker>`
+	resultsStopMarker  = `</resultsMarker>`
 )
 
 func Update() {
@@ -147,12 +151,6 @@ func writeResultsToReadme(
 		return
 	}
 }
-
-const (
-	readmeFilename     = `README.md`
-	resultsStartMarker = `<resultsMarker>`
-	resultsStopMarker  = `</resultsMarker>`
-)
 
 func getREADMEContent() (string, error) {
 	data, err := os.ReadFile(readmeFilename)
