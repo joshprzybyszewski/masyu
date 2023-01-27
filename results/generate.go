@@ -79,7 +79,13 @@ func Update() {
 
 func getResults(iter model.Iterator) ([]time.Duration, error) {
 	fmt.Printf("Starting %s\n", iter)
-	inputs, err := fetch.ReadN(iter, numPuzzlesPerIter)
+
+	n := numPuzzlesPerIter
+	if iter.GetSize() > 25 || iter == 18 {
+		n = 10
+	}
+
+	inputs, err := fetch.ReadN(iter, n)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +110,7 @@ func getResults(iter model.Iterator) ([]time.Duration, error) {
 			if sr.Answer != sol.ToAnswer() {
 				fmt.Printf("Is this correct?\n")
 				fmt.Printf("%s\n", sr.Input)
-				fmt.Printf("%s\n", &sol)
+				fmt.Printf("%s\n", sol.Pretty(ns))
 			}
 		}
 
