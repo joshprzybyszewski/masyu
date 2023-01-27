@@ -141,18 +141,21 @@ func (w *workforce) sendWork(
 		return
 	}
 
-	if int(pf.numVals) <= len(w.workers) {
-		pf.numVals = 0
-
-		pf.populateFallback(&initial)
+	{
+		pf2 := newIntialPermutationsFactory()
+		pf2.populateFallback(&initial)
 		if ctx.Err() != nil {
 			return
+		}
+
+		if pf2.numVals > pf.numVals {
+			pf = pf2
 		}
 	}
 
 	cpy := initial
 
-	fmt.Printf("Has %d initial permutations to try for\n%s\n", pf.numVals, &initial)
+	fmt.Printf("Has %d initial permutations\n", pf.numVals)
 
 	for i := 0; i < int(pf.numVals); i++ {
 		if ctx.Err() != nil {
