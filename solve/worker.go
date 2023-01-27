@@ -41,11 +41,14 @@ func (w *worker) process(
 
 	pf := newPermutationsFactory()
 
-	beforeAll := w.state
+	cpy := w.state
 	pf.populate(&w.state)
 	for i := uint16(0); i < pf.numVals; i++ {
 		pf.vals[i](&w.state)
 		w.process(ctx)
-		w.state = beforeAll
+		if ctx.Err() != nil {
+			return
+		}
+		w.state = cpy
 	}
 }

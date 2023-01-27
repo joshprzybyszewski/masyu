@@ -9,10 +9,13 @@ import (
 	"github.com/joshprzybyszewski/masyu/fetch"
 	"github.com/joshprzybyszewski/masyu/model"
 	"github.com/joshprzybyszewski/masyu/profile"
+	"github.com/joshprzybyszewski/masyu/results"
 	"github.com/joshprzybyszewski/masyu/solve"
 )
 
 var (
+	updateResults = flag.Bool("results", false, "if set, then it will print the custom benchmark results")
+
 	puzzID = flag.String("puzzID", "", "if set, then this will run a specific puzzle")
 
 	iterStart     = flag.Int("start", int(model.MinIterator), "if set, this will override the iterators starting value")
@@ -27,6 +30,11 @@ var (
 
 func main() {
 	flag.Parse()
+
+	if *updateResults {
+		results.Update()
+		return
+	}
 
 	if *shouldProfile {
 		defer profile.Start()()

@@ -4,7 +4,7 @@ help: ## Prints out the options available in this makefile
 
 .PHONY: profile
 profile: ## Run the solver and grab a CPU/memory profile using pprof
-	go run main.go -profile -refresh=false -start=11 -finish=18 -numIterations=1
+	go run main.go -profile -refresh=false -start=11 -finish=18 -numIterations=5
 	pprof -web cpu.pprof
 	pprof -web mem.pprof
 
@@ -28,3 +28,8 @@ lint: ## Runs linters (via golangci-lint) on golang code
 .PHONY: build
 build: ## Executes go build to see what escapes to heap
 	go build -gcflags='-m -m' ./solve/...
+
+
+.PHONY: results
+results: ## Runs the solver to update the reported results on the readme page
+	go run main.go -results
