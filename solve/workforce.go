@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"runtime/debug"
 	"time"
 
 	"github.com/joshprzybyszewski/masyu/model"
@@ -128,6 +129,7 @@ func (w *workforce) sendWork(
 		r := recover()
 		if r != nil {
 			fmt.Printf("caught: %+v\n", r)
+			fmt.Printf("%s\n", debug.Stack())
 		}
 	}()
 
@@ -139,22 +141,26 @@ func (w *workforce) sendWork(
 		return
 	}
 
-	// if int(pf.numVals) <= len(w.workers) {
-	// 	pf.numVals = 0
+	if int(pf.numVals) <= len(w.workers) {
+		pf.numVals = 0
 
-	// 	pf.populateFallback(&initial)
-	// 	if ctx.Err() != nil {
-	// 		return
-	// 	}
-	// }
+		pf.populateFallback(&initial)
+		if ctx.Err() != nil {
+			return
+		}
+	}
 
 	cpy := initial
 
 	fmt.Printf("Has %d initial permutations to try for\n%s\n", pf.numVals, &initial)
 
-	for i := uint16(0); i < pf.numVals; i++ {
-		if i >= uint16(len(pf.vals)) {
-			pf.moreSpace[i](&cpy)
+	for i := 0; i < int(pf.numVals); i++ {
+		if ctx.Err() != nil {
+			return
+		}
+
+		if i >= len(pf.vals) {
+			pf.moreSpace[i-len(pf.vals)](&cpy)
 		} else {
 			pf.vals[i](&cpy)
 		}

@@ -17,8 +17,12 @@ type permutationsFactorySubstate struct {
 	perms applyFn
 }
 
+const (
+	permutationsFactoryNumVals = 8
+)
+
 type permutationsFactory struct {
-	vals    [8]applyFn
+	vals    [permutationsFactoryNumVals]applyFn
 	numVals uint16
 }
 
