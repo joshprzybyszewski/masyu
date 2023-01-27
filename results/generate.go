@@ -16,11 +16,15 @@ import (
 )
 
 const (
-	numPuzzlesPerIter = 1000
+	numPuzzlesPerIter = 500
 
 	readmeFilename     = `README.md`
 	resultsStartMarker = `<resultsMarker>`
 	resultsStopMarker  = `</resultsMarker>`
+)
+
+const (
+	resultsTimeout = 10 * time.Second
 )
 
 func Update() {
@@ -31,7 +35,7 @@ func Update() {
 			continue
 		}
 
-		durs, err := getResults(iter)
+		durs, err := getResults(iter, resultsTimeout)
 		if err != nil {
 			fmt.Printf("Error: %+v\n", err)
 			continue
@@ -43,6 +47,7 @@ func Update() {
 	var sb strings.Builder
 
 	sb.WriteByte('\n')
+	sb.WriteByte('\n')
 	sb.WriteString(fmt.Sprintf("_GOOS: %s_\n\n", runtime.GOOS))
 	sb.WriteString(fmt.Sprintf("_GOARCH: %s_\n\n", runtime.GOARCH))
 
@@ -50,8 +55,10 @@ func Update() {
 		sb.WriteString(fmt.Sprintf("_cpu: %s_\n\n", stats[0].ModelName))
 	}
 
-	sb.WriteString("|Puzzle|Min|Median|p75|p95|sample size|\n")
-	sb.WriteString("|-|-|-|-|-|-:|\n")
+	sb.WriteString(fmt.Sprintf("_Solve timeout: %s_\n\n", resultsTimeout))
+
+	sb.WriteString("|Puzzle|Min|Median|p75|p95|max|sample size|\n")
+	sb.WriteString("|-|-|-|-|-|-|-:|\n")
 
 	for iter := model.MinIterator; iter < model.Iterator(len(allResults)); iter++ {
 		if len(allResults[iter]) == 0 {
@@ -67,6 +74,7 @@ func Update() {
 		sb.WriteString(fmt.Sprintf("%s|", allResults[iter][len(allResults[iter])/2]))
 		sb.WriteString(fmt.Sprintf("%s|", allResults[iter][len(allResults[iter])*3/4]))
 		sb.WriteString(fmt.Sprintf("%s|", allResults[iter][len(allResults[iter])*19/20]))
+		sb.WriteString(fmt.Sprintf("%s|", allResults[iter][len(allResults[iter])-1]))
 		sb.WriteString(fmt.Sprintf("%d|\n", len(allResults[iter])))
 	}
 
@@ -77,15 +85,13 @@ func Update() {
 	fmt.Printf("Results updated.\n")
 }
 
-func getResults(iter model.Iterator) ([]time.Duration, error) {
+func getResults(
+	iter model.Iterator,
+	timeout time.Duration,
+) ([]time.Duration, error) {
 	fmt.Printf("Starting %s\n", iter)
 
-	n := numPuzzlesPerIter
-	if iter.GetSize() > 25 || iter == 18 || iter == 12 {
-		n = 10
-	}
-
-	inputs, err := fetch.ReadN(iter, n)
+	inputs, err := fetch.ReadN(iter, numPuzzlesPerIter)
 	if err != nil {
 		return nil, err
 	}
@@ -96,11 +102,13 @@ func getResults(iter model.Iterator) ([]time.Duration, error) {
 		ns := sr.Input.ToNodes()
 
 		t0 := time.Now()
-		sol, err := solve.FromNodes(
+		sol, err := solve.FromNodesWithTimeout(
 			iter.GetSize(),
 			ns,
+			timeout,
 		)
 		dur := time.Since(t0)
+		durs = append(durs, dur)
 		if err != nil {
 			fmt.Printf("Got error: %s\n", err.Error())
 			continue
@@ -113,8 +121,6 @@ func getResults(iter model.Iterator) ([]time.Duration, error) {
 				fmt.Printf("%s\n", sol.Pretty(ns))
 			}
 		}
-
-		durs = append(durs, dur)
 
 		for numGCs := 0; numGCs < 3; numGCs++ {
 			time.Sleep(10 * time.Millisecond)

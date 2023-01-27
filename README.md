@@ -12,10 +12,9 @@ Check the Hall of Fame for the results recorded by the puzzle server (which incl
 _NOTE: Update this table with `make results`._
 
 <resultsMarker>
+
 _GOOS: linux_
-
 _GOARCH: amd64_
-
 _cpu: Intel(R) Core(TM) i5-3570 CPU @ 3.40GHz_
 
 |Puzzle|Min|Median|p75|p95|sample size|
