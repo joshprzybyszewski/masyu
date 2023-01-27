@@ -133,6 +133,24 @@ func (w *workforce) sendWork(
 		}
 	}()
 
+	ec := newEmptyCompleter(&initial)
+
+	ec.complete(
+		ctx,
+		&initial,
+		func(s *state) {
+			if ctx.Err() != nil {
+				return
+			}
+
+			w.work <- *s
+		},
+	)
+
+	if ctx.Err() != nil {
+		return
+	}
+
 	w.work <- initial
 
 	pf := newIntialPermutationsFactory()
@@ -141,32 +159,19 @@ func (w *workforce) sendWork(
 		return
 	}
 
-	{
-		pf2 := newIntialPermutationsFactory()
-		pf2.populateFallback(&initial)
-		if ctx.Err() != nil {
-			return
-		}
-
-		if pf2.numVals > pf.numVals {
-			pf = pf2
-		}
-	}
-
 	cpy := initial
 
-	fmt.Printf("Has %d initial permutations\n", pf.numVals)
-
 	for i := 0; i < int(pf.numVals); i++ {
-		if ctx.Err() != nil {
-			return
-		}
-
 		if i >= len(pf.vals) {
 			pf.moreSpace[i-len(pf.vals)](&cpy)
 		} else {
 			pf.vals[i](&cpy)
 		}
+
+		if ctx.Err() != nil {
+			return
+		}
+
 		w.work <- cpy
 
 		cpy = initial

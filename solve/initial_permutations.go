@@ -357,6 +357,14 @@ func isWhiteNodeClear(
 		return false
 	}
 
+	if n.Row < 2 || n.Col < 2 {
+		return false
+	}
+
+	if n.Row >= model.Dimension(s.size)-1 || n.Col >= model.Dimension(s.size)-1 {
+		return false
+	}
+
 	l, a := s.verAt(n.Row-1, n.Col-1)
 	if l || a {
 		return false

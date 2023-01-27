@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	numPuzzlesPerIter = 10
+	numPuzzlesPerIter = 1000
 
 	readmeFilename     = `README.md`
 	resultsStartMarker = `<resultsMarker>`
