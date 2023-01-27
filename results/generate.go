@@ -81,7 +81,7 @@ func getResults(iter model.Iterator) ([]time.Duration, error) {
 	fmt.Printf("Starting %s\n", iter)
 
 	n := numPuzzlesPerIter
-	if iter.GetSize() > 25 || iter == 18 {
+	if iter.GetSize() > 25 || iter == 18 || iter == 12 {
 		n = 10
 	}
 
