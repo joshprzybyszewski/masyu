@@ -171,4 +171,8 @@ func (w *workforce) sendWork(
 
 		cpy = initial
 	}
+
+	// TODO even with _huge_ initial permutations, workers still become free
+	// in relatively short order. we should start having the "running threads"
+	// send their in-progress information over, if possible.
 }
