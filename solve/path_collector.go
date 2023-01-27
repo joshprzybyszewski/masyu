@@ -1,8 +1,6 @@
 package solve
 
 import (
-	"fmt"
-
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
@@ -267,12 +265,10 @@ func (pc *pathCollector) checkNewPair(
 				cpy.lineVer(r, c)
 			}
 		}
-		if settle(&cpy) == solved {
-			*s = cpy
+		ss := settle(&cpy)
+		if ss == solved || ss == validUnsolved {
+			settle(s)
 			return
-		}
-		if len(s.rules.rules.unknowns) == 0 {
-			fmt.Printf("tried capping off, but it didn't solve\n%v\n%d, %d\n\n", h, r, c)
 		}
 	}
 

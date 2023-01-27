@@ -69,6 +69,7 @@ func compete(iter model.Iterator) error {
 	if *fetchNewPuzzles {
 		input, err = fetch.GetNewPuzzle(iter)
 	}
+	fmt.Printf("Iter: %q, PuzzleID: %q, Task: %q\n", iter, input.ID, input.Task())
 
 	if err != nil {
 		return err
@@ -102,6 +103,7 @@ func runPuzzleID(
 	iter model.Iterator,
 	id string,
 ) error {
+	fmt.Printf("Starting %s\n\t%s\n\n\n", iter, time.Now())
 	input, err := fetch.GetPuzzleID(iter, id)
 	if err != nil {
 		return err

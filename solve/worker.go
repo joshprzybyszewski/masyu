@@ -1,6 +1,8 @@
 package solve
 
 import (
+	"context"
+
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
@@ -13,50 +15,37 @@ type worker struct {
 func newWorker(
 	sendAnswer func(model.Solution),
 ) worker {
-	return worker{
-		sendAnswer: sendAnswer,
-	}
+	w := worker{}
+
+	w.sendAnswer = sendAnswer
+
+	return w
 }
 
-func (w *worker) process() {
-	if w.sendAnswer == nil {
+func (w *worker) process(
+	ctx context.Context,
+) {
+	if ctx.Err() != nil {
 		return
 	}
 
 	ss := settle(&w.state)
 	if ss == solved {
 		w.sendAnswer(w.state.toSolution())
-		w.sendAnswer = nil
 		return
 	} else if ss == invalid {
 		return
+	} else if ss == unexpected {
+		panic(`ahh`)
 	}
 
-	pf := newPermuatationsFactory()
-	pf.populate(&w.state)
+	pf := newPermutationsFactory()
 
 	beforeAll := w.state
-	for i := uint8(0); i < pf.numVals; i++ {
+	pf.populate(&w.state)
+	for i := uint16(0); i < pf.numVals; i++ {
 		pf.vals[i](&w.state)
-		w.process()
-		if w.sendAnswer == nil {
-			return
-		}
+		w.process(ctx)
 		w.state = beforeAll
 	}
-
-	// perms := getSimpleNextPermutations(&w.state)
-	// perms := getAdvancedNextPermutations(&w.state)
-
-	// // fmt.Printf("iterating %d permuations\n", len(perms))
-
-	// beforeAll := w.state
-	// for _, perm := range perms {
-	// 	perm(&w.state)
-	// 	w.process()
-	// 	if w.sendAnswer == nil {
-	// 		return
-	// 	}
-	// 	w.state = beforeAll
-	// }
 }

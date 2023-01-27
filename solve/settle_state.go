@@ -46,7 +46,7 @@ func settleCycle(
 
 	// Please only call this if the state has a cycle
 	if !s.paths.hasCycle {
-		panic(`wtf`)
+		return unexpected
 	}
 
 	if s.paths.cycleSeenNodes != len(s.nodes) {
@@ -64,8 +64,12 @@ func settleCycle(
 		return invalid
 	}
 
-	if checkEntireRuleset(s) == invalid {
+	if checkEntireRuleset(s) != validUnsolved {
 		return invalid
+	}
+
+	if !s.paths.hasCycle {
+		return unexpected
 	}
 
 	// re-validate our assumptions after checking all the rules

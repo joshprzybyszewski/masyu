@@ -19,10 +19,10 @@ type permutationsFactorySubstate struct {
 
 type permutationsFactory struct {
 	vals    [8]applyFn
-	numVals uint8
+	numVals uint16
 }
 
-func newPermuatationsFactory() permutationsFactory {
+func newPermutationsFactory() permutationsFactory {
 	return permutationsFactory{}
 }
 
@@ -36,10 +36,13 @@ func (pf *permutationsFactory) save(
 func (pf *permutationsFactory) hasRoomForNumEmpty(
 	numEmpty int,
 ) bool {
+	if numEmpty == 0 {
+		return false
+	}
 	if pf.numVals > 0 {
 		return false
 	}
-	numPerms := 1 << (numEmpty - 1)
+	numPerms := 1 << (int(numEmpty) - 1)
 	rem := len(pf.vals) - int(pf.numVals)
 	return numPerms <= rem
 }
@@ -144,7 +147,6 @@ func (pf *permutationsFactory) populateBestRow(
 					return
 				}
 				if getNextEmptyCol(s, row, 0) != 0 {
-					fmt.Printf("Didn't fill the whole row\nRow: %d\n%s\n", row, s)
 					panic(`didn't fill the whole row?`)
 				}
 				if getNumLinesInRow(s, row)%2 != 0 {
@@ -230,9 +232,11 @@ func (pf *permutationsFactory) getBestNextStartingRow(
 	s *state,
 ) (int, model.Dimension) {
 	var rowByNumEmpty [40]model.Dimension
+	var ne int
 
 	for row := model.Dimension(1); row < model.Dimension(s.size); row++ {
-		rowByNumEmpty[s.size-model.Size(s.crossings.rows[row]+s.crossings.rowsAvoid[row])] = row
+		ne = int(s.size) - int(s.crossings.rows[row]) - int(s.crossings.rowsAvoid[row])
+		rowByNumEmpty[ne] = row
 	}
 
 	return pf.chooseStart(rowByNumEmpty)
@@ -242,9 +246,11 @@ func (pf *permutationsFactory) getBestNextStartingCol(
 	s *state,
 ) (int, model.Dimension) {
 	var colByNumEmpty [40]model.Dimension
+	var ne int
 
 	for col := model.Dimension(1); col < model.Dimension(s.size); col++ {
-		colByNumEmpty[s.size-model.Size(s.crossings.cols[col]+s.crossings.colsAvoid[col])] = col
+		ne = int(s.size) - int(s.crossings.cols[col]) - int(s.crossings.colsAvoid[col])
+		colByNumEmpty[ne] = col
 	}
 
 	return pf.chooseStart(colByNumEmpty)
@@ -253,6 +259,7 @@ func (pf *permutationsFactory) getBestNextStartingCol(
 func (pf *permutationsFactory) chooseStart(
 	byNumEmpty [40]model.Dimension,
 ) (int, model.Dimension) {
+
 	for numEmpty := 2; numEmpty < len(byNumEmpty); numEmpty++ {
 		if byNumEmpty[numEmpty] > 0 {
 			return numEmpty, byNumEmpty[numEmpty]

@@ -23,6 +23,10 @@ func (i input) String() string {
 	)
 }
 
+func (i input) Task() string {
+	return i.task
+}
+
 func (i input) ToNodes() []model.Node {
 	var r, c model.Dimension
 	max := model.Dimension(i.iter.GetSize())

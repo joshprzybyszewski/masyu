@@ -16,7 +16,7 @@ var (
 )
 
 type state struct {
-	rules *ruleCheckCollector
+	rules ruleCheckCollector
 	nodes []model.Node
 
 	size       model.Size
@@ -46,7 +46,7 @@ func newState(
 		nodes:     make([]model.Node, len(ns)),
 		size:      size,
 		crossings: newCrossings(size),
-		rules:     &rcc,
+		rules:     rcc,
 	}
 
 	// offset all of the input nodes by positive one
@@ -147,10 +147,6 @@ func (s *state) avoidHor(r, c model.Dimension) {
 	if s.horizontalLines[r]&s.horizontalAvoids[r] != 0 {
 		// invalid
 		s.hasInvalid = true
-		if len(s.rules.rules.unknowns) == 0 {
-			fmt.Printf("r, c = (%d, %d)\n%s\n", r, c, s)
-			panic(`tried setting invalid in initialization`)
-		}
 		return
 	}
 
@@ -168,10 +164,6 @@ func (s *state) lineHor(r, c model.Dimension) {
 	if s.horizontalLines[r]&s.horizontalAvoids[r] != 0 {
 		// invalid
 		s.hasInvalid = true
-		if len(s.rules.rules.unknowns) == 0 {
-			fmt.Printf("r, c = (%d, %d)\n%s\n", r, c, s)
-			panic(`tried setting invalid in initialization`)
-		}
 		return
 	}
 
@@ -202,10 +194,6 @@ func (s *state) avoidVer(r, c model.Dimension) {
 	if s.verticalLines[c]&s.verticalAvoids[c] != 0 {
 		// invalid
 		s.hasInvalid = true
-		if len(s.rules.rules.unknowns) == 0 {
-			fmt.Printf("r, c = (%d, %d)\n%s\n", r, c, s)
-			panic(`tried setting invalid in initialization`)
-		}
 		return
 	}
 
@@ -223,10 +211,6 @@ func (s *state) lineVer(r, c model.Dimension) {
 	if s.verticalLines[c]&s.verticalAvoids[c] != 0 {
 		// invalid
 		s.hasInvalid = true
-		if len(s.rules.rules.unknowns) == 0 {
-			fmt.Printf("r, c = (%d, %d)\n%s\n", r, c, s)
-			panic(`tried setting invalid in initialization`)
-		}
 		return
 	}
 

@@ -161,7 +161,14 @@ func (r *rule) checkDefault(
 					// uRIGHT + DOWN + !LEFT + !UP
 					s.lineHor(r.row, r.col)
 				} // else uRIGHT + DOWN + !LEFT + uUP
-			} // else uRIGHT + DOWN + uLEFT
+			} else {
+				// else uRIGHT + DOWN + uLEFT
+				if s.verLineAt(r.row-1, r.col) {
+					// else uRIGHT + DOWN + uLEFT + UP
+					s.avoidHor(r.row, r.col)
+					s.avoidHor(r.row, r.col-1)
+				}
+			}
 		} else if a {
 			// uRIGHT + !DOWN
 			l, a = s.horAt(r.row, r.col-1)
@@ -186,6 +193,14 @@ func (r *rule) checkDefault(
 					s.avoidHor(r.row, r.col)
 				}
 			} // else uRIGHT + !DOWN + uLEFT
-		} // else uRIGHT + uDOWN
+		} else {
+			// uRIGHT + uDOWN
+			if s.horLineAt(r.row, r.col-1) &&
+				s.verLineAt(r.row-1, r.col) {
+				// uRIGHT + uDOWN + LEFT + UP
+				s.avoidHor(r.row, r.col)
+				s.avoidVer(r.row, r.col)
+			}
+		}
 	}
 }

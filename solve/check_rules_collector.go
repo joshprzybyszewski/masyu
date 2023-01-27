@@ -78,6 +78,9 @@ func (c *ruleCheckCollector) runAllChecks(
 					bit <<= 1
 				}
 			}
+			if s.hasInvalid || (s.paths.hasCycle && s.paths.cycleSeenNodes != len(s.nodes)) {
+				return invalid
+			}
 		}
 
 		if s.hasInvalid || (s.paths.hasCycle && s.paths.cycleSeenNodes != len(s.nodes)) {

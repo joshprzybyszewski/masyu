@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"time"
 
 	"github.com/joshprzybyszewski/masyu/model"
 )
@@ -32,8 +33,10 @@ func newWorkforce() workforce {
 	}
 
 	for i := range wf.workers {
+		i := i
 		wf.workers[i] = newWorker(
 			func(sol model.Solution) {
+				// fmt.Printf("Worker %d is sending the solution\n", i)
 				defer func() {
 					// if the solution channel has been closed, then don't do anything.
 					_ = recover()
@@ -49,10 +52,13 @@ func newWorkforce() workforce {
 func (w *workforce) start(
 	ctx context.Context,
 ) {
+
 	for i := range w.workers {
+		i := i
 		go w.startWorker(
 			ctx,
 			&w.workers[i],
+			i,
 		)
 	}
 }
@@ -60,19 +66,25 @@ func (w *workforce) start(
 func (w *workforce) startWorker(
 	ctx context.Context,
 	worker *worker,
+	id int,
 ) {
 	var ok bool
+
+	idleLogDur := 500 * time.Millisecond
 
 	for {
 		select {
 		case <-ctx.Done():
-			worker.sendAnswer = nil
 			return
-		case worker.state, ok = <-w.work: // s is on the heap
+		case <-time.After(idleLogDur):
+			fmt.Printf("Worker %d is idle...\n", id)
+			idleLogDur += idleLogDur
+		case worker.state, ok = <-w.work:
 			if !ok {
 				return
 			}
-			worker.process()
+			worker.process(ctx)
+			idleLogDur = 500 * time.Millisecond
 		}
 	}
 }
@@ -90,7 +102,7 @@ func (w *workforce) solve(
 	ss := settle(s)
 	if ss == solved {
 		return s.toSolution(), nil
-	} else if ss == invalid {
+	} else if ss != validUnsolved {
 		panic(`dev error!`)
 	}
 
@@ -127,25 +139,27 @@ func (w *workforce) sendWork(
 		return
 	}
 
-	tmp := initial
-	// var ss settledState
-	for i := uint8(0); i < pf.numVals; i++ {
-		if i >= uint8(len(pf.vals)) {
-			pf.moreSpace[i](&tmp)
+	// if int(pf.numVals) <= len(w.workers) {
+	// 	pf.numVals = 0
+
+	// 	pf.populateFallback(&initial)
+	// 	if ctx.Err() != nil {
+	// 		return
+	// 	}
+	// }
+
+	cpy := initial
+
+	fmt.Printf("Has %d initial permutations to try for\n%s\n", pf.numVals, &initial)
+
+	for i := uint16(0); i < pf.numVals; i++ {
+		if i >= uint16(len(pf.vals)) {
+			pf.moreSpace[i](&cpy)
 		} else {
-			pf.vals[i](&tmp)
+			pf.vals[i](&cpy)
 		}
-		w.work <- tmp
+		w.work <- cpy
 
-		// ss = settle(&tmp)
-		// if ss == solved {
-		// 	w.solution <- tmp.toSolution()
-		// 	return
-		// } else if ss == validUnsolved {
-		// 	w.work <- tmp
-		// }
-
-		tmp = initial
+		cpy = initial
 	}
-
 }
