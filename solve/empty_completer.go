@@ -7,12 +7,15 @@ import (
 )
 
 const (
-	maxDepth = 35
+	maxDepth = 50
 )
 
 type emptyCompleter struct {
 	emptyBlacks []model.Node
 	emptyWhites []model.Node
+
+	otherBlacks []model.Node
+	otherWhites []model.Node
 
 	state     state
 	isTesting bool
@@ -31,6 +34,10 @@ func newEmptyCompleter(
 			ec.emptyBlacks = append(ec.emptyBlacks, n)
 		} else if isWhiteNodeClear(s, n) {
 			ec.emptyWhites = append(ec.emptyWhites, n)
+		} else if n.IsBlack {
+			ec.otherBlacks = append(ec.otherBlacks, n)
+		} else {
+			ec.otherWhites = append(ec.otherWhites, n)
 		}
 	}
 
@@ -234,9 +241,25 @@ func (ec *emptyCompleter) buildClearWhiteNodePermutations(
 		return
 	}
 
-	if int(cur.known) >= len(ec.emptyWhites) || len(ec.emptyBlacks)+int(cur.known) >= maxDepth {
+	if len(ec.emptyBlacks)+int(cur.known) >= maxDepth {
 		ec.applyAndSend(s, cur.perms)
 		return
+	}
+
+	if int(cur.known) >= len(ec.emptyWhites) {
+		ec.buildOtherBlackNodePermutations(
+			ctx,
+			s,
+			permutationsFactorySubstate{
+				known: 0,
+				perms: func(s *state) {
+					if s.hasInvalid {
+						return
+					}
+					cur.perms(s)
+				},
+			},
+		)
 	}
 
 	myNode := ec.emptyWhites[cur.known]
@@ -385,4 +408,318 @@ func (ec *emptyCompleter) buildClearWhiteNodePermutations(
 	ec.buildClearWhiteNodePermutations(ctx, s, lu)
 	ec.buildClearWhiteNodePermutations(ctx, s, ul)
 	ec.buildClearWhiteNodePermutations(ctx, s, ur)
+}
+
+func (ec *emptyCompleter) buildOtherBlackNodePermutations(
+	ctx context.Context,
+	s *state,
+	cur permutationsFactorySubstate,
+) {
+	if ctx.Err() != nil {
+		return
+	}
+
+	if !ec.shouldContinue(s, cur.perms) {
+		return
+	}
+
+	if len(ec.emptyBlacks)+len(ec.emptyWhites)+int(cur.known) >= maxDepth {
+		ec.applyAndSend(s, cur.perms)
+		return
+	}
+
+	if int(cur.known) >= len(ec.otherBlacks) {
+		// no more other back nodes to fill
+		ec.buildOtherWhiteNodePermutations(
+			ctx,
+			s,
+			permutationsFactorySubstate{
+				known: 0,
+				perms: func(s *state) {
+					if s.hasInvalid {
+						return
+					}
+					cur.perms(s)
+				},
+			},
+		)
+		return
+	}
+	myNode := ec.otherBlacks[cur.known]
+
+	rd := permutationsFactorySubstate{
+		known: cur.known + 1,
+		perms: func(s *state) {
+			s.avoidHor(myNode.Row, myNode.Col-1)
+			s.lineHor(myNode.Row, myNode.Col)
+			s.lineHor(myNode.Row, myNode.Col+1)
+
+			s.avoidVer(myNode.Row-1, myNode.Col+1)
+			s.avoidVer(myNode.Row, myNode.Col+1)
+
+			s.avoidVer(myNode.Row-1, myNode.Col)
+			s.lineVer(myNode.Row, myNode.Col)
+			s.lineVer(myNode.Row+1, myNode.Col)
+
+			s.avoidHor(myNode.Row+1, myNode.Col-1)
+			s.avoidHor(myNode.Row+1, myNode.Col)
+
+			if s.hasInvalid {
+				return
+			}
+			cur.perms(s)
+		},
+	}
+	ec.buildClearBlackNodePermutations(ctx, s, rd)
+
+	if myNode.Col > 1 {
+		dl := permutationsFactorySubstate{
+			known: cur.known + 1,
+			perms: func(s *state) {
+				s.avoidHor(myNode.Row, myNode.Col)
+				s.lineHor(myNode.Row, myNode.Col-1)
+				s.lineHor(myNode.Row, myNode.Col-2)
+
+				s.avoidVer(myNode.Row-1, myNode.Col-1)
+				s.avoidVer(myNode.Row, myNode.Col-1)
+
+				s.avoidVer(myNode.Row-1, myNode.Col)
+				s.lineVer(myNode.Row, myNode.Col)
+				s.lineVer(myNode.Row+1, myNode.Col)
+
+				s.avoidHor(myNode.Row+1, myNode.Col-1)
+				s.avoidHor(myNode.Row+1, myNode.Col)
+
+				if s.hasInvalid {
+					return
+				}
+				cur.perms(s)
+			},
+		}
+		ec.buildClearBlackNodePermutations(ctx, s, dl)
+	}
+
+	if myNode.Col > 1 && myNode.Row > 1 {
+		lu := permutationsFactorySubstate{
+			known: cur.known + 1,
+			perms: func(s *state) {
+				s.avoidHor(myNode.Row, myNode.Col)
+				s.lineHor(myNode.Row, myNode.Col-1)
+				s.lineHor(myNode.Row, myNode.Col-2)
+
+				s.avoidVer(myNode.Row-1, myNode.Col-1)
+				s.avoidVer(myNode.Row, myNode.Col-1)
+
+				s.avoidVer(myNode.Row, myNode.Col)
+				s.lineVer(myNode.Row-1, myNode.Col)
+				s.lineVer(myNode.Row-2, myNode.Col)
+
+				s.avoidHor(myNode.Row-1, myNode.Col-1)
+				s.avoidHor(myNode.Row-1, myNode.Col)
+
+				if s.hasInvalid {
+					return
+				}
+				cur.perms(s)
+			},
+		}
+		ec.buildClearBlackNodePermutations(ctx, s, lu)
+	}
+
+	if myNode.Row > 1 {
+		ur := permutationsFactorySubstate{
+			known: cur.known + 1,
+			perms: func(s *state) {
+				s.avoidHor(myNode.Row, myNode.Col-1)
+				s.lineHor(myNode.Row, myNode.Col)
+				s.lineHor(myNode.Row, myNode.Col+1)
+
+				s.avoidVer(myNode.Row-1, myNode.Col+1)
+				s.avoidVer(myNode.Row, myNode.Col+1)
+
+				s.avoidVer(myNode.Row, myNode.Col)
+				s.lineVer(myNode.Row-1, myNode.Col)
+				s.lineVer(myNode.Row-2, myNode.Col)
+
+				s.avoidHor(myNode.Row-1, myNode.Col-1)
+				s.avoidHor(myNode.Row-1, myNode.Col)
+
+				if s.hasInvalid {
+					return
+				}
+				cur.perms(s)
+			},
+		}
+		ec.buildClearBlackNodePermutations(ctx, s, ur)
+	}
+}
+
+func (ec *emptyCompleter) buildOtherWhiteNodePermutations(
+	ctx context.Context,
+	s *state,
+	cur permutationsFactorySubstate,
+) {
+	if ctx.Err() != nil {
+		return
+	}
+
+	if !ec.shouldContinue(s, cur.perms) {
+		return
+	}
+
+	if int(cur.known) >= len(ec.otherWhites) ||
+		len(ec.emptyBlacks)+len(ec.emptyWhites)+len(ec.otherBlacks)+int(cur.known) >= maxDepth {
+		ec.applyAndSend(s, cur.perms)
+		return
+	}
+
+	myNode := ec.otherWhites[cur.known]
+
+	setHorizontalNode := func(s *state) {
+		s.lineHor(myNode.Row, myNode.Col-1)
+		s.lineHor(myNode.Row, myNode.Col)
+
+		s.avoidVer(myNode.Row-1, myNode.Col)
+		s.avoidVer(myNode.Row, myNode.Col)
+	}
+
+	setVerticalNode := func(s *state) {
+		s.avoidHor(myNode.Row, myNode.Col-1)
+		s.avoidHor(myNode.Row, myNode.Col)
+
+		s.lineVer(myNode.Row-1, myNode.Col)
+		s.lineVer(myNode.Row, myNode.Col)
+	}
+
+	rd := permutationsFactorySubstate{
+		known: cur.known + 1,
+		perms: func(s *state) {
+			setHorizontalNode(s)
+			s.lineVer(myNode.Row, myNode.Col+1)
+			s.avoidVer(myNode.Row-1, myNode.Col+1)
+			s.avoidHor(myNode.Row, myNode.Col+1)
+
+			if s.hasInvalid {
+				return
+			}
+			cur.perms(s)
+		},
+	}
+	ec.buildClearWhiteNodePermutations(ctx, s, rd)
+
+	ru := permutationsFactorySubstate{
+		known: cur.known + 1,
+		perms: func(s *state) {
+			setHorizontalNode(s)
+			s.lineVer(myNode.Row-1, myNode.Col+1)
+			s.avoidVer(myNode.Row, myNode.Col+1)
+			s.avoidHor(myNode.Row, myNode.Col+1)
+
+			if s.hasInvalid {
+				return
+			}
+			cur.perms(s)
+		},
+	}
+	ec.buildClearWhiteNodePermutations(ctx, s, ru)
+
+	dr := permutationsFactorySubstate{
+		known: cur.known + 1,
+		perms: func(s *state) {
+			setVerticalNode(s)
+			s.lineHor(myNode.Row+1, myNode.Col)
+			s.avoidHor(myNode.Row+1, myNode.Col-1)
+			s.avoidVer(myNode.Row+1, myNode.Col)
+
+			if s.hasInvalid {
+				return
+			}
+			cur.perms(s)
+		},
+	}
+	ec.buildClearWhiteNodePermutations(ctx, s, dr)
+
+	dl := permutationsFactorySubstate{
+		known: cur.known + 1,
+		perms: func(s *state) {
+			setVerticalNode(s)
+			s.lineHor(myNode.Row+1, myNode.Col-1)
+			s.avoidHor(myNode.Row+1, myNode.Col)
+			s.avoidVer(myNode.Row+1, myNode.Col)
+
+			if s.hasInvalid {
+				return
+			}
+			cur.perms(s)
+		},
+	}
+	ec.buildClearWhiteNodePermutations(ctx, s, dl)
+
+	if myNode.Col > 1 {
+		ld := permutationsFactorySubstate{
+			known: cur.known + 1,
+			perms: func(s *state) {
+				setHorizontalNode(s)
+				s.lineVer(myNode.Row, myNode.Col-1)
+				s.avoidVer(myNode.Row-1, myNode.Col-1)
+				s.avoidHor(myNode.Row, myNode.Col-2)
+
+				if s.hasInvalid {
+					return
+				}
+				cur.perms(s)
+			},
+		}
+		ec.buildClearWhiteNodePermutations(ctx, s, ld)
+
+		lu := permutationsFactorySubstate{
+			known: cur.known + 1,
+			perms: func(s *state) {
+				setHorizontalNode(s)
+				s.lineVer(myNode.Row-1, myNode.Col-1)
+				s.avoidVer(myNode.Row, myNode.Col-1)
+				s.avoidHor(myNode.Row, myNode.Col-2)
+
+				if s.hasInvalid {
+					return
+				}
+				cur.perms(s)
+			},
+		}
+		ec.buildClearWhiteNodePermutations(ctx, s, lu)
+	}
+
+	if myNode.Row > 1 {
+		ul := permutationsFactorySubstate{
+			known: cur.known + 1,
+			perms: func(s *state) {
+				setVerticalNode(s)
+				s.lineHor(myNode.Row-1, myNode.Col-1)
+				s.avoidHor(myNode.Row-1, myNode.Col)
+				s.avoidVer(myNode.Row-2, myNode.Col)
+
+				if s.hasInvalid {
+					return
+				}
+				cur.perms(s)
+			},
+		}
+		ec.buildClearWhiteNodePermutations(ctx, s, ul)
+
+		ur := permutationsFactorySubstate{
+			known: cur.known + 1,
+			perms: func(s *state) {
+				setVerticalNode(s)
+				s.lineHor(myNode.Row-1, myNode.Col)
+				s.avoidHor(myNode.Row-1, myNode.Col-1)
+				s.avoidVer(myNode.Row-2, myNode.Col)
+
+				if s.hasInvalid {
+					return
+				}
+				cur.perms(s)
+			},
+		}
+		ec.buildClearWhiteNodePermutations(ctx, s, ur)
+	}
 }
