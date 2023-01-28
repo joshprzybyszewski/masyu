@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	maxDepth = 100
+	maxDepth = 400
 )
 
 type emptyCompleter struct {
