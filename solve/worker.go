@@ -7,9 +7,9 @@ import (
 )
 
 type worker struct {
-	state state
-
 	sendAnswer func(model.Solution)
+
+	state state
 }
 
 func newWorker(

@@ -11,10 +11,6 @@ const (
 	all64Bits uint64 = 0xFFFFFFFFFFFFFFFF
 )
 
-var (
-	isInitializing = false
-)
-
 type state struct {
 	rules ruleCheckCollector
 	nodes []model.Node
@@ -86,9 +82,6 @@ func (s *state) initialize() {
 }
 
 func (s *state) toSolution() model.Solution {
-	// if s.hasInvalid || !s.paths.hasCycle || s.rules.hasPending {
-	// 	panic(`bruh`)
-	// }
 	sol := model.Solution{
 		Size: s.size,
 	}

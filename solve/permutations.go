@@ -9,12 +9,12 @@ import (
 type applyFn func(*state)
 
 type permutationsFactorySubstate struct {
+	perms applyFn
+
 	// known is the last known row/col with a value
 	known model.Dimension
 	// numCrossings is the number of lines currently known to be in this row/col
 	numCrossings int
-
-	perms applyFn
 }
 
 const (
@@ -46,7 +46,7 @@ func (pf *permutationsFactory) hasRoomForNumEmpty(
 	if pf.numVals > 0 {
 		return false
 	}
-	numPerms := 1 << (int(numEmpty) - 1)
+	numPerms := 1 << (numEmpty - 1)
 	rem := len(pf.vals) - int(pf.numVals)
 	return numPerms <= rem
 }

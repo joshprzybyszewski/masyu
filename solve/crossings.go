@@ -57,9 +57,6 @@ func (c *crossings) completeCol(
 	s *state,
 ) {
 	row := getEmptyCrossingInColumn(s, col)
-	// if l, a := s.horAt(row, col); l || a {
-	// 	panic(`this shouldn't happen`)
-	// }
 	if c.cols[col]%2 == 0 {
 		s.avoidHor(row, col)
 	} else {
@@ -98,9 +95,6 @@ func (c *crossings) completeRow(
 	s *state,
 ) {
 	col := getEmptyCrossingInRow(s, row)
-	// if l, a := s.verAt(row, col); l || a {
-	// 	panic(`this shouldn't happen`)
-	// }
 	if c.rows[row]%2 == 0 {
 		s.avoidVer(row, col)
 	} else {

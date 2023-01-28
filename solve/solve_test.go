@@ -17,8 +17,8 @@ func TestSpecifics(t *testing.T) {
 	os.Chdir(`..`)
 
 	testCases := []struct {
-		iter model.Iterator
 		id   string
+		iter model.Iterator
 	}{{
 		iter: 0,
 		id:   `5,734,527`,

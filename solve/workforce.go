@@ -37,7 +37,6 @@ func newWorkforce() workforce {
 		i := i
 		wf.workers[i] = newWorker(
 			func(sol model.Solution) {
-				// fmt.Printf("Worker %d is sending the solution\n", i)
 				defer func() {
 					// if the solution channel has been closed, then don't do anything.
 					_ = recover()
@@ -153,7 +152,7 @@ func (w *workforce) sendWork(
 
 	w.work <- initial
 
-	pf := newIntialPermutationsFactory()
+	pf := newPermutationsFactory()
 	pf.populate(&initial)
 	if ctx.Err() != nil {
 		return
@@ -162,11 +161,7 @@ func (w *workforce) sendWork(
 	cpy := initial
 
 	for i := 0; i < int(pf.numVals); i++ {
-		if i >= len(pf.vals) {
-			pf.moreSpace[i-len(pf.vals)](&cpy)
-		} else {
-			pf.vals[i](&cpy)
-		}
+		pf.vals[i](&cpy)
 
 		if ctx.Err() != nil {
 			return
