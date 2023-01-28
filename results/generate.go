@@ -43,7 +43,6 @@ func Update() {
 		allResults[iter] = append(allResults[iter], durs...)
 	}
 
-	// TODO remove and write to README.md
 	var sb strings.Builder
 
 	sb.WriteByte('\n')

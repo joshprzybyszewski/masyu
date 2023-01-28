@@ -58,7 +58,6 @@ func (pc *pathCollector) getInteresting(
 	size := model.Dimension(s.size)
 	var l, a bool
 
-	// TODO we can quarter the iterations if we look in all four corners
 	for c.Row = model.Dimension(1); c.Row <= size; c.Row++ {
 		for c.Col = model.Dimension(1); c.Col <= size; c.Col++ {
 			if !pc.pairs[c.Row][c.Col].isEmpty() {

@@ -259,25 +259,21 @@ func (r *rules) addWhiteNode(
 	r.addVerticalRule(row, col, &wv)
 	r.addVerticalRule(row+1, col, &wv)
 
-	ih := newInvertHorizontalWhite(row, col)
-	if col > 1 {
-		r.addHorizontalRule(row, col-2, &ih)
-	}
-	r.addHorizontalRule(row, col+1, &ih)
-
-	iv := newInvertVerticalWhite(row, col)
-	if row > 1 {
-		r.addVerticalRule(row-2, col, &iv)
-	}
-	r.addVerticalRule(row+1, col, &iv)
-
 	hb := newWhiteHorizontalBranchRule(row, col)
+	if col > 1 {
+		r.addHorizontalRule(row, col-2, &hb)
+	}
+	r.addHorizontalRule(row, col+1, &hb)
 	r.addVerticalRule(row, col-1, &hb)
 	r.addVerticalRule(row-1, col-1, &hb)
 	r.addVerticalRule(row, col+1, &hb)
 	r.addVerticalRule(row-1, col+1, &hb)
 
 	vb := newWhiteVerticalBranchRule(row, col)
+	if row > 1 {
+		r.addVerticalRule(row-2, col, &vb)
+	}
+	r.addVerticalRule(row+1, col, &vb)
 	r.addVerticalRule(row-1, col, &vb)
 	r.addVerticalRule(row-1, col-1, &vb)
 	r.addVerticalRule(row+1, col, &vb)

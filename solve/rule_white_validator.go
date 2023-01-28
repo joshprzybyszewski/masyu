@@ -19,22 +19,19 @@ func (r *rule) checkWhiteValid(
 	s *state,
 ) {
 
-	// TODO We could be more clever with bit masking here.
-	l, a := s.horAt(r.row, r.col)
-	h := l
-	v := a
+	h, v := s.horAt(r.row, r.col)
 
-	l, a = s.horAt(r.row, r.col-1)
-	h = h || l
-	v = v || a
+	if !h && !v {
+		h, v = s.horAt(r.row, r.col-1)
 
-	l, a = s.verAt(r.row, r.col)
-	h = h || a
-	v = v || l
+		if !h && !v {
+			v, h = s.verAt(r.row, r.col)
 
-	l, a = s.verAt(r.row-1, r.col)
-	h = h || a
-	v = v || l
+			if !h && !v {
+				v, h = s.verAt(r.row-1, r.col)
+			}
+		}
+	}
 
 	if h {
 		s.lineHor(r.row, r.col-1)
