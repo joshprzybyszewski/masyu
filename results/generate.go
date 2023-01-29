@@ -56,25 +56,11 @@ func Update() {
 
 	sb.WriteString(fmt.Sprintf("_Solve timeout: %s_\n\n", resultsTimeout))
 
-	sb.WriteString("|Puzzle|Min|Median|p75|p95|max|sample size|\n")
-	sb.WriteString("|-|-|-|-|-|-|-:|\n")
+	sb.WriteString("|Puzzle|Min|p25|Median|p75|p95|max|sample size|\n")
+	sb.WriteString("|-|-|-|-|-|-|-|-:|\n")
 
 	for iter := model.MinIterator; iter < model.Iterator(len(allResults)); iter++ {
-		if len(allResults[iter]) == 0 {
-			continue
-		}
-
-		sort.Slice(allResults[iter], func(i, j int) bool {
-			return allResults[iter][i] < allResults[iter][j]
-		})
-
-		sb.WriteString(fmt.Sprintf("|%s|", iter))
-		sb.WriteString(fmt.Sprintf("%s|", allResults[iter][0]))
-		sb.WriteString(fmt.Sprintf("%s|", allResults[iter][len(allResults[iter])/2]))
-		sb.WriteString(fmt.Sprintf("%s|", allResults[iter][len(allResults[iter])*3/4]))
-		sb.WriteString(fmt.Sprintf("%s|", allResults[iter][len(allResults[iter])*19/20]))
-		sb.WriteString(fmt.Sprintf("%s|", allResults[iter][len(allResults[iter])-1]))
-		sb.WriteString(fmt.Sprintf("%d|\n", len(allResults[iter])))
+		sb.WriteString(getTableRow(iter, allResults[iter]))
 	}
 
 	sb.WriteString(fmt.Sprintf("\n_Last Updated: %s_\n", time.Now().Format(time.RFC822)))
@@ -127,8 +113,33 @@ func getResults(
 		}
 	}
 
-	fmt.Printf("Finished %s\n\n\n", iter)
+	fmt.Printf("Finished %s\n\n", iter)
+	fmt.Printf("%s\n\n", getTableRow(iter, durs))
 	return durs, nil
+}
+
+func getTableRow(
+	iter model.Iterator,
+	durs []time.Duration,
+) string {
+	if len(durs) == 0 {
+		return ``
+	}
+
+	sort.Slice(durs, func(i, j int) bool {
+		return durs[i] < durs[j]
+	})
+
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("|%s|", iter))
+	sb.WriteString(fmt.Sprintf("%s|", durs[0]))
+	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)*3/4]))
+	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)/2]))
+	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)*3/4]))
+	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)*19/20]))
+	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)-1]))
+	sb.WriteString(fmt.Sprintf("%d|\n", len(durs)))
+	return sb.String()
 }
 
 func writeResultsToReadme(
