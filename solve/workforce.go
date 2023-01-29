@@ -132,27 +132,13 @@ func (w *workforce) sendWork(
 		}
 	}()
 
-	ec := newEmptyCompleter(&initial)
-
-	ec.complete(
-		ctx,
-		&initial,
-		func(s *state) {
-			if ctx.Err() != nil {
-				return
-			}
-
-			w.work <- *s
-		},
-	)
-
 	if ctx.Err() != nil {
 		return
 	}
 
 	w.work <- initial
 
-	pf := newPermutationsFactory()
+	pf := newInitialPermutations()
 	pf.populate(&initial)
 	if ctx.Err() != nil {
 		return
