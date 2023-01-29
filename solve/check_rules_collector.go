@@ -43,8 +43,7 @@ func (c *ruleCheckCollector) runAllChecks(
 	}
 
 	var dim1, dim2 model.Dimension
-	var bit, tmp uint64
-	var r *rule
+	var tmp uint64
 	im := model.Dimension(int(s.size) + 2)
 
 	for c.hasPending {
@@ -54,28 +53,22 @@ func (c *ruleCheckCollector) runAllChecks(
 			if c.hor[dim1] != 0 {
 				tmp = c.hor[dim1]
 				c.hor[dim1] = 0
-				bit = 1
-				for dim2 = 0; dim2 < im; dim2++ {
-					if tmp&bit == bit {
-						for _, r = range c.rules.horizontals[dim1][dim2] {
-							r.check(s)
-						}
+				for dim2 = 0; tmp != 0 && dim2 < im; dim2++ {
+					if tmp&1 == 1 {
+						c.rules.horizontals[dim1][dim2].fn(s)
 					}
-					bit <<= 1
+					tmp >>= 1
 				}
 			}
 
 			if c.ver[dim1] != 0 {
 				tmp = c.ver[dim1]
 				c.ver[dim1] = 0
-				bit = 1
-				for dim2 = 0; dim2 < im; dim2++ {
-					if tmp&bit == bit {
-						for _, r = range c.rules.verticals[dim2][dim1] {
-							r.check(s)
-						}
+				for dim2 = 0; tmp != 0 && dim2 < im; dim2++ {
+					if tmp&1 == 1 {
+						c.rules.verticals[dim2][dim1].fn(s)
 					}
-					bit <<= 1
+					tmp >>= 1
 				}
 			}
 			if s.hasInvalid || (s.paths.hasCycle && s.paths.cycleSeenNodes != len(s.nodes)) {

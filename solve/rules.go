@@ -6,16 +6,26 @@ import (
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
+var (
+	emptyApply = func(*state) {}
+)
+
 type path struct {
 	model.Coord
 	IsHorizontal bool
 }
 
+type depthApply struct {
+	depth int
+
+	fn applyFn
+}
+
 type rules struct {
 	// if "this" row/col changes, then run these other checks
 	// [row][col]
-	horizontals [model.MaxPointsPerLine][model.MaxPointsPerLine][]*rule
-	verticals   [model.MaxPointsPerLine][model.MaxPointsPerLine][]*rule
+	horizontals [model.MaxPointsPerLine][model.MaxPointsPerLine]depthApply
+	verticals   [model.MaxPointsPerLine][model.MaxPointsPerLine]depthApply
 
 	// unknowns describes the paths that aren't initialized known.
 	// They should exist in a sorted manner, where the first one has the most
@@ -27,9 +37,18 @@ type rules struct {
 func newRules(
 	size model.Size,
 ) *rules {
-	return &rules{
+	r := rules{
 		unknowns: make([]path, 0, 2*int(size)*int(size-1)),
 	}
+
+	for i := range r.horizontals {
+		for j := range r.horizontals[i] {
+			r.horizontals[i][j].fn = emptyApply
+			r.verticals[i][j].fn = emptyApply
+		}
+	}
+
+	return &r
 }
 
 func (r *rules) populateRules(
@@ -102,15 +121,15 @@ func (r *rules) populateUnknowns(
 
 	sort.Slice(r.unknowns, func(i, j int) bool {
 		if r.unknowns[i].IsHorizontal {
-			ni = len(r.horizontals[r.unknowns[i].Row][r.unknowns[i].Col])
+			ni = r.horizontals[r.unknowns[i].Row][r.unknowns[i].Col].depth
 		} else {
-			ni = len(r.verticals[r.unknowns[i].Row][r.unknowns[i].Col])
+			ni = r.verticals[r.unknowns[i].Row][r.unknowns[i].Col].depth
 		}
 
 		if r.unknowns[j].IsHorizontal {
-			nj = len(r.horizontals[r.unknowns[j].Row][r.unknowns[j].Col])
+			nj = r.horizontals[r.unknowns[j].Row][r.unknowns[j].Col].depth
 		} else {
-			nj = len(r.verticals[r.unknowns[j].Row][r.unknowns[j].Col])
+			nj = r.verticals[r.unknowns[j].Row][r.unknowns[j].Col].depth
 		}
 
 		if ni != nj {
@@ -160,18 +179,31 @@ func (r *rules) addHorizontalRule(
 	row, col model.Dimension,
 	rule *rule,
 ) {
-	r.horizontals[row][col] = append(r.horizontals[row][col],
-		rule,
-	)
+
+	r.horizontals[row][col].depth++
+	prev := r.horizontals[row][col].fn
+	r.horizontals[row][col].fn = func(s *state) {
+		if s.hasInvalid {
+			return
+		}
+		rule.check(s)
+		prev(s)
+	}
 }
 
 func (r *rules) addVerticalRule(
 	row, col model.Dimension,
 	rule *rule,
 ) {
-	r.verticals[row][col] = append(r.verticals[row][col],
-		rule,
-	)
+	r.verticals[row][col].depth++
+	prev := r.verticals[row][col].fn
+	r.verticals[row][col].fn = func(s *state) {
+		if s.hasInvalid {
+			return
+		}
+		rule.check(s)
+		prev(s)
+	}
 }
 
 func (r *rules) addBlackNode(

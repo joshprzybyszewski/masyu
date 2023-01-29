@@ -43,9 +43,6 @@ func (pf *permutationsFactory) hasRoomForNumEmpty(
 	if numEmpty == 0 {
 		return false
 	}
-	if pf.numVals > 0 {
-		return false
-	}
 	numPerms := 1 << (numEmpty - 1)
 	rem := len(pf.vals) - int(pf.numVals)
 	return numPerms <= rem
@@ -54,14 +51,36 @@ func (pf *permutationsFactory) hasRoomForNumEmpty(
 func (pf *permutationsFactory) populate(
 	cur *state,
 ) {
-	pf.populateBestColumn(cur)
-	pf.populateBestRow(cur)
+	numEmptyInCol, col := pf.getBestNextStartingCol(cur)
+	if col == 0 || !pf.hasRoomForNumEmpty(numEmptyInCol) {
+		pf.populateBestRow(cur)
+		pf.populateSimple(cur)
+		return
+	}
+
+	numEmptyInRow, row := pf.getBestNextStartingRow(cur)
+	if row == 0 || !pf.hasRoomForNumEmpty(numEmptyInRow) {
+		pf.populateBestColumn(cur)
+		pf.populateSimple(cur)
+		return
+	}
+
+	if numEmptyInCol < numEmptyInRow {
+		pf.populateBestColumn(cur)
+	} else {
+		pf.populateBestRow(cur)
+	}
+
 	pf.populateSimple(cur)
 }
 
 func (pf *permutationsFactory) populateBestColumn(
 	cur *state,
 ) {
+	if pf.numVals > 0 {
+		return
+	}
+
 	numEmpty, col := pf.getBestNextStartingCol(cur)
 	if col == 0 || !pf.hasRoomForNumEmpty(numEmpty) {
 		return
@@ -134,6 +153,10 @@ func (pf *permutationsFactory) buildColumn(
 func (pf *permutationsFactory) populateBestRow(
 	cur *state,
 ) {
+	if pf.numVals > 0 {
+		return
+	}
+
 	numEmpty, row := pf.getBestNextStartingRow(cur)
 	if row == 0 || !pf.hasRoomForNumEmpty(numEmpty) {
 		// couldn't find a good starting row?
