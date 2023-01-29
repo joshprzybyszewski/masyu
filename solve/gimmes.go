@@ -89,8 +89,10 @@ func findGimmes(
 		} else {
 			// three or more whites in a row/col require an X in between
 			if n.Col > 2 && whites[n.Row][n.Col-1] && whites[n.Row][n.Col-2] {
+				s.avoidHor(n.Row, n.Col)
 				s.avoidHor(n.Row, n.Col-1)
 				s.avoidHor(n.Row, n.Col-2)
+				s.avoidHor(n.Row, n.Col-3)
 
 				s.lineVer(n.Row-1, n.Col)
 				s.lineVer(n.Row, n.Col)
@@ -102,8 +104,10 @@ func findGimmes(
 				s.lineVer(n.Row, n.Col-2)
 			}
 			if n.Row > 2 && whites[n.Row-1][n.Col] && whites[n.Row-2][n.Col] {
+				s.avoidVer(n.Row, n.Col)
 				s.avoidVer(n.Row-1, n.Col)
 				s.avoidVer(n.Row-2, n.Col)
+				s.avoidVer(n.Row-3, n.Col)
 
 				s.lineHor(n.Row, n.Col-1)
 				s.lineHor(n.Row, n.Col)
