@@ -18,7 +18,7 @@ type permutationsFactorySubstate struct {
 }
 
 const (
-	permutationsFactoryNumVals = 16
+	permutationsFactoryNumVals = 1 << 8
 )
 
 type permutationsFactory struct {

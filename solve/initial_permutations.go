@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	initialPermutationsFactoryNumVals = 1 << 10
+	initialPermutationsFactoryNumVals = 1 << 12
 )
 
 type initialPermutations struct {
@@ -40,8 +40,18 @@ func (pf *initialPermutations) hasRoomForNumEmpty(
 func (pf *initialPermutations) populate(
 	cur *state,
 ) {
-	pf.populateBestRow(cur)
-	pf.populateBestColumn(cur)
+	numEmptyInCol, col := pf.getBestNextStartingCol(cur)
+	numEmptyInRow, row := pf.getBestNextStartingRow(cur)
+	if col == 0 || !pf.hasRoomForNumEmpty(numEmptyInCol) {
+		pf.populateBestRow(cur)
+	} else if row == 0 || !pf.hasRoomForNumEmpty(numEmptyInRow) {
+		pf.populateBestColumn(cur)
+	} else if numEmptyInRow < numEmptyInCol {
+		pf.populateBestColumn(cur)
+	} else {
+		pf.populateBestRow(cur)
+	}
+
 }
 
 func (pf *initialPermutations) populateBestColumn(
@@ -191,12 +201,22 @@ func (pf *initialPermutations) buildRow(
 func (pf *initialPermutations) getBestNextStartingRow(
 	s *state,
 ) (int, model.Dimension) {
+	var nodesInRow [model.MaxPointsPerLine]int
+	for _, n := range s.nodes {
+		nodesInRow[n.Row]++
+	}
+
 	var rowByNumEmpty [40]model.Dimension
-	var ne int
+	var numNodesInNumEmpty [40]int
+	var ne, nn int
 
 	for row := model.Dimension(1); row < model.Dimension(s.size); row++ {
 		ne = int(s.size) - int(s.crossings.rows[row]) - int(s.crossings.rowsAvoid[row])
-		rowByNumEmpty[ne] = row
+		nn = nodesInRow[row] + nodesInRow[row+1]
+		if rowByNumEmpty[ne] == 0 || nn > numNodesInNumEmpty[ne] {
+			rowByNumEmpty[ne] = row
+			numNodesInNumEmpty[ne] = nn
+		}
 	}
 
 	return pf.chooseStart(rowByNumEmpty)
@@ -205,12 +225,21 @@ func (pf *initialPermutations) getBestNextStartingRow(
 func (pf *initialPermutations) getBestNextStartingCol(
 	s *state,
 ) (int, model.Dimension) {
+	var nodesInCol [model.MaxPointsPerLine]int
+	for _, n := range s.nodes {
+		nodesInCol[n.Col]++
+	}
+
 	var colByNumEmpty [40]model.Dimension
-	var ne int
+	var numNodesInNumEmpty [40]int
+	var ne, nn int
 
 	for col := model.Dimension(1); col < model.Dimension(s.size); col++ {
 		ne = int(s.size) - int(s.crossings.cols[col]) - int(s.crossings.colsAvoid[col])
-		colByNumEmpty[ne] = col
+		if colByNumEmpty[ne] == 0 || nn > numNodesInNumEmpty[ne] {
+			colByNumEmpty[ne] = col
+			numNodesInNumEmpty[ne] = nn
+		}
 	}
 
 	return pf.chooseStart(colByNumEmpty)
@@ -220,12 +249,9 @@ func (pf *initialPermutations) chooseStart(
 	byNumEmpty [40]model.Dimension,
 ) (int, model.Dimension) {
 
-	for numEmpty := 5; numEmpty < len(byNumEmpty); numEmpty++ {
-		if byNumEmpty[numEmpty] > 0 {
+	for numEmpty := len(byNumEmpty) - 1; numEmpty > 2; numEmpty-- {
+		if byNumEmpty[numEmpty] > 0 && pf.hasRoomForNumEmpty(numEmpty) {
 			return numEmpty, byNumEmpty[numEmpty]
-		}
-		if !pf.hasRoomForNumEmpty(numEmpty) {
-			break
 		}
 	}
 
