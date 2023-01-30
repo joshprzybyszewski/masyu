@@ -8,8 +8,9 @@ func newDefaultRule(
 	row, col model.Dimension,
 ) rule {
 	r := rule{
-		row: row,
-		col: col,
+		affects: 2,
+		row:     row,
+		col:     col,
 	}
 	r.check = r.checkDefault
 	return r

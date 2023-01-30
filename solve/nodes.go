@@ -34,7 +34,7 @@ func FromNodesWithTimeout(
 		panic(`bad initialization`)
 	}
 
-	return solve(
+	return solveWithWorkforce(
 		&s,
 		dur,
 	)

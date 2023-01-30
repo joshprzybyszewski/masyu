@@ -15,8 +15,8 @@ type path struct {
 	IsHorizontal bool
 }
 
-type depthApply struct {
-	depth int
+type affectsApply struct {
+	affects int
 
 	fn applyFn
 }
@@ -24,8 +24,8 @@ type depthApply struct {
 type rules struct {
 	// if "this" row/col changes, then run these other checks
 	// [row][col]
-	horizontals [model.MaxPointsPerLine][model.MaxPointsPerLine]depthApply
-	verticals   [model.MaxPointsPerLine][model.MaxPointsPerLine]depthApply
+	horizontals [model.MaxPointsPerLine][model.MaxPointsPerLine]affectsApply
+	verticals   [model.MaxPointsPerLine][model.MaxPointsPerLine]affectsApply
 
 	// unknowns describes the paths that aren't initialized known.
 	// They should exist in a sorted manner, where the first one has the most
@@ -121,15 +121,15 @@ func (r *rules) populateUnknowns(
 
 	sort.Slice(r.unknowns, func(i, j int) bool {
 		if r.unknowns[i].IsHorizontal {
-			ni = r.horizontals[r.unknowns[i].Row][r.unknowns[i].Col].depth
+			ni = r.horizontals[r.unknowns[i].Row][r.unknowns[i].Col].affects
 		} else {
-			ni = r.verticals[r.unknowns[i].Row][r.unknowns[i].Col].depth
+			ni = r.verticals[r.unknowns[i].Row][r.unknowns[i].Col].affects
 		}
 
 		if r.unknowns[j].IsHorizontal {
-			nj = r.horizontals[r.unknowns[j].Row][r.unknowns[j].Col].depth
+			nj = r.horizontals[r.unknowns[j].Row][r.unknowns[j].Col].affects
 		} else {
-			nj = r.verticals[r.unknowns[j].Row][r.unknowns[j].Col].depth
+			nj = r.verticals[r.unknowns[j].Row][r.unknowns[j].Col].affects
 		}
 
 		if ni != nj {
@@ -180,7 +180,7 @@ func (r *rules) addHorizontalRule(
 	rule *rule,
 ) {
 
-	r.horizontals[row][col].depth++
+	r.horizontals[row][col].affects += rule.affects
 	prev := r.horizontals[row][col].fn
 	r.horizontals[row][col].fn = func(s *state) {
 		if s.hasInvalid {
@@ -195,7 +195,7 @@ func (r *rules) addVerticalRule(
 	row, col model.Dimension,
 	rule *rule,
 ) {
-	r.verticals[row][col].depth++
+	r.verticals[row][col].affects += rule.affects
 	prev := r.verticals[row][col].fn
 	r.verticals[row][col].fn = func(s *state) {
 		if s.hasInvalid {

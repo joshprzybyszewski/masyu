@@ -24,7 +24,7 @@ const (
 )
 
 const (
-	resultsTimeout = 20 * time.Minute
+	resultsTimeout = 45 * time.Second
 )
 
 func Update() {
@@ -133,7 +133,7 @@ func getTableRow(
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("|%s|", iter))
 	sb.WriteString(fmt.Sprintf("%s|", durs[0]))
-	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)*3/4]))
+	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)/4]))
 	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)/2]))
 	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)*3/4]))
 	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)*19/20]))

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	initialPermutationsFactoryNumVals = 1 << 12
+	initialPermutationsFactoryNumVals = 1 << 15
 )
 
 type initialPermutations struct {

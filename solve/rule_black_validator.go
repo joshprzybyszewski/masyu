@@ -8,8 +8,9 @@ func newBlackValidator(
 	row, col model.Dimension,
 ) rule {
 	r := rule{
-		row: row,
-		col: col,
+		affects: 6,
+		row:     row,
+		col:     col,
 	}
 	r.check = r.checkBlackValid
 	return r

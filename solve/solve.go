@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	maxAttemptDuration = 20 * time.Minute
+	maxAttemptDuration = 55 * time.Second
 )
 
-func solve(
+func solveWithWorkforce(
 	s *state,
 	dur time.Duration,
 ) (model.Solution, error) {

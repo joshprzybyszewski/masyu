@@ -6,8 +6,9 @@ func newBlackL2Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 2,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkBlackL2
 	return r
@@ -26,8 +27,9 @@ func newBlackR2Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 2,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkBlackR2
 	return r
@@ -46,8 +48,9 @@ func newBlackU2Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 2,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkBlackU2
 	return r
@@ -66,8 +69,9 @@ func newBlackD2Rule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 2,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkBlackD2
 	return r

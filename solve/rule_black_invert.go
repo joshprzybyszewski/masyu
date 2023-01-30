@@ -10,8 +10,9 @@ func newInvertHorizontalBlack(
 	}
 
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 3,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkInvertHorizontalBlack
 	return r
@@ -60,8 +61,9 @@ func newInvertVerticalBlack(
 	}
 
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 3,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkInvertVerticalBlack
 	return r

@@ -8,8 +8,9 @@ func newPairWhiteHorizontalRule(
 	row, leftCol model.Dimension,
 ) rule {
 	r := rule{
-		row: row,
-		col: leftCol,
+		affects: 1,
+		row:     row,
+		col:     leftCol,
 	}
 	r.check = r.checkPairWhiteHorizontal
 	return r
@@ -31,8 +32,9 @@ func newPairWhiteVerticalRule(
 	topRow, col model.Dimension,
 ) rule {
 	r := rule{
-		row: topRow,
-		col: col,
+		affects: 1,
+		row:     topRow,
+		col:     col,
 	}
 	r.check = r.checkPairWhiteVertical
 	return r

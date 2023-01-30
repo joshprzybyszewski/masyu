@@ -6,8 +6,9 @@ func newBlackLBranchRule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 1,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkBlackLBranch
 	return r
@@ -27,8 +28,9 @@ func newBlackRBranchRule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 1,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkBlackRBranch
 	return r
@@ -48,8 +50,9 @@ func newBlackUBranchRule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 1,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkBlackUBranch
 	return r
@@ -71,8 +74,9 @@ func newBlackDBranchRule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 1,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkBlackDBranch
 	return r

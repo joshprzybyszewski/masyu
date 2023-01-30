@@ -5,7 +5,8 @@ import (
 )
 
 type rule struct {
-	check func(*state)
+	check   func(*state)
+	affects int
 
 	row model.Dimension
 	col model.Dimension

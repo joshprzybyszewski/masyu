@@ -6,8 +6,9 @@ func newWhiteHorizontalBranchRule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 4,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkWhiteHorizontalBranch
 	return r
@@ -37,8 +38,9 @@ func newWhiteVerticalBranchRule(
 	nodeRow, nodeCol model.Dimension,
 ) rule {
 	r := rule{
-		row: nodeRow,
-		col: nodeCol,
+		affects: 4,
+		row:     nodeRow,
+		col:     nodeCol,
 	}
 	r.check = r.checkWhiteVerticalBranch
 	return r
