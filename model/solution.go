@@ -5,8 +5,8 @@ import "strings"
 type Solution struct {
 	Size Size
 
-	Horizontals [MaxPointsPerLine]uint64
-	Verticals   [MaxPointsPerLine]uint64
+	Horizontals [MaxPointsPerLine]DimensionBit
+	Verticals   [MaxPointsPerLine]DimensionBit
 }
 
 func (s *Solution) String() string {

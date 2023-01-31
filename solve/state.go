@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	all64Bits uint64 = 0xFFFFFFFFFFFFFFFF
+	all64Bits model.DimensionBit = 0xFFFFFFFFFFFFFFFF
 )
 
 type state struct {
@@ -23,12 +23,12 @@ type state struct {
 	crossings crossings
 
 	// [row]colBitMask
-	horizontalLines  [model.MaxPointsPerLine]uint64
-	horizontalAvoids [model.MaxPointsPerLine]uint64
+	horizontalLines  [model.MaxPointsPerLine]model.DimensionBit
+	horizontalAvoids [model.MaxPointsPerLine]model.DimensionBit
 
 	// [col]rowBitMask
-	verticalLines  [model.MaxPointsPerLine]uint64
-	verticalAvoids [model.MaxPointsPerLine]uint64
+	verticalLines  [model.MaxPointsPerLine]model.DimensionBit
+	verticalAvoids [model.MaxPointsPerLine]model.DimensionBit
 }
 
 func newState(
@@ -65,7 +65,7 @@ func newState(
 }
 
 func (s *state) initialize() {
-	avoid := uint64(1 | (1 << s.size))
+	avoid := model.DimensionBit(1 | (1 << s.size))
 	for i := 1; i <= int(s.size); i++ {
 		s.verticalAvoids[i] |= avoid
 		s.horizontalAvoids[i] |= avoid
@@ -143,7 +143,7 @@ func (s *state) avoidHor(r, c model.Dimension) {
 		return
 	}
 
-	s.rules.checkHorizontal(r, c)
+	s.rules.checkHorizontal(r, b)
 	s.crossings.avoidHor(c, s)
 }
 
@@ -160,7 +160,7 @@ func (s *state) lineHor(r, c model.Dimension) {
 		return
 	}
 
-	s.rules.checkHorizontal(r, c)
+	s.rules.checkHorizontal(r, b)
 	s.crossings.lineHor(c, s)
 	s.paths.addHorizontal(r, c, s)
 }
@@ -190,7 +190,7 @@ func (s *state) avoidVer(r, c model.Dimension) {
 		return
 	}
 
-	s.rules.checkVertical(r, c)
+	s.rules.checkVertical(b, c)
 	s.crossings.avoidVer(r, s)
 }
 
@@ -207,7 +207,7 @@ func (s *state) lineVer(r, c model.Dimension) {
 		return
 	}
 
-	s.rules.checkVertical(r, c)
+	s.rules.checkVertical(b, c)
 	s.crossings.lineVer(r, s)
 	s.paths.addVertical(r, c, s)
 }

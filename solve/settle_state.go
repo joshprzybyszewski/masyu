@@ -81,7 +81,7 @@ func settleCycle(
 }
 
 func hasValidCrossings(s *state) bool {
-	bit := uint64(1 << 1)
+	bit := model.DimensionBit(1 << 1)
 	for i := 1; i <= int(s.size); i++ {
 		if !hasValidCrossingsForVerticalBit(s, bit) ||
 			!hasValidCrossingsForHorizontalBit(s, bit) {
@@ -95,7 +95,7 @@ func hasValidCrossings(s *state) bool {
 
 func hasValidCrossingsForVerticalBit(
 	s *state,
-	bit uint64,
+	bit model.DimensionBit,
 ) bool {
 	var l uint8
 	for i := 1; i <= int(s.size); i++ {
@@ -110,7 +110,7 @@ func hasValidCrossingsForVerticalBit(
 
 func hasValidCrossingsForHorizontalBit(
 	s *state,
-	bit uint64,
+	bit model.DimensionBit,
 ) bool {
 	var l uint8
 	for i := 1; i <= int(s.size); i++ {
@@ -141,11 +141,14 @@ func avoidAllUnknowns(
 
 func checkEntireRuleset(s *state) settledState {
 	max := model.Dimension(s.size + 1)
-	var col model.Dimension
-	for row := model.Dimension(0); row <= max; row++ {
-		for col = model.Dimension(0); col <= max; col++ {
-			s.rules.checkHorizontal(row, col)
-			s.rules.checkVertical(row, col)
+	maxBit := max.Bit()
+	var dim2 model.DimensionBit
+	for dim1 := model.Dimension(0); dim1 <= max; dim1++ {
+		s.rules.checkHorizontal(dim1, 0)
+		s.rules.checkVertical(0, dim1)
+		for dim2 = 1; dim2 <= maxBit; dim2 <<= 1 {
+			s.rules.checkHorizontal(dim1, dim2)
+			s.rules.checkVertical(dim2, dim1)
 		}
 	}
 

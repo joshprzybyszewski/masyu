@@ -7,8 +7,8 @@ import (
 type ruleCheckCollector struct {
 	rules *rules
 
-	hor [model.MaxPointsPerLine]uint64
-	ver [model.MaxPointsPerLine]uint64
+	hor [model.MaxPointsPerLine]model.DimensionBit
+	ver [model.MaxPointsPerLine]model.DimensionBit
 
 	hasPending bool
 }
@@ -22,17 +22,19 @@ func newRuleCheckCollector(
 }
 
 func (c *ruleCheckCollector) checkHorizontal(
-	row, col model.Dimension,
+	row model.Dimension,
+	col model.DimensionBit,
 ) {
 	c.hasPending = true
-	c.hor[row] |= col.Bit()
+	c.hor[row] |= col
 }
 
 func (c *ruleCheckCollector) checkVertical(
-	row, col model.Dimension,
+	row model.DimensionBit,
+	col model.Dimension,
 ) {
 	c.hasPending = true
-	c.ver[col] |= row.Bit()
+	c.ver[col] |= row
 }
 
 func (c *ruleCheckCollector) runAllChecks(
@@ -43,7 +45,7 @@ func (c *ruleCheckCollector) runAllChecks(
 	}
 
 	var dim1, dim2 model.Dimension
-	var tmp uint64
+	var tmp model.DimensionBit
 	im := model.Dimension(int(s.size) + 2)
 
 	for c.hasPending {

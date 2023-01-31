@@ -2,7 +2,9 @@ package model
 
 type Dimension uint8
 
-func (d Dimension) Bit() uint64 {
+type DimensionBit uint64
+
+func (d Dimension) Bit() DimensionBit {
 	return 1 << d
 }
 
