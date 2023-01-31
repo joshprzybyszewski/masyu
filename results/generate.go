@@ -144,14 +144,33 @@ func getTableRow(
 
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("|%s|", iter))
-	sb.WriteString(fmt.Sprintf("%s|", durs[0]))
-	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)/4]))
-	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)/2]))
-	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)*3/4]))
-	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)*19/20]))
-	sb.WriteString(fmt.Sprintf("%s|", durs[len(durs)-1]))
+	sb.WriteString(fmt.Sprintf("%s|", roundDuration(durs[0])))
+	sb.WriteString(fmt.Sprintf("%s|", roundDuration(durs[len(durs)/4])))
+	sb.WriteString(fmt.Sprintf("%s|", roundDuration(durs[len(durs)/2])))
+	sb.WriteString(fmt.Sprintf("%s|", roundDuration(durs[len(durs)*3/4])))
+	sb.WriteString(fmt.Sprintf("%s|", roundDuration(durs[len(durs)*19/20])))
+	sb.WriteString(fmt.Sprintf("%s|", roundDuration(durs[len(durs)-1])))
 	sb.WriteString(fmt.Sprintf("%d|\n", len(durs)))
 	return sb.String()
+}
+
+func roundDuration(
+	d time.Duration,
+) time.Duration {
+
+	if d > time.Second {
+		return d.Truncate(10 * time.Millisecond)
+	}
+
+	if d > time.Millisecond {
+		return d.Truncate(10 * time.Microsecond)
+	}
+
+	if d > time.Microsecond {
+		return d.Truncate(10 * time.Nanosecond)
+	}
+
+	return d
 }
 
 func writeResultsToReadme(
