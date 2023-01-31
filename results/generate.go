@@ -29,7 +29,7 @@ const (
 
 func Update() {
 	var allResults [model.MaxIterator + 1][]time.Duration
-	for iter := model.MinIterator + 10; iter <= model.MaxIterator; iter++ {
+	for iter := model.MinIterator; iter <= model.MaxIterator; iter++ {
 		if iter >= 13 && iter <= 15 {
 			// These are the massive ones
 			continue
@@ -42,7 +42,6 @@ func Update() {
 		}
 		allResults[iter] = append(allResults[iter], durs...)
 	}
-	return
 
 	var sb strings.Builder
 

@@ -290,7 +290,7 @@ func (pf *permutationsFactory) buildSimple(
 		cur.perms(s)
 	}
 
-	if travelDim == 0 || cur.numCrossings >= 3 {
+	if travelDim == 0 || cur.numCrossings >= 4 {
 		pf.save(ap)
 		pf.save(lp)
 		return
