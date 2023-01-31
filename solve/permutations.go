@@ -18,7 +18,7 @@ type permutationsFactorySubstate struct {
 }
 
 const (
-	permutationsFactoryNumVals = 1 << 15
+	permutationsFactoryNumVals = 1 << 8
 )
 
 type permutationsFactory struct {
@@ -238,21 +238,78 @@ func (pf *permutationsFactory) populateSimple(
 		return
 	}
 
+	constantDim := c.Row
+	travelDim := c.Col
 	if isHor {
-		pf.save(func(s *state) {
-			s.avoidHor(c.Row, c.Col)
-		})
-		pf.save(func(s *state) {
-			s.lineHor(c.Row, c.Col)
-		})
-	} else {
-		pf.save(func(s *state) {
-			s.avoidVer(c.Row, c.Col)
-		})
-		pf.save(func(s *state) {
-			s.lineVer(c.Row, c.Col)
-		})
+		constantDim = c.Col
+		travelDim = c.Row
 	}
+
+	pf.buildSimple(
+		s,
+		isHor,
+		constantDim,
+		permutationsFactorySubstate{
+			known:        travelDim,
+			numCrossings: 0,
+			perms: func(s *state) {
+			},
+		},
+	)
+}
+
+func (pf *permutationsFactory) buildSimple(
+	s *state,
+	travelCol bool,
+	constantDim model.Dimension,
+	cur permutationsFactorySubstate,
+) {
+
+	var travelDim model.Dimension
+	if travelCol {
+		travelDim = getNextEmptyRow(s, cur.known+1, constantDim)
+	} else {
+		travelDim = getNextEmptyCol(s, constantDim, cur.known+1)
+	}
+
+	ap := func(s *state) {
+		if travelCol {
+			s.avoidHor(cur.known, constantDim)
+		} else {
+			s.avoidVer(constantDim, cur.known)
+		}
+		cur.perms(s)
+	}
+
+	lp := func(s *state) {
+		if travelCol {
+			s.lineHor(cur.known, constantDim)
+		} else {
+			s.lineVer(constantDim, cur.known)
+		}
+		cur.perms(s)
+	}
+
+	if travelDim == 0 || cur.numCrossings >= 3 {
+		pf.save(ap)
+		pf.save(lp)
+		return
+	}
+
+	a := permutationsFactorySubstate{
+		known:        travelDim,
+		numCrossings: cur.numCrossings + 1,
+		perms:        ap,
+	}
+
+	l := permutationsFactorySubstate{
+		known:        travelDim,
+		numCrossings: cur.numCrossings + 1,
+		perms:        lp,
+	}
+
+	pf.buildSimple(s, travelCol, constantDim, a)
+	pf.buildSimple(s, travelCol, constantDim, l)
 }
 
 func (pf *permutationsFactory) getBestNextStartingRow(

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"runtime"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/joshprzybyszewski/masyu/model"
@@ -127,6 +128,9 @@ func (w *workforce) sendWork(
 		// if the work channel has been closed, then don't do anything.
 		r := recover()
 		if r != nil {
+			if strings.Contains(fmt.Sprintf("%+v", r), "send on closed channel") {
+				return
+			}
 			fmt.Printf("caught: %+v\n", r)
 			fmt.Printf("%s\n", debug.Stack())
 		}

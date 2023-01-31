@@ -29,7 +29,7 @@ const (
 
 func Update() {
 	var allResults [model.MaxIterator + 1][]time.Duration
-	for iter := model.MinIterator; iter <= model.MaxIterator; iter++ {
+	for iter := model.MinIterator + 10; iter <= model.MaxIterator; iter++ {
 		if iter >= 13 && iter <= 15 {
 			// These are the massive ones
 			continue
@@ -42,6 +42,7 @@ func Update() {
 		}
 		allResults[iter] = append(allResults[iter], durs...)
 	}
+	return
 
 	var sb strings.Builder
 
@@ -83,7 +84,7 @@ func getResults(
 
 	durs := make([]time.Duration, 0, len(inputs))
 
-	for _, sr := range inputs {
+	for i, sr := range inputs {
 		ns := sr.Input.ToNodes()
 
 		t0 := time.Now()
@@ -95,16 +96,29 @@ func getResults(
 		dur := time.Since(t0)
 		durs = append(durs, dur)
 		if err != nil {
-			fmt.Printf("Got error: %s\n", err.Error())
+			fmt.Print("X")
 			continue
 		}
 
 		if sr.Answer != `` {
 			if sr.Answer != sol.ToAnswer() {
-				fmt.Printf("Is this correct?\n")
+				fmt.Printf("\nIs this correct?\n")
 				fmt.Printf("%s\n", sr.Input)
 				fmt.Printf("%s\n", sol.Pretty(ns))
 			}
+		}
+
+		if i%10 == 0 {
+			fmt.Printf("\n%2d: ", i/10)
+		}
+		if dur > 5*time.Second {
+			fmt.Print("!")
+		} else if dur > time.Second {
+			fmt.Print("*")
+		} else if dur > 500*time.Millisecond {
+			fmt.Print("-")
+		} else {
+			fmt.Print(".")
 		}
 
 		for numGCs := 0; numGCs < 3; numGCs++ {
@@ -113,7 +127,7 @@ func getResults(
 		}
 	}
 
-	fmt.Printf("Finished %s\n\n", iter)
+	fmt.Printf("\nFinished %s\n\n", iter)
 	fmt.Printf("%s\n\n", getTableRow(iter, durs))
 	return durs, nil
 }
