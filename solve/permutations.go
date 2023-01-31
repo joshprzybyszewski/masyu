@@ -18,7 +18,7 @@ type permutationsFactorySubstate struct {
 }
 
 const (
-	permutationsFactoryNumVals = 1 << 8
+	permutationsFactoryNumVals = 8
 )
 
 type permutationsFactory struct {
@@ -229,6 +229,8 @@ func (pf *permutationsFactory) buildRow(
 func (pf *permutationsFactory) populateSimple(
 	s *state,
 ) {
+	pf.populateNextNode(s)
+
 	if pf.numVals > 0 {
 		return
 	}
@@ -256,6 +258,138 @@ func (pf *permutationsFactory) populateSimple(
 			},
 		},
 	)
+}
+
+func (pf *permutationsFactory) populateNextNode(
+	s *state,
+) {
+
+	if pf.numVals > 0 {
+		return
+	}
+
+	var wn, bn model.Node
+	for _, n := range s.nodes {
+		if !isNodeSolved(s, n) {
+			if n.IsBlack {
+				bn = n
+				break
+			} else {
+				wn = n
+			}
+		}
+	}
+	node := bn
+	if node.Row == 0 {
+		node = wn
+	}
+	if node.Row == 0 {
+		// did not find an unsolved node
+		return
+	}
+
+	if node.IsBlack {
+		// RD
+		pf.save(func(s *state) {
+			s.avoidHor(node.Row, node.Col-1)
+			s.lineHor(node.Row, node.Col)
+			s.lineHor(node.Row, node.Col+1)
+			s.avoidVer(node.Row-1, node.Col+1)
+			s.avoidVer(node.Row, node.Col+1)
+
+			s.avoidVer(node.Row-1, node.Col)
+			s.lineVer(node.Row, node.Col)
+			s.lineVer(node.Row+1, node.Col)
+			s.avoidHor(node.Row+1, node.Col-1)
+			s.avoidHor(node.Row+1, node.Col)
+		})
+		// DL
+		if node.Col > 1 {
+			pf.save(func(s *state) {
+				s.avoidHor(node.Row, node.Col)
+				s.lineHor(node.Row, node.Col-1)
+				s.lineHor(node.Row, node.Col-2)
+				s.avoidVer(node.Row-1, node.Col-1)
+				s.avoidVer(node.Row, node.Col-1)
+
+				s.avoidVer(node.Row-1, node.Col)
+				s.lineVer(node.Row, node.Col)
+				s.lineVer(node.Row+1, node.Col)
+				s.avoidHor(node.Row+1, node.Col-1)
+				s.avoidHor(node.Row+1, node.Col)
+			})
+
+			// LU
+			if node.Row > 1 {
+				pf.save(func(s *state) {
+					s.avoidHor(node.Row, node.Col)
+					s.lineHor(node.Row, node.Col-1)
+					s.lineHor(node.Row, node.Col-2)
+					s.avoidVer(node.Row-1, node.Col-1)
+					s.avoidVer(node.Row, node.Col-1)
+
+					s.avoidVer(node.Row, node.Col)
+					s.lineVer(node.Row-1, node.Col)
+					s.lineVer(node.Row-2, node.Col)
+					s.avoidHor(node.Row-1, node.Col-1)
+					s.avoidHor(node.Row-1, node.Col)
+				})
+			}
+		}
+		// UR
+		if node.Row > 1 {
+			pf.save(func(s *state) {
+				s.avoidHor(node.Row, node.Col-1)
+				s.lineHor(node.Row, node.Col)
+				s.lineHor(node.Row, node.Col+1)
+				s.avoidVer(node.Row-1, node.Col+1)
+				s.avoidVer(node.Row, node.Col+1)
+
+				s.avoidVer(node.Row, node.Col)
+				s.lineVer(node.Row-1, node.Col)
+				s.lineVer(node.Row-2, node.Col)
+				s.avoidHor(node.Row-1, node.Col-1)
+				s.avoidHor(node.Row-1, node.Col)
+			})
+		}
+	} else {
+		// horizontal
+		pf.save(func(s *state) {
+			s.lineHor(node.Row, node.Col)
+			s.lineHor(node.Row, node.Col-1)
+			s.avoidVer(node.Row-1, node.Col)
+			s.avoidVer(node.Row, node.Col)
+		})
+		// vertical
+		pf.save(func(s *state) {
+			s.lineVer(node.Row, node.Col)
+			s.lineVer(node.Row-1, node.Col)
+			s.avoidHor(node.Row, node.Col-1)
+			s.avoidHor(node.Row, node.Col)
+		})
+	}
+}
+
+func isNodeSolved(
+	s *state,
+	n model.Node,
+) bool {
+	l, a := s.horAt(n.Row, n.Col)
+	if !l && !a {
+		return false
+	}
+
+	l, a = s.verAt(n.Row, n.Col)
+	if !l && !a {
+		return false
+	}
+
+	l, a = s.horAt(n.Row, n.Col-1)
+	if !l && !a {
+		return false
+	}
+
+	return true
 }
 
 func (pf *permutationsFactory) buildSimple(

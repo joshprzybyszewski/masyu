@@ -94,21 +94,12 @@ func getResults(
 		)
 		dur := time.Since(t0)
 		durs = append(durs, dur)
+		if i%10 == 0 {
+			fmt.Printf("\n%2d: ", i/10)
+		}
 		if err != nil {
 			fmt.Print("X")
 			continue
-		}
-
-		if sr.Answer != `` {
-			if sr.Answer != sol.ToAnswer() {
-				fmt.Printf("\nIs this correct?\n")
-				fmt.Printf("%s\n", sr.Input)
-				fmt.Printf("%s\n", sol.Pretty(ns))
-			}
-		}
-
-		if i%10 == 0 {
-			fmt.Printf("\n%2d: ", i/10)
 		}
 		if dur > 5*time.Second {
 			fmt.Print("!")
@@ -118,6 +109,14 @@ func getResults(
 			fmt.Print("-")
 		} else {
 			fmt.Print(".")
+		}
+
+		if sr.Answer != `` {
+			if sr.Answer != sol.ToAnswer() {
+				fmt.Printf("\nIs this correct?\n")
+				fmt.Printf("%s\n", sr.Input)
+				fmt.Printf("%s\n", sol.Pretty(ns))
+			}
 		}
 
 		for numGCs := 0; numGCs < 3; numGCs++ {
