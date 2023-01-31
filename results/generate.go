@@ -30,11 +30,6 @@ const (
 func Update() {
 	var allResults [model.MaxIterator + 1][]time.Duration
 	for iter := model.MinIterator; iter <= model.MaxIterator; iter++ {
-		if iter >= 13 && iter <= 15 {
-			// These are the massive ones
-			continue
-		}
-
 		durs, err := getResults(iter, resultsTimeout)
 		if err != nil {
 			fmt.Printf("Error: %+v\n", err)
