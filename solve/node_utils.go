@@ -21,37 +21,29 @@ func isBlackNodeClear(
 		return false
 	}
 
-	l, a := s.horAt(n.Row, n.Col-2)
-	if l || a {
+	if s.hasHorDefined(n.Row, n.Col-2) {
 		return false
 	}
-	l, a = s.horAt(n.Row, n.Col-1)
-	if l || a {
+	if s.hasHorDefined(n.Row, n.Col-1) {
 		return false
 	}
-	l, a = s.horAt(n.Row, n.Col)
-	if l || a {
+	if s.hasHorDefined(n.Row, n.Col) {
 		return false
 	}
-	l, a = s.horAt(n.Row, n.Col+1)
-	if l || a {
+	if s.hasHorDefined(n.Row, n.Col+1) {
 		return false
 	}
 
-	l, a = s.verAt(n.Row-2, n.Col)
-	if l || a {
+	if s.hasVerDefined(n.Row-2, n.Col) {
 		return false
 	}
-	l, a = s.verAt(n.Row-1, n.Col)
-	if l || a {
+	if s.hasVerDefined(n.Row-1, n.Col) {
 		return false
 	}
-	l, a = s.verAt(n.Row, n.Col)
-	if l || a {
+	if s.hasVerDefined(n.Row, n.Col) {
 		return false
 	}
-	l, a = s.verAt(n.Row+1, n.Col)
-	if l || a {
+	if s.hasVerDefined(n.Row+1, n.Col) {
 		return false
 	}
 
@@ -75,53 +67,41 @@ func isWhiteNodeClear(
 		return false
 	}
 
-	l, a := s.verAt(n.Row-1, n.Col-1)
-	if l || a {
+	if s.hasVerDefined(n.Row-1, n.Col-1) {
 		return false
 	}
-	l, a = s.verAt(n.Row, n.Col-1)
-	if l || a {
+	if s.hasVerDefined(n.Row, n.Col-1) {
 		return false
 	}
-	l, a = s.horAt(n.Row, n.Col-1)
-	if l || a {
+	if s.hasHorDefined(n.Row, n.Col-1) {
 		return false
 	}
-	l, a = s.horAt(n.Row, n.Col)
-	if l || a {
+	if s.hasHorDefined(n.Row, n.Col) {
 		return false
 	}
-	l, a = s.verAt(n.Row-1, n.Col+1)
-	if l || a {
+	if s.hasVerDefined(n.Row-1, n.Col+1) {
 		return false
 	}
-	l, a = s.verAt(n.Row, n.Col+1)
-	if l || a {
+	if s.hasVerDefined(n.Row, n.Col+1) {
 		return false
 	}
 
-	l, a = s.horAt(n.Row-1, n.Col-1)
-	if l || a {
+	if s.hasHorDefined(n.Row-1, n.Col-1) {
 		return false
 	}
-	l, a = s.horAt(n.Row-1, n.Col)
-	if l || a {
+	if s.hasHorDefined(n.Row-1, n.Col) {
 		return false
 	}
-	l, a = s.verAt(n.Row-1, n.Col)
-	if l || a {
+	if s.hasVerDefined(n.Row-1, n.Col) {
 		return false
 	}
-	l, a = s.verAt(n.Row, n.Col)
-	if l || a {
+	if s.hasVerDefined(n.Row, n.Col) {
 		return false
 	}
-	l, a = s.horAt(n.Row+1, n.Col-1)
-	if l || a {
+	if s.hasHorDefined(n.Row+1, n.Col-1) {
 		return false
 	}
-	l, a = s.horAt(n.Row+1, n.Col)
-	if l || a {
+	if s.hasHorDefined(n.Row+1, n.Col) {
 		return false
 	}
 

@@ -23,10 +23,10 @@ func (r *rule) checkWhiteValid(
 	h, v := s.horAt(r.row, r.col)
 
 	if !h && !v {
-		h, v = s.horAt(r.row, r.col-1)
+		v, h = s.verAt(r.row, r.col)
 
 		if !h && !v {
-			v, h = s.verAt(r.row, r.col)
+			h, v = s.horAt(r.row, r.col-1)
 
 			if !h && !v {
 				v, h = s.verAt(r.row-1, r.col)

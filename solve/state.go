@@ -101,14 +101,13 @@ func (s *state) getMostInterestingPath() (model.Coord, bool, bool) {
 		return c, isHor, true
 	}
 
-	var l, a bool
 	for _, pp := range s.rules.rules.unknowns {
 		if pp.IsHorizontal {
-			if l, a = s.horAt(pp.Row, pp.Col); !l && !a {
+			if !s.hasHorDefined(pp.Row, pp.Col) {
 				return pp.Coord, pp.IsHorizontal, true
 			}
 		} else {
-			if l, a = s.verAt(pp.Row, pp.Col); !l && !a {
+			if !s.hasVerDefined(pp.Row, pp.Col) {
 				return pp.Coord, pp.IsHorizontal, true
 			}
 		}
@@ -116,6 +115,10 @@ func (s *state) getMostInterestingPath() (model.Coord, bool, bool) {
 	// there are no more interesting paths left. Likely this means that there's
 	// an error in the state and we need to abort.
 	return model.Coord{}, false, false
+}
+
+func (s *state) hasHorDefined(r, c model.Dimension) bool {
+	return (s.horizontalLines[r]|s.horizontalAvoids[r])&c.Bit() != 0
 }
 
 func (s *state) horAt(r, c model.Dimension) (bool, bool) {
@@ -163,6 +166,10 @@ func (s *state) lineHor(r, c model.Dimension) {
 	s.rules.checkHorizontal(r, b)
 	s.crossings.lineHor(c, s)
 	s.paths.addHorizontal(r, c, s)
+}
+
+func (s *state) hasVerDefined(r, c model.Dimension) bool {
+	return (s.verticalLines[c]|s.verticalAvoids[c])&r.Bit() != 0
 }
 
 func (s *state) verAt(r, c model.Dimension) (bool, bool) {

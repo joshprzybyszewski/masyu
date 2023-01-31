@@ -374,18 +374,15 @@ func isNodeSolved(
 	s *state,
 	n model.Node,
 ) bool {
-	l, a := s.horAt(n.Row, n.Col)
-	if !l && !a {
+	if !s.hasHorDefined(n.Row, n.Col) {
 		return false
 	}
 
-	l, a = s.verAt(n.Row, n.Col)
-	if !l && !a {
+	if !s.hasVerDefined(n.Row, n.Col) {
 		return false
 	}
 
-	l, a = s.horAt(n.Row, n.Col-1)
-	if !l && !a {
+	if !s.hasHorDefined(n.Row, n.Col-1) {
 		return false
 	}
 
@@ -492,10 +489,8 @@ func getNextEmptyRow(
 	s *state,
 	row, col model.Dimension,
 ) model.Dimension {
-	var l, a bool
 	for ; row <= model.Dimension(s.size); row++ {
-		l, a = s.horAt(row, col)
-		if !l && !a {
+		if !s.hasHorDefined(row, col) {
 			return row
 		}
 	}
@@ -513,10 +508,8 @@ func getNextEmptyCol(
 	s *state,
 	row, col model.Dimension,
 ) model.Dimension {
-	var l, a bool
 	for ; col <= model.Dimension(s.size); col++ {
-		l, a = s.verAt(row, col)
-		if !l && !a {
+		if !s.hasVerDefined(row, col) {
 			return col
 		}
 	}

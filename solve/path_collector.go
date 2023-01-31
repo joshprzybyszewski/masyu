@@ -56,18 +56,17 @@ func (pc *pathCollector) getInteresting(
 	var c model.Coord
 
 	size := model.Dimension(s.size)
-	var l, a bool
 
 	for c.Row = model.Dimension(1); c.Row <= size; c.Row++ {
 		for c.Col = model.Dimension(1); c.Col <= size; c.Col++ {
 			if !pc.pairs[c.Row][c.Col].isEmpty() {
 				if !pc.pairs[c.Row+1][c.Col].isEmpty() {
-					if l, a = s.verAt(c.Row, c.Col); !l && !a {
+					if !s.hasVerDefined(c.Row, c.Col) {
 						return c, false, true
 					}
 				}
 				if !pc.pairs[c.Row][c.Col+1].isEmpty() {
-					if l, a = s.horAt(c.Row, c.Col); !l && !a {
+					if !s.hasHorDefined(c.Row, c.Col) {
 						return c, true, true
 					}
 				}

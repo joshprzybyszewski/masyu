@@ -25,10 +25,6 @@ func newWorker(
 func (w *worker) process(
 	ctx context.Context,
 ) {
-	if ctx.Err() != nil {
-		return
-	}
-
 	ss := settle(&w.state)
 	if ss == solved {
 		w.sendAnswer(w.state.toSolution())

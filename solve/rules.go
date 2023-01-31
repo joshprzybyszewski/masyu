@@ -89,11 +89,10 @@ func (r *rules) populateUnknowns(
 	s *state,
 ) {
 
-	var l, a bool
 	for row := model.Dimension(1); row <= model.Dimension(s.size); row++ {
 		for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
 
-			if l, a = s.horAt(row, col); !l && !a {
+			if !s.hasHorDefined(row, col) {
 				r.unknowns = append(r.unknowns, path{
 					Coord: model.Coord{
 						Row: row,
@@ -103,7 +102,7 @@ func (r *rules) populateUnknowns(
 				})
 			}
 
-			if l, a = s.verAt(row, col); !l && !a {
+			if !s.hasVerDefined(row, col) {
 				r.unknowns = append(r.unknowns, path{
 					Coord: model.Coord{
 						Row: row,
@@ -183,11 +182,10 @@ func (r *rules) addHorizontalRule(
 	r.horizontals[row][col].affects += rule.affects
 	prev := r.horizontals[row][col].fn
 	r.horizontals[row][col].fn = func(s *state) {
-		if s.hasInvalid {
-			return
-		}
 		rule.check(s)
-		prev(s)
+		if !s.hasInvalid {
+			prev(s)
+		}
 	}
 }
 
@@ -198,11 +196,10 @@ func (r *rules) addVerticalRule(
 	r.verticals[row][col].affects += rule.affects
 	prev := r.verticals[row][col].fn
 	r.verticals[row][col].fn = func(s *state) {
-		if s.hasInvalid {
-			return
-		}
 		rule.check(s)
-		prev(s)
+		if !s.hasInvalid {
+			prev(s)
+		}
 	}
 }
 

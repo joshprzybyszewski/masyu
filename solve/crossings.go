@@ -106,9 +106,8 @@ func getEmptyCrossingInColumn(
 	s *state,
 	col model.Dimension,
 ) model.Dimension {
-	var l, a bool
 	for row := model.Dimension(1); row <= model.Dimension(s.size); row++ {
-		if l, a = s.horAt(row, col); !l && !a {
+		if !s.hasHorDefined(row, col) {
 			return row
 		}
 	}
@@ -119,9 +118,8 @@ func getEmptyCrossingInRow(
 	s *state,
 	row model.Dimension,
 ) model.Dimension {
-	var l, a bool
 	for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
-		if l, a = s.verAt(row, col); !l && !a {
+		if !s.hasVerDefined(row, col) {
 			return col
 		}
 	}
