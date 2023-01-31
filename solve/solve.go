@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	maxAttemptDuration = 55 * time.Second
+	maxAttemptDuration = 5 * time.Minute
 )
 
 func solveWithWorkforce(
