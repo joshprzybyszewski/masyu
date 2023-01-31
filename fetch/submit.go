@@ -36,10 +36,11 @@ func Submit(
 		fmt.Printf("Answer: %q\n", sol.ToAnswer())
 		return err
 	}
-
-	_, err = post(hallOfFameURL, header, data)
-	if err != nil {
-		return err
+	if data != nil {
+		_, err = post(hallOfFameURL, header, data)
+		if err != nil {
+			return err
+		}
 	}
 
 	return storeAnswer(input, sol)
@@ -80,6 +81,12 @@ func buildHallOfFameSubmission(
 		AttrOr(`value`, `unset`)
 
 	if solParams == `unset` {
+		ajaxSuccText := doc.Find(`#ajaxResponse`).First().
+			Find(`.succ`).Text()
+		if strings.Contains(ajaxSuccText, `Congratulations! You have solved the puzzle`) {
+			// there is no hall of fame submission for large puzzles.
+			return nil, nil
+		}
 		return nil, fmt.Errorf(`something was wrong`)
 	}
 

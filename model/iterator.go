@@ -53,8 +53,11 @@ func (i Iterator) GetDifficulty() Difficulty {
 		return invalidDifficulty
 	}
 
-	if i == 0 || (i >= 13 && i <= 15) {
+	if i == 0 {
 		return easy
+	}
+	if i >= 13 && i <= 15 {
+		return hard
 	}
 	if i > 15 {
 		return Difficulty(i - 15)

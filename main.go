@@ -20,7 +20,6 @@ var (
 
 	iterStart     = flag.Int("start", int(model.MinIterator), "if set, this will override the iterators starting value")
 	iterFinish    = flag.Int("finish", int(model.MaxIterator), "if set, this will override the iterators final value")
-	skipLarge     = flag.Bool("skipbig", true, "if set, this won't attempt the largest puzzles")
 	numIterations = flag.Int("numIterations", 1, "set this value to run through the puzzles many times")
 
 	fetchNewPuzzles = flag.Bool("refresh", true, "if set, then it will fetch new puzzles")
@@ -50,11 +49,6 @@ func main() {
 
 	for i := 0; i < *numIterations; i++ {
 		for iter := model.Iterator(*iterStart); iter <= model.Iterator(*iterFinish); iter++ {
-			// for iter := model.Iterator(*iterFinish); iter >= model.Iterator(*iterStart); iter-- {
-			if *skipLarge && iter >= 13 && iter <= 15 {
-				// These are the massive ones
-				continue
-			}
 			for numGCs := 0; numGCs < 5; numGCs++ {
 				time.Sleep(100 * time.Millisecond)
 				runtime.GC()

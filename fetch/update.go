@@ -74,6 +74,13 @@ func populateInput(
 
 	input.ID = doc.Find(`#puzzleID`).First().Text()
 
+	if input.ID == `` {
+		input.ID = doc.Find(`.puzzleInfo`).First().
+			Find(`select[name='date']`).First().
+			Find(`option[selected='selected']`).First().
+			Text()
+	}
+
 	taskString, err := getTaskFromScriptText(
 		doc.Find(`#rel`).Find(`script`).Text(),
 	)
