@@ -24,8 +24,8 @@ type affectsApply struct {
 type rules struct {
 	// if "this" row/col changes, then run these other checks
 	// [row][col]
-	horizontals [model.MaxPointsPerLine][model.MaxPointsPerLine]affectsApply
-	verticals   [model.MaxPointsPerLine][model.MaxPointsPerLine]affectsApply
+	horizontals [maxPinsPerLine][maxPinsPerLine]affectsApply
+	verticals   [maxPinsPerLine][maxPinsPerLine]affectsApply
 
 	// unknowns describes the paths that aren't initialized known.
 	// They should exist in a sorted manner, where the first one has the most
@@ -63,7 +63,7 @@ func (r *rules) populateRules(
 		}
 	}
 
-	var pins [model.MaxPointsPerLine][model.MaxPointsPerLine]rule
+	var pins [maxPinsPerLine][maxPinsPerLine]rule
 	for row := model.Dimension(1); row <= model.Dimension(s.size); row++ {
 		for col := model.Dimension(1); col <= model.Dimension(s.size); col++ {
 			pins[row][col] = newDefaultRule(row, col)

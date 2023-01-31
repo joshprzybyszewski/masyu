@@ -6,5 +6,5 @@ const (
 )
 
 const (
-	MaxPointsPerLine = 40
+	MaxPinsPerLine = 40
 )

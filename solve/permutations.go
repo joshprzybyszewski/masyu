@@ -446,7 +446,7 @@ func (pf *permutationsFactory) buildSimple(
 func (pf *permutationsFactory) getBestNextStartingRow(
 	s *state,
 ) (int, model.Dimension) {
-	var rowByNumEmpty [40]model.Dimension
+	var rowByNumEmpty [maxPinsPerLine]model.Dimension
 	var ne int
 
 	for row := model.Dimension(1); row < model.Dimension(s.size); row++ {
@@ -460,7 +460,7 @@ func (pf *permutationsFactory) getBestNextStartingRow(
 func (pf *permutationsFactory) getBestNextStartingCol(
 	s *state,
 ) (int, model.Dimension) {
-	var colByNumEmpty [40]model.Dimension
+	var colByNumEmpty [maxPinsPerLine]model.Dimension
 	var ne int
 
 	for col := model.Dimension(1); col < model.Dimension(s.size); col++ {
@@ -472,7 +472,7 @@ func (pf *permutationsFactory) getBestNextStartingCol(
 }
 
 func (pf *permutationsFactory) chooseStart(
-	byNumEmpty [40]model.Dimension,
+	byNumEmpty [maxPinsPerLine]model.Dimension,
 ) (int, model.Dimension) {
 
 	for numEmpty := 2; numEmpty < len(byNumEmpty); numEmpty++ {

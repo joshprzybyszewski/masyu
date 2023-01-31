@@ -30,9 +30,9 @@ func (p *pair) isVerticallyClose() bool {
 }
 
 type pathCollector struct {
-	pairs [model.MaxPointsPerLine][model.MaxPointsPerLine]pair
+	pairs [maxPinsPerLine][maxPinsPerLine]pair
 
-	nodes [model.MaxPointsPerLine]model.DimensionBit
+	nodes [maxPinsPerLine]model.DimensionBit
 
 	hasCycle       bool
 	cycleSeenNodes int

@@ -8,8 +8,8 @@ func findGimmes(
 	s *state,
 ) {
 
-	var blacks [model.MaxPointsPerLine][model.MaxPointsPerLine]bool
-	var whites [model.MaxPointsPerLine][model.MaxPointsPerLine]bool
+	var blacks [maxPinsPerLine][maxPinsPerLine]bool
+	var whites [maxPinsPerLine][maxPinsPerLine]bool
 
 	for _, n := range s.nodes {
 		if n.IsBlack {

@@ -7,8 +7,8 @@ import (
 type ruleCheckCollector struct {
 	rules *rules
 
-	hor [model.MaxPointsPerLine]model.DimensionBit
-	ver [model.MaxPointsPerLine]model.DimensionBit
+	hor [maxPinsPerLine]model.DimensionBit
+	ver [maxPinsPerLine]model.DimensionBit
 
 	hasPending bool
 }

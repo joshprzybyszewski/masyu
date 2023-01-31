@@ -23,12 +23,12 @@ type state struct {
 	crossings crossings
 
 	// [row]colBitMask
-	horizontalLines  [model.MaxPointsPerLine]model.DimensionBit
-	horizontalAvoids [model.MaxPointsPerLine]model.DimensionBit
+	horizontalLines  [maxPinsPerLine]model.DimensionBit
+	horizontalAvoids [maxPinsPerLine]model.DimensionBit
 
 	// [col]rowBitMask
-	verticalLines  [model.MaxPointsPerLine]model.DimensionBit
-	verticalAvoids [model.MaxPointsPerLine]model.DimensionBit
+	verticalLines  [maxPinsPerLine]model.DimensionBit
+	verticalAvoids [maxPinsPerLine]model.DimensionBit
 }
 
 func newState(

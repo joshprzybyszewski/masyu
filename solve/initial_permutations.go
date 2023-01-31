@@ -201,13 +201,13 @@ func (pf *initialPermutations) buildRow(
 func (pf *initialPermutations) getBestNextStartingRow(
 	s *state,
 ) (int, model.Dimension) {
-	var nodesInRow [model.MaxPointsPerLine]int
+	var nodesInRow [maxPinsPerLine]int
 	for _, n := range s.nodes {
 		nodesInRow[n.Row]++
 	}
 
-	var rowByNumEmpty [40]model.Dimension
-	var numNodesInNumEmpty [40]int
+	var rowByNumEmpty [maxPinsPerLine]model.Dimension
+	var numNodesInNumEmpty [maxPinsPerLine]int
 	var ne, nn int
 
 	for row := model.Dimension(1); row < model.Dimension(s.size); row++ {
@@ -225,13 +225,13 @@ func (pf *initialPermutations) getBestNextStartingRow(
 func (pf *initialPermutations) getBestNextStartingCol(
 	s *state,
 ) (int, model.Dimension) {
-	var nodesInCol [model.MaxPointsPerLine]int
+	var nodesInCol [maxPinsPerLine]int
 	for _, n := range s.nodes {
 		nodesInCol[n.Col]++
 	}
 
-	var colByNumEmpty [40]model.Dimension
-	var numNodesInNumEmpty [40]int
+	var colByNumEmpty [maxPinsPerLine]model.Dimension
+	var numNodesInNumEmpty [maxPinsPerLine]int
 	var ne, nn int
 
 	for col := model.Dimension(1); col < model.Dimension(s.size); col++ {
@@ -246,7 +246,7 @@ func (pf *initialPermutations) getBestNextStartingCol(
 }
 
 func (pf *initialPermutations) chooseStart(
-	byNumEmpty [40]model.Dimension,
+	byNumEmpty [maxPinsPerLine]model.Dimension,
 ) (int, model.Dimension) {
 
 	for numEmpty := len(byNumEmpty) - 1; numEmpty > 2; numEmpty-- {

@@ -6,12 +6,12 @@ import (
 
 type crossings struct {
 	// [col]numLines/AvoidsInThatCol
-	cols      [model.MaxPointsPerLine]model.Dimension
-	colsAvoid [model.MaxPointsPerLine]model.Dimension
+	cols      [maxPinsPerLine]model.Dimension
+	colsAvoid [maxPinsPerLine]model.Dimension
 
 	// [row]numLines/AvoidsInThatRow
-	rows      [model.MaxPointsPerLine]model.Dimension
-	rowsAvoid [model.MaxPointsPerLine]model.Dimension
+	rows      [maxPinsPerLine]model.Dimension
+	rowsAvoid [maxPinsPerLine]model.Dimension
 
 	// This is the "target" for an _almost_ empty row/col
 	target model.Dimension
