@@ -2,7 +2,18 @@ package fetch
 
 import (
 	"net/http"
+	"os"
+	"strings"
 )
+
+func init() {
+	secretStr := os.Getenv(`MASYU_SECRET`)
+	if secretStr == `` {
+		return
+	}
+	vals := strings.Split(secretStr, `,`)
+	myCookies = append(myCookies, vals...)
+}
 
 const (
 	baseURL       = `https://www.puzzle-masyu.com/`

@@ -1,6 +1,7 @@
 package fetch
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -9,10 +10,18 @@ import (
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
+var (
+	skipStore = os.Getenv(`LAMBDA`) == `true`
+)
+
 func storeAnswer(
 	input *input,
 	sol *model.Solution,
 ) error {
+	if skipStore {
+		return nil
+	}
+
 	known, err := Read(input.iter)
 	if err != nil {
 		return err
@@ -29,6 +38,10 @@ func storeAnswer(
 func StorePuzzle(
 	input *input,
 ) error {
+	if skipStore {
+		return nil
+	}
+
 	known, err := Read(input.iter)
 	if err != nil {
 		return err
@@ -84,6 +97,9 @@ type savedResult struct {
 func Read(
 	iter model.Iterator,
 ) (map[string]savedResult, error) {
+	if skipStore {
+		return nil, errors.New(`cannot store things`)
+	}
 
 	data, err := os.ReadFile(getInputFilname(iter))
 	if err != nil {

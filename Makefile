@@ -33,3 +33,9 @@ build: ## Executes go build to see what escapes to heap
 .PHONY: results
 results: ## Runs the solver to update the reported results on the readme page
 	go run main.go -results
+
+.PHONY: lambda
+lambda: ## Builds the app so that we can serve it in a lambda
+	GOOS=linux CGO_ENABLED=0 go build -o masyu-lambda lambda/main.go
+	zip masyu-lambda.zip masyu-lambda
+	rm masyu-lambda
