@@ -233,7 +233,9 @@ func (s *state) String() string {
 
 	for r := 0; r <= int(s.size+1); r++ {
 		for c := 0; c <= int(s.size+1); c++ {
-			sb.WriteByte(s.getNode(model.Dimension(r), model.Dimension(c)))
+			n := s.getNode(model.Dimension(r), model.Dimension(c))
+			sb.WriteByte(n[0])
+			sb.WriteByte(n[1])
 			sb.WriteByte(' ')
 			isLine, isAvoid = s.horAt(model.Dimension(r), model.Dimension(c))
 			if isLine && isAvoid {
@@ -253,14 +255,19 @@ func (s *state) String() string {
 			isLine, isAvoid = s.verAt(model.Dimension(r), model.Dimension(c))
 			if isLine && isAvoid {
 				sb.WriteByte(confusedSpace)
+				sb.WriteByte(confusedSpace)
 			} else if isLine {
+				sb.WriteByte(verticalLineSpace)
 				sb.WriteByte(verticalLineSpace)
 			} else if isAvoid {
 				sb.WriteByte(avoidSpace)
+				sb.WriteByte(avoidSpace)
 			} else {
+				sb.WriteByte(' ')
 				sb.WriteByte(' ')
 			}
 			sb.WriteByte(' ')
+
 			sb.WriteByte(' ')
 			sb.WriteByte(' ')
 		}
@@ -270,24 +277,24 @@ func (s *state) String() string {
 	return sb.String()
 }
 
-func (s *state) getNode(r, c model.Dimension) byte {
+func (s *state) getNode(r, c model.Dimension) [2]byte {
 	for _, n := range s.nodes {
 		if n.Row != r || n.Col != c {
 			continue
 		}
 		if n.IsBlack {
-			return 'B'
+			return [2]byte{'B', '0' + byte(n.Value)}
 		}
-		return 'W'
+		return [2]byte{'W', '0' + byte(n.Value)}
 	}
 	if r == 0 {
-		return '0' + byte(c%10)
+		return [2]byte{'0' + byte(c%10), ' '}
 	}
 	if c == 0 {
-		return '0' + byte(r%10)
+		return [2]byte{'0' + byte(r%10), ' '}
 	}
 	if r > model.Dimension(s.size) || c > model.Dimension(s.size) {
-		return ' '
+		return [2]byte{' ', ' '}
 	}
-	return '*'
+	return [2]byte{'(', ')'}
 }

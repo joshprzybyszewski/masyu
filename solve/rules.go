@@ -203,6 +203,7 @@ func (r *rules) addVerticalRule(
 	}
 }
 
+// TODO replace
 func (r *rules) addBlackNode(
 	row, col model.Dimension,
 ) {
@@ -270,6 +271,7 @@ func (r *rules) addBlackNode(
 	}
 }
 
+// TODO replace
 func (r *rules) addWhiteNode(
 	row, col model.Dimension,
 ) {

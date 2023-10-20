@@ -2,9 +2,9 @@ package model
 
 const (
 	MinIterator Iterator = 0
-	MaxIterator Iterator = 18
+	MaxIterator Iterator = 19
 )
 
 const (
-	MaxPinsPerLine = 40
+	MaxPinsPerLine = 41
 )

@@ -17,32 +17,32 @@ func (i Iterator) GetSize() Size {
 		return invalidSize
 	}
 
-	if i == 0 {
-		return six
+	if i <= 1 {
+		return five
 	}
-	if i <= 3 {
-		return eight
+	if i <= 4 {
+		return seven
 	}
-	if i <= 6 {
+	if i <= 7 {
 		return ten
 	}
-	if i <= 9 {
+	if i <= 10 {
 		return fifteen
 	}
-	if i <= 12 {
+	if i <= 13 {
 		return twenty
 	}
-	if i == 13 {
+	if i <= 16 {
+		return twentyfive
+	}
+	if i == 17 {
 		return daily
 	}
-	if i == 14 {
+	if i == 18 {
 		return weekly
 	}
-	if i == 15 {
+	if i == 19 {
 		return monthly
-	}
-	if i <= 18 {
-		return twentyfive
 	}
 
 	return invalidSize
@@ -53,15 +53,16 @@ func (i Iterator) GetDifficulty() Difficulty {
 		return invalidDifficulty
 	}
 
-	if i == 0 {
-		return easy
+	if i <= 1 {
+		return Difficulty(i + 1)
 	}
-	if i >= 13 && i <= 15 {
+	if i >= 17 && i <= 19 {
 		return hard
 	}
 	if i > 15 {
 		return Difficulty(i - 15)
 	}
 
-	return Difficulty((i-1)%3) + 1
+	// 2 is the easy 7x7, and then it increments by threes
+	return Difficulty((i-2)%3) + 1
 }

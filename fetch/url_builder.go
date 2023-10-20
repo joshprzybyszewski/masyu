@@ -16,7 +16,7 @@ func init() {
 }
 
 const (
-	baseURL       = `https://www.puzzle-masyu.com/`
+	baseURL       = `https://www.puzzle-shingoki.com/`
 	hallOfFameURL = baseURL + `hallsubmit.php`
 )
 
