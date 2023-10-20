@@ -8,137 +8,47 @@ func findGimmes(
 	s *state,
 ) {
 
-	var blacks [maxPinsPerLine][maxPinsPerLine]bool
-	var whites [maxPinsPerLine][maxPinsPerLine]bool
+	var whites [maxPinsPerLine][maxPinsPerLine]model.Value
 
 	for _, n := range s.nodes {
 		if n.IsBlack {
-			blacks[n.Row][n.Col] = true
-		} else {
-			whites[n.Row][n.Col] = true
+			continue
 		}
+		whites[n.Row][n.Col] = n.Value
 	}
 
 	for _, n := range s.nodes {
 		if n.IsBlack {
-			// blacks near the edge must go the other way
-			if n.Col <= 1 {
-				s.avoidHor(n.Row, n.Col-1)
-				s.lineHor(n.Row, n.Col)
-			}
-			if n.Row <= 1 {
-				s.avoidVer(n.Row-1, n.Col)
-				s.lineVer(n.Row, n.Col)
-			}
-			if n.Col >= model.Dimension(s.size) {
-				s.avoidHor(n.Row, n.Col)
-				s.lineHor(n.Row, n.Col-1)
-			}
-			if n.Row >= model.Dimension(s.size) {
-				s.avoidVer(n.Row, n.Col)
-				s.lineVer(n.Row-1, n.Col)
-			}
-
-			/* TODO not true in shingoki
-			// blacks next to each other require an X in between
-			if blacks[n.Row][n.Col+1] {
-				s.avoidHor(n.Row, n.Col)
-
-				s.lineHor(n.Row, n.Col-1)
-				s.lineHor(n.Row, n.Col-2)
-
-				s.lineHor(n.Row, n.Col+1)
-				s.lineHor(n.Row, n.Col+2)
-			}
-			if blacks[n.Row+1][n.Col] {
-				s.avoidVer(n.Row, n.Col)
-
-				s.lineVer(n.Row-1, n.Col)
-				s.lineVer(n.Row-2, n.Col)
-
-				s.lineVer(n.Row+1, n.Col)
-				s.lineVer(n.Row+2, n.Col)
-			}
-			*/
-
-			/* TODO I don't think this is true for shingoki
-			// Thanks [wikipedia](https://en.wikipedia.org/wiki/Masyu#Solution_methods)
-			// If there are two whites diagonal to a black, then the black cannot go
-			// between the whites.
-			if whites[n.Row-1][n.Col-1] && whites[n.Row+1][n.Col-1] {
-				s.avoidHor(n.Row, n.Col-1)
-				s.lineHor(n.Row, n.Col)
-				s.lineHor(n.Row, n.Col+1)
-			}
-			if whites[n.Row-1][n.Col+1] && whites[n.Row+1][n.Col+1] {
-				s.avoidHor(n.Row, n.Col)
-				s.lineHor(n.Row, n.Col-1)
-				s.lineHor(n.Row, n.Col-2)
-			}
-			if whites[n.Row-1][n.Col-1] && whites[n.Row-1][n.Col+1] {
-				s.avoidVer(n.Row-1, n.Col)
-				s.lineVer(n.Row, n.Col)
-				s.lineVer(n.Row+1, n.Col)
-			}
-			if whites[n.Row+1][n.Col-1] && whites[n.Row+1][n.Col+1] {
-				s.avoidVer(n.Row, n.Col)
-				s.lineVer(n.Row-1, n.Col)
-				s.lineVer(n.Row-2, n.Col)
-			}
-			*/
+			// don't know of any gimmes for blacks at this point in time.
 			continue
 		}
-		/* TODO I think this is only true when their values are not equal
-		// three or more whites in a row/col require an X in between
-		if n.Col > 2 && whites[n.Row][n.Col-1] && whites[n.Row][n.Col-2] {
+
+		// two whites next two each other (with different values) in a row/col require an X in between
+		if n.Col > 2 &&
+			whites[n.Row][n.Col-1] != 0 &&
+			whites[n.Row][n.Col] != whites[n.Row][n.Col-1] {
 			s.avoidHor(n.Row, n.Col)
 			s.avoidHor(n.Row, n.Col-1)
 			s.avoidHor(n.Row, n.Col-2)
-			s.avoidHor(n.Row, n.Col-3)
 
 			s.lineVer(n.Row-1, n.Col)
 			s.lineVer(n.Row, n.Col)
 
 			s.lineVer(n.Row-1, n.Col-1)
 			s.lineVer(n.Row, n.Col-1)
-
-			s.lineVer(n.Row-1, n.Col-2)
-			s.lineVer(n.Row, n.Col-2)
 		}
-		if n.Row > 2 && whites[n.Row-1][n.Col] && whites[n.Row-2][n.Col] {
+		if n.Row > 2 &&
+			whites[n.Row-1][n.Col] != 0 &&
+			whites[n.Row-1][n.Col] != whites[n.Row][n.Col] {
 			s.avoidVer(n.Row, n.Col)
 			s.avoidVer(n.Row-1, n.Col)
 			s.avoidVer(n.Row-2, n.Col)
-			s.avoidVer(n.Row-3, n.Col)
 
 			s.lineHor(n.Row, n.Col-1)
 			s.lineHor(n.Row, n.Col)
 
 			s.lineHor(n.Row-1, n.Col-1)
 			s.lineHor(n.Row-1, n.Col)
-
-			s.lineHor(n.Row-2, n.Col-1)
-			s.lineHor(n.Row-2, n.Col)
 		}
-		*/
-
-		/* TODO I think this rule is still value, but only if the nodes values are not the same
-
-		if !whites[n.Row][n.Col-1] && whites[n.Row][n.Col+1] && !whites[n.Row][n.Col+2] {
-			r := newPairWhiteHorizontalRule(n.Row, n.Col)
-			if n.Col > 1 {
-				s.rules.rules.addHorizontalRule(n.Row, n.Col-2, &r)
-			}
-			s.rules.rules.addHorizontalRule(n.Row, n.Col+2, &r)
-		}
-
-		if !whites[n.Row-1][n.Col] && whites[n.Row+1][n.Col] && !whites[n.Row+2][n.Col] {
-			r := newPairWhiteVerticalRule(n.Row, n.Col)
-			if n.Row > 1 {
-				s.rules.rules.addVerticalRule(n.Row-2, n.Col, &r)
-			}
-			s.rules.rules.addVerticalRule(n.Row+2, n.Col, &r)
-		}
-		*/
 	}
 }
