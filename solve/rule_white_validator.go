@@ -8,7 +8,7 @@ func newWhiteValidator(
 	row, col model.Dimension,
 ) rule {
 	r := rule{
-		affects: 5,
+		affects: 4,
 		row:     row,
 		col:     col,
 	}
@@ -39,27 +39,12 @@ func (r *rule) checkWhiteValid(
 		s.lineHor(r.row, r.col)
 		s.avoidVer(r.row-1, r.col)
 		s.avoidVer(r.row, r.col)
-
-		if r.col > 1 {
-			if s.horLineAt(r.row, r.col+1) {
-				s.avoidHor(r.row, r.col-2)
-			} else if s.horLineAt(r.row, r.col-2) {
-				s.avoidHor(r.row, r.col+1)
-			}
-		}
 	}
+
 	if v {
 		s.lineVer(r.row-1, r.col)
 		s.lineVer(r.row, r.col)
 		s.avoidHor(r.row, r.col-1)
 		s.avoidHor(r.row, r.col)
-
-		if r.row > 1 {
-			if s.verLineAt(r.row+1, r.col) {
-				s.avoidVer(r.row-2, r.col)
-			} else if s.verLineAt(r.row-2, r.col) {
-				s.avoidVer(r.row+1, r.col)
-			}
-		}
 	}
 }

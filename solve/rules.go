@@ -57,9 +57,9 @@ func (r *rules) populateRules(
 
 	for i := range s.nodes {
 		if s.nodes[i].IsBlack {
-			r.addBlackNode(s.nodes[i].Row, s.nodes[i].Col)
+			r.addBlackNode(s.nodes[i].Row, s.nodes[i].Col, s.nodes[i].Value)
 		} else {
-			r.addWhiteNode(s.nodes[i].Row, s.nodes[i].Col)
+			r.addWhiteNode(s.nodes[i].Row, s.nodes[i].Col, s.nodes[i].Value)
 		}
 	}
 
@@ -206,107 +206,95 @@ func (r *rules) addVerticalRule(
 // TODO replace
 func (r *rules) addBlackNode(
 	row, col model.Dimension,
+	v model.Value,
 ) {
-
 	// ensure the black node is valid
 	bv := newBlackValidator(row, col)
-	if col > 1 {
-		r.addHorizontalRule(row, col-2, &bv)
-	}
 	r.addHorizontalRule(row, col-1, &bv)
 	r.addHorizontalRule(row, col, &bv)
-	r.addHorizontalRule(row, col+1, &bv)
-	if row > 1 {
-		r.addVerticalRule(row-2, col, &bv)
-	}
 	r.addVerticalRule(row-1, col, &bv)
 	r.addVerticalRule(row, col, &bv)
-	r.addVerticalRule(row+1, col, &bv)
 
-	// Look at extended "avoids"
-	if col > 1 {
-		left2 := newBlackL2Rule(row, col)
-		r.addHorizontalRule(row, col-2, &left2)
-		right2 := newBlackR2Rule(row, col)
-		r.addHorizontalRule(row, col+1, &right2)
-	}
+	/*
+		// Look at extended "avoids"
+		if col > 1 {
+			left2 := newBlackL2Rule(row, col)
+			r.addHorizontalRule(row, col-2, &left2)
+			right2 := newBlackR2Rule(row, col)
+			r.addHorizontalRule(row, col+1, &right2)
+		}
 
-	if row > 1 {
-		up2 := newBlackU2Rule(row, col)
-		r.addVerticalRule(row-2, col, &up2)
-		down2 := newBlackD2Rule(row, col)
-		r.addVerticalRule(row+1, col, &down2)
-	}
+		if row > 1 {
+			up2 := newBlackU2Rule(row, col)
+			r.addVerticalRule(row-2, col, &up2)
+			down2 := newBlackD2Rule(row, col)
+			r.addVerticalRule(row+1, col, &down2)
+		}
 
-	// Look at branches off the adjacencies.
-	leftBranch := newBlackLBranchRule(row, col)
-	r.addVerticalRule(row-1, col-1, &leftBranch)
-	r.addVerticalRule(row, col-1, &leftBranch)
+		// Look at branches off the adjacencies.
+		leftBranch := newBlackLBranchRule(row, col)
+		r.addVerticalRule(row-1, col-1, &leftBranch)
+		r.addVerticalRule(row, col-1, &leftBranch)
 
-	rightBranch := newBlackRBranchRule(row, col)
-	r.addVerticalRule(row-1, col+1, &rightBranch)
-	r.addVerticalRule(row, col+1, &rightBranch)
+		rightBranch := newBlackRBranchRule(row, col)
+		r.addVerticalRule(row-1, col+1, &rightBranch)
+		r.addVerticalRule(row, col+1, &rightBranch)
 
-	upBranch := newBlackUBranchRule(row, col)
-	r.addHorizontalRule(row-1, col, &upBranch)
-	r.addHorizontalRule(row-1, col-1, &upBranch)
+		upBranch := newBlackUBranchRule(row, col)
+		r.addHorizontalRule(row-1, col, &upBranch)
+		r.addHorizontalRule(row-1, col-1, &upBranch)
 
-	downBranch := newBlackDBranchRule(row, col)
-	r.addHorizontalRule(row+1, col, &downBranch)
-	r.addHorizontalRule(row+1, col-1, &downBranch)
+		downBranch := newBlackDBranchRule(row, col)
+		r.addHorizontalRule(row+1, col, &downBranch)
+		r.addHorizontalRule(row+1, col-1, &downBranch)
 
-	// look at inversions for black nodes
-	if row > 1 && col > 1 {
-		ih := newInvertHorizontalBlack(row, col)
-		r.addHorizontalRule(row, col-2, &ih)
-		r.addHorizontalRule(row, col+1, &ih)
-		r.addVerticalRule(row-2, col, &ih)
-		r.addVerticalRule(row+1, col, &ih)
+		// look at inversions for black nodes
+		if row > 1 && col > 1 {
+			ih := newInvertHorizontalBlack(row, col)
+			r.addHorizontalRule(row, col-2, &ih)
+			r.addHorizontalRule(row, col+1, &ih)
+			r.addVerticalRule(row-2, col, &ih)
+			r.addVerticalRule(row+1, col, &ih)
 
-		iv := newInvertVerticalBlack(row, col)
-		r.addHorizontalRule(row, col-2, &iv)
-		r.addHorizontalRule(row, col+1, &iv)
-		r.addVerticalRule(row-2, col, &iv)
-		r.addVerticalRule(row+1, col, &iv)
-	}
+			iv := newInvertVerticalBlack(row, col)
+			r.addHorizontalRule(row, col-2, &iv)
+			r.addHorizontalRule(row, col+1, &iv)
+			r.addVerticalRule(row-2, col, &iv)
+			r.addVerticalRule(row+1, col, &iv)
+		}
+	*/
 }
 
 // TODO replace
 func (r *rules) addWhiteNode(
 	row, col model.Dimension,
+	v model.Value,
 ) {
-
 	wv := newWhiteValidator(row, col)
-	if col > 1 {
-		r.addHorizontalRule(row, col-2, &wv)
-	}
 	r.addHorizontalRule(row, col-1, &wv)
 	r.addHorizontalRule(row, col, &wv)
-	r.addHorizontalRule(row, col+1, &wv)
-	if row > 1 {
-		r.addVerticalRule(row-2, col, &wv)
-	}
 	r.addVerticalRule(row-1, col, &wv)
 	r.addVerticalRule(row, col, &wv)
-	r.addVerticalRule(row+1, col, &wv)
+	/*
 
-	hb := newWhiteHorizontalBranchRule(row, col)
-	if col > 1 {
-		r.addHorizontalRule(row, col-2, &hb)
-	}
-	r.addHorizontalRule(row, col+1, &hb)
-	r.addVerticalRule(row, col-1, &hb)
-	r.addVerticalRule(row-1, col-1, &hb)
-	r.addVerticalRule(row, col+1, &hb)
-	r.addVerticalRule(row-1, col+1, &hb)
+		hb := newWhiteHorizontalBranchRule(row, col)
+		if col > 1 {
+			r.addHorizontalRule(row, col-2, &hb)
+		}
+		r.addHorizontalRule(row, col+1, &hb)
+		r.addVerticalRule(row, col-1, &hb)
+		r.addVerticalRule(row-1, col-1, &hb)
+		r.addVerticalRule(row, col+1, &hb)
+		r.addVerticalRule(row-1, col+1, &hb)
 
-	vb := newWhiteVerticalBranchRule(row, col)
-	if row > 1 {
-		r.addVerticalRule(row-2, col, &vb)
-	}
-	r.addVerticalRule(row+1, col, &vb)
-	r.addVerticalRule(row-1, col, &vb)
-	r.addVerticalRule(row-1, col-1, &vb)
-	r.addVerticalRule(row+1, col, &vb)
-	r.addVerticalRule(row+1, col-1, &vb)
+		vb := newWhiteVerticalBranchRule(row, col)
+		if row > 1 {
+			r.addVerticalRule(row-2, col, &vb)
+		}
+		r.addVerticalRule(row+1, col, &vb)
+		r.addVerticalRule(row-1, col, &vb)
+		r.addVerticalRule(row-1, col-1, &vb)
+		r.addVerticalRule(row+1, col, &vb)
+		r.addVerticalRule(row+1, col-1, &vb)
+	*/
 }
