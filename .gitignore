@@ -5,6 +5,9 @@
 *.so
 *.dylib
 
+# Just gonna ignore vendor on this account
+vendor/
+
 # Test binary, built with `go test -c`
 *.test
 
