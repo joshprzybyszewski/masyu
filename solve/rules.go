@@ -293,6 +293,25 @@ func (r *rules) addWhiteNode(
 	r.addHorizontalRule(row, col, &wv)
 	r.addVerticalRule(row-1, col, &wv)
 	r.addVerticalRule(row, col, &wv)
+
+	we := newWhiteExpensiveRule(row, col, v)
+	vd := model.Dimension(v)
+	// TODO finesse how we add these rules
+	for delta := model.Dimension(1); delta < vd; delta++ {
+		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+			r.addHorizontalRule(row, col+delta, &we)
+		}
+		if col > delta && col-delta > 1 {
+			r.addHorizontalRule(row, col-delta, &we)
+		}
+		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+			r.addVerticalRule(row+delta, col, &we)
+		}
+		if row > delta && row-delta > 1 {
+			r.addVerticalRule(row-delta, col, &we)
+		}
+	}
+
 	/*
 
 		hb := newWhiteHorizontalBranchRule(row, col)

@@ -94,7 +94,7 @@ func (r *rule) getExpensiveBlackRule(
 			}
 			// check up
 			if cu {
-				if nd >= r.col || s.verAvoidAt(r.row-nd, r.col) {
+				if nd >= r.row || s.verAvoidAt(r.row-nd, r.col) {
 					cu = false
 				} else {
 					// TODO if there is a white node at [r.row-nd, r.col],
