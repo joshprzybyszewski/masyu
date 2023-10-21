@@ -1,6 +1,8 @@
 package solve
 
 import (
+	"fmt"
+
 	"github.com/joshprzybyszewski/masyu/model"
 )
 
@@ -13,5 +15,6 @@ type rule struct {
 }
 
 func (r *rule) setInvalid(s *state) {
+	fmt.Printf("s.String(): %s\n", s.String())
 	s.hasInvalid = true
 }

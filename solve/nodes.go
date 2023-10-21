@@ -34,7 +34,6 @@ func FromNodesWithTimeout(
 		fmt.Printf("%s\n", &s)
 		panic(`bad initialization`)
 	}
-	panic(`bruh`)
 
 	return solveWithWorkforce(
 		&s,

@@ -31,7 +31,7 @@ func (r *rule) getExpensiveBlackRule(
 		var right, down, left, up uint32 // := 0, 0, 0, 0
 		cr, cd, cl, cu := true, true, true, true
 		horBit := uint32(1 << 0)
-		verBit := uint32(1 << (v - 1))
+		verBit := uint32(1 << (v - 2))
 		pd, nd := model.Dimension(0), model.Dimension(1)
 
 		for {

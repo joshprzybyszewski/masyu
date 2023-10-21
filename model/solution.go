@@ -48,7 +48,9 @@ func (s *Solution) Pretty(
 
 	for r := Dimension(0); r < Dimension(s.Size); r++ {
 		for c := Dimension(0); c < Dimension(s.Size); c++ {
-			sb.WriteByte(getNodeChar(nodes, r, c))
+			cs := getNodeChar(nodes, r, c)
+			sb.WriteByte(cs[0])
+			sb.WriteByte(cs[1])
 			sb.WriteByte(' ')
 			if s.Horizontals[r]&c.Bit() != 0 {
 				sb.WriteByte('-')
@@ -62,7 +64,9 @@ func (s *Solution) Pretty(
 		for c := Dimension(0); c < Dimension(s.Size); c++ {
 			if s.Verticals[c]&r.Bit() != 0 {
 				sb.WriteByte('|')
+				sb.WriteByte(' ')
 			} else {
+				sb.WriteByte(' ')
 				sb.WriteByte(' ')
 			}
 			sb.WriteByte(' ')
@@ -78,17 +82,17 @@ func (s *Solution) Pretty(
 func getNodeChar(
 	nodes []Node,
 	r, c Dimension,
-) byte {
+) [2]byte {
 	for _, n := range nodes {
 		if n.Row != r || n.Col != c {
 			continue
 		}
 		if n.IsBlack {
-			return 'B'
+			return [2]byte{'B', byte(n.Value) + '0'}
 		}
-		return 'W'
+		return [2]byte{'W', byte(n.Value) + '0'}
 	}
-	return '*'
+	return [2]byte{'(', ')'}
 }
 
 func (s *Solution) ToAnswer() string {
