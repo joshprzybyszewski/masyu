@@ -203,12 +203,15 @@ func (r *rules) addVerticalRule(
 	}
 }
 
-// TODO replace
 func (r *rules) addBlackNode(
 	row, col model.Dimension,
 	v model.Value,
 ) {
+	// TODO make this actually the size
+	size := model.Dimension(model.MaxPinsPerLine)
+
 	// ensure the black node is valid
+	// TODO remove newBlackValidator?
 	bv := newBlackValidator(row, col)
 	r.addHorizontalRule(row, col-1, &bv)
 	r.addHorizontalRule(row, col, &bv)
@@ -219,96 +222,58 @@ func (r *rules) addBlackNode(
 	vd := model.Dimension(v)
 	r.addHorizontalRule(row, col, &be)
 	r.addVerticalRule(row, col, &be)
-	// TODO finesse how we add these rules
 	for delta := model.Dimension(1); delta <= vd; delta++ {
-		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+		if col+delta < size {
 			r.addHorizontalRule(row, col+delta, &be)
+			r.addVerticalRule(row-1, col+delta, &be)
+			r.addVerticalRule(row, col+delta, &be)
 		}
-		if col > delta && col-delta > 1 {
-			r.addHorizontalRule(row, col-delta, &be)
-		}
-		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+		if row+delta < size {
 			r.addVerticalRule(row+delta, col, &be)
+			r.addHorizontalRule(row+delta, col-1, &be)
+			r.addHorizontalRule(row+delta, col, &be)
 		}
-		if row > delta && row-delta > 1 {
+	}
+	for delta := model.Dimension(1); delta <= vd; delta++ {
+		if col >= delta {
+			r.addHorizontalRule(row, col-delta, &be)
+			r.addVerticalRule(row-1, col-delta, &be)
+			r.addVerticalRule(row, col-delta, &be)
+		}
+		if row >= delta {
 			r.addVerticalRule(row-delta, col, &be)
+			r.addHorizontalRule(row-delta, col-1, &be)
+			r.addHorizontalRule(row-delta, col, &be)
 		}
 	}
 
 	bce := newNodeCheckerExpensiveRule(row, col, v)
-	r.addHorizontalRule(row, col, &bce)
-	r.addVerticalRule(row, col, &bce)
-	// TODO finesse how we add these rules
-	for delta := model.Dimension(1); delta <= vd; delta++ {
-		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+	for delta := model.Dimension(0); delta < vd; delta++ {
+		if col+delta < size {
 			r.addHorizontalRule(row, col+delta, &bce)
 		}
-		if col > delta && col-delta > 1 {
-			r.addHorizontalRule(row, col-delta, &bce)
-		}
-		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+		if row+delta < size {
 			r.addVerticalRule(row+delta, col, &bce)
 		}
-		if row > delta && row-delta > 1 {
+	}
+	for delta := model.Dimension(1); delta <= vd; delta++ {
+		if col >= delta {
+			r.addHorizontalRule(row, col-delta, &bce)
+		}
+		if row >= delta {
 			r.addVerticalRule(row-delta, col, &bce)
 		}
 	}
-
-	/*
-		// Look at extended "avoids"
-		if col > 1 {
-			left2 := newBlackL2Rule(row, col)
-			r.addHorizontalRule(row, col-2, &left2)
-			right2 := newBlackR2Rule(row, col)
-			r.addHorizontalRule(row, col+1, &right2)
-		}
-
-		if row > 1 {
-			up2 := newBlackU2Rule(row, col)
-			r.addVerticalRule(row-2, col, &up2)
-			down2 := newBlackD2Rule(row, col)
-			r.addVerticalRule(row+1, col, &down2)
-		}
-
-		// Look at branches off the adjacencies.
-		leftBranch := newBlackLBranchRule(row, col)
-		r.addVerticalRule(row-1, col-1, &leftBranch)
-		r.addVerticalRule(row, col-1, &leftBranch)
-
-		rightBranch := newBlackRBranchRule(row, col)
-		r.addVerticalRule(row-1, col+1, &rightBranch)
-		r.addVerticalRule(row, col+1, &rightBranch)
-
-		upBranch := newBlackUBranchRule(row, col)
-		r.addHorizontalRule(row-1, col, &upBranch)
-		r.addHorizontalRule(row-1, col-1, &upBranch)
-
-		downBranch := newBlackDBranchRule(row, col)
-		r.addHorizontalRule(row+1, col, &downBranch)
-		r.addHorizontalRule(row+1, col-1, &downBranch)
-
-		// look at inversions for black nodes
-		if row > 1 && col > 1 {
-			ih := newInvertHorizontalBlack(row, col)
-			r.addHorizontalRule(row, col-2, &ih)
-			r.addHorizontalRule(row, col+1, &ih)
-			r.addVerticalRule(row-2, col, &ih)
-			r.addVerticalRule(row+1, col, &ih)
-
-			iv := newInvertVerticalBlack(row, col)
-			r.addHorizontalRule(row, col-2, &iv)
-			r.addHorizontalRule(row, col+1, &iv)
-			r.addVerticalRule(row-2, col, &iv)
-			r.addVerticalRule(row+1, col, &iv)
-		}
-	*/
 }
 
-// TODO replace
 func (r *rules) addWhiteNode(
 	row, col model.Dimension,
 	v model.Value,
 ) {
+	// TODO make this actually the size
+	size := model.Dimension(model.MaxPinsPerLine)
+
+	// TODO remove newWhiteValidator?
 	wv := newWhiteValidator(row, col)
 	r.addHorizontalRule(row, col-1, &wv)
 	r.addHorizontalRule(row, col, &wv)
@@ -319,61 +284,46 @@ func (r *rules) addWhiteNode(
 	vd := model.Dimension(v)
 	r.addHorizontalRule(row, col, &we)
 	r.addVerticalRule(row, col, &we)
-	// TODO finesse how we add these rules
-	for delta := model.Dimension(1); delta < vd; delta++ {
-		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+	for delta := model.Dimension(1); delta <= vd; delta++ {
+		if col+delta < size {
 			r.addHorizontalRule(row, col+delta, &we)
+			r.addVerticalRule(row-1, col+delta, &we)
+			r.addVerticalRule(row, col+delta, &we)
 		}
-		if col > delta && col-delta > 1 {
-			r.addHorizontalRule(row, col-delta, &we)
-		}
-		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+		if row+delta < size {
 			r.addVerticalRule(row+delta, col, &we)
+			r.addHorizontalRule(row+delta, col-1, &we)
+			r.addHorizontalRule(row+delta, col, &we)
 		}
-		if row > delta && row-delta > 1 {
+	}
+	for delta := model.Dimension(1); delta <= vd; delta++ {
+		if col >= delta {
+			r.addHorizontalRule(row, col-delta, &we)
+			r.addVerticalRule(row-1, col-delta, &we)
+			r.addVerticalRule(row, col-delta, &we)
+		}
+		if row >= delta {
 			r.addVerticalRule(row-delta, col, &we)
+			r.addHorizontalRule(row-delta, col-1, &we)
+			r.addHorizontalRule(row-delta, col, &we)
 		}
 	}
 
 	wce := newNodeCheckerExpensiveRule(row, col, v)
-	r.addHorizontalRule(row, col, &wce)
-	r.addVerticalRule(row, col, &wce)
-	// TODO finesse how we add these rules
-	for delta := model.Dimension(1); delta <= vd; delta++ {
-		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+	for delta := model.Dimension(0); delta < vd; delta++ {
+		if col+delta < size {
 			r.addHorizontalRule(row, col+delta, &wce)
 		}
-		if col > delta && col-delta > 1 {
-			r.addHorizontalRule(row, col-delta, &wce)
-		}
-		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+		if row+delta < size {
 			r.addVerticalRule(row+delta, col, &wce)
 		}
-		if row > delta && row-delta > 1 {
+	}
+	for delta := model.Dimension(1); delta <= vd; delta++ {
+		if col >= delta {
+			r.addHorizontalRule(row, col-delta, &wce)
+		}
+		if row >= delta {
 			r.addVerticalRule(row-delta, col, &wce)
 		}
 	}
-
-	/*
-
-		hb := newWhiteHorizontalBranchRule(row, col)
-		if col > 1 {
-			r.addHorizontalRule(row, col-2, &hb)
-		}
-		r.addHorizontalRule(row, col+1, &hb)
-		r.addVerticalRule(row, col-1, &hb)
-		r.addVerticalRule(row-1, col-1, &hb)
-		r.addVerticalRule(row, col+1, &hb)
-		r.addVerticalRule(row-1, col+1, &hb)
-
-		vb := newWhiteVerticalBranchRule(row, col)
-		if row > 1 {
-			r.addVerticalRule(row-2, col, &vb)
-		}
-		r.addVerticalRule(row+1, col, &vb)
-		r.addVerticalRule(row-1, col, &vb)
-		r.addVerticalRule(row-1, col-1, &vb)
-		r.addVerticalRule(row+1, col, &vb)
-		r.addVerticalRule(row+1, col-1, &vb)
-	*/
 }

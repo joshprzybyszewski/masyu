@@ -16,73 +16,43 @@ func newNodeCheckerExpensiveRule(
 	return r
 }
 
-// TODO figure this one out!!!
 func (r *rule) getExpensiveNodeCheckerRule(
 	v model.Value,
 ) func(*state) {
 	// TODO is it better to scope these vars once up here?
-	// var right, down, left, up uint32
 	// var cr, cd, cl, cu bool
 	return func(s *state) {
-		cr, cd, cl, cu := true, true, true, true
+		// cr, cd, cl, cu := true, true, true, true
 		pd, nd := model.Dimension(0), model.Dimension(1)
 		var total model.Value
 
-		for {
-			// check right
-			if cr {
-				if s.horLineAt(r.row, r.col+pd) {
-					total++
-					if total > v {
-						r.setInvalid(s)
-						return
-					}
-				} else {
-					cr = false
-				}
+		for pd = 0; s.horLineAt(r.row, r.col+pd); pd++ {
+			total++
+			if total > v {
+				r.setInvalid(s)
+				return
 			}
-			// check left
-			if cl {
-				if nd < r.col && s.horLineAt(r.row, r.col-nd) {
-					total++
-					if total > v {
-						r.setInvalid(s)
-						return
-					}
-				} else {
-					cl = false
-				}
+		}
+		for nd = 1; nd < r.col && s.horLineAt(r.row, r.col-nd); nd++ {
+			total++
+			if total > v {
+				r.setInvalid(s)
+				return
 			}
-			// check down
-			if cd {
-				if s.verLineAt(r.row+pd, r.col) {
-					total++
-					if total > v {
-						r.setInvalid(s)
-						return
-					}
-				} else {
-					cd = false
-				}
+		}
+		for pd = 0; s.verLineAt(r.row+pd, r.col); pd++ {
+			total++
+			if total > v {
+				r.setInvalid(s)
+				return
 			}
-			// check up
-			if cu {
-				if nd < r.row && s.verLineAt(r.row-nd, r.col) {
-					total++
-					if total > v {
-						r.setInvalid(s)
-						return
-					}
-				} else {
-					cu = false
-				}
+		}
+		for nd = 1; nd < r.row && s.verLineAt(r.row-nd, r.col); nd++ {
+			total++
+			if total > v {
+				r.setInvalid(s)
+				return
 			}
-
-			if !cr && !cd && !cl && !cu {
-				break
-			}
-			pd++
-			nd++
 		}
 	}
 }

@@ -5,7 +5,7 @@ import "fmt"
 type Iterator int
 
 func (i Iterator) String() string {
-	return fmt.Sprintf("%dx%d %s", i.GetSize(), i.GetSize(), i.GetDifficulty())
+	return fmt.Sprintf("%dx%d %s", i.GetSize()-1, i.GetSize()-1, i.GetDifficulty())
 }
 
 func (i Iterator) Valid() bool {
