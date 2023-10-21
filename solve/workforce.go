@@ -105,6 +105,7 @@ func (w *workforce) solve(
 	if ss == solved {
 		return s.toSolution(), nil
 	} else if ss != validUnsolved {
+		fmt.Printf("s.String()\n%s\n", s.String())
 		panic(`dev error!`)
 	}
 

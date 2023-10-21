@@ -104,7 +104,7 @@ func (r *rule) getExpensiveWhiteRule(
 
 					// There is a spur coming into my path. I should not continue checking this direction
 					if s.horLineAt(r.row-nd, r.col) ||
-						s.horLineAt(r.row-nd, r.col+1) {
+						s.horLineAt(r.row-nd, r.col-1) {
 						// cannot continue
 						cu = false
 					}
@@ -118,12 +118,16 @@ func (r *rule) getExpensiveWhiteRule(
 			}
 			posBit <<= 1
 			negBit >>= 1
+			if negBit == 0 {
+				break
+			}
 			pd++
 			nd++
 		}
 
 		// check right and left
-		if right == 0 && left == 0 { // TODO I think this case can be expanded
+		// if right&left == 0 { // TODO I think this case can be expanded
+		if right == 0 || left == 0 { // TODO I think this case can be expanded
 			// cannot be place right and left. must go down and up.
 			du := down & up
 			if du == 0 {
@@ -175,7 +179,8 @@ func (r *rule) getExpensiveWhiteRule(
 		}
 
 		// check up and down
-		if up == 0 && down == 0 { // TODO I think this case can be expanded
+		// if up&down == 0 { // TODO I think this case can be expanded
+		if up == 0 || down == 0 { // TODO I think this case can be expanded
 			// cannot be placed up and down. must go left and right.
 			lr := left & right
 			if lr == 0 {
