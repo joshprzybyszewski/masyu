@@ -25,6 +25,8 @@ func newWorker(
 func (w *worker) process(
 	ctx context.Context,
 ) {
+	// fmt.Printf("process\n%s\n", w.state.String())
+	// time.Sleep(time.Millisecond)
 	ss := settle(&w.state)
 	if ss == solved {
 		w.sendAnswer(w.state.toSolution())
