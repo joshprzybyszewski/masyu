@@ -27,7 +27,7 @@ func FromNodesWithTimeout(
 	s := newState(size, ns)
 
 	ss := settle(&s)
-	fmt.Printf("s.String(): %s\n", s.String())
+	// fmt.Printf("s.String(): %s\n", s.String())
 	if ss == solved {
 		return s.toSolution(), nil
 	} else if ss == invalid {
