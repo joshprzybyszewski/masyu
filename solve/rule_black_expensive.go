@@ -125,7 +125,7 @@ func (r *rule) getExpensiveBlackRule(
 		}
 
 		// check right and down
-		// if right& down == 0 { // TODO I think this case can be expanded
+		// if right&down == 0 { // TODO I think this case can be expanded
 		if right == 0 && down == 0 { // TODO I think this case can be expanded
 			// cannot be place right and down. must go left and up.
 			lu := left & up
@@ -178,7 +178,7 @@ func (r *rule) getExpensiveBlackRule(
 		}
 
 		// check down and left
-		// if down& left == 0 { // TODO I think this case can be expanded
+		// if down&left == 0 { // TODO I think this case can be expanded
 		if down == 0 && left == 0 { // TODO I think this case can be expanded
 			// cannot be placed down and left. must go up and right.
 			ur := up & right
@@ -231,7 +231,7 @@ func (r *rule) getExpensiveBlackRule(
 		}
 
 		// check left and up
-		// if left& up == 0 { // TODO I think this case can be expanded
+		// if left&up == 0 { // TODO I think this case can be expanded
 		if left == 0 && up == 0 { // TODO I think this case can be expanded
 			// cannot be placed left and up. must go right and down.
 			rd := right & down
@@ -284,7 +284,7 @@ func (r *rule) getExpensiveBlackRule(
 		}
 
 		// check up and right
-		// if up& right == 0 { // TODO I think this case can be expanded
+		// if up&right == 0 { // TODO I think this case can be expanded
 		if up == 0 && right == 0 { // TODO I think this case can be expanded
 			// cannot be placed up and right. must go down and left.
 			dl := down & left
