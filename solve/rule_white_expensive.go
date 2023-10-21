@@ -119,6 +119,7 @@ func (r *rule) getExpensiveWhiteRule(
 			posBit <<= 1
 			negBit >>= 1
 			if negBit == 0 {
+				// hit the max size for lines.
 				break
 			}
 			pd++
@@ -126,12 +127,12 @@ func (r *rule) getExpensiveWhiteRule(
 		}
 
 		// check right and left
-		// if right&left == 0 { // TODO I think this case can be expanded
-		if right == 0 || left == 0 { // TODO I think this case can be expanded
+		if right&left == 0 { // TODO I think this case can be expanded
+			// if right == 0 || left == 0 { // TODO I think this case can be expanded
 			// cannot be place right and left. must go down and up.
 			du := down & up
 			if du == 0 {
-				// cannot go left and up. invalid!
+				// cannot go up and down. invalid!
 				r.setInvalid(s)
 				return
 			}
@@ -141,14 +142,14 @@ func (r *rule) getExpensiveWhiteRule(
 			s.avoidHor(r.row, r.col)
 
 			numPos := model.Dimension(0)
-			for n, bit := model.Value(1), uint32(1); ; {
+			for n, bit := model.Dimension(1), uint32(1); ; {
 				if bit&du == bit {
 					// we found one option for the number of horizontal placements.
 					// If this is the only option, then taking du & !bit will be zero.
 					// If that's the case, then we know how many to set.
 					du &= (^bit)
 					if du == 0 {
-						numPos = model.Dimension(n)
+						numPos = n
 					}
 					break
 				}
@@ -194,14 +195,14 @@ func (r *rule) getExpensiveWhiteRule(
 			s.avoidVer(r.row, r.col)
 
 			numPos := model.Dimension(0)
-			for n, bit := model.Value(1), uint32(1); ; {
+			for n, bit := model.Dimension(1), uint32(1); ; {
 				if bit&lr == bit {
 					// we found one option for the number of horizontal placements.
 					// If this is the only option, then taking lr & !bit will be zero.
 					// If that's the case, then we know how many to set.
 					lr &= (^bit)
 					if lr == 0 {
-						numPos = model.Dimension(n)
+						numPos = n
 					}
 					break
 				}

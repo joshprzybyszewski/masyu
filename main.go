@@ -19,7 +19,7 @@ var (
 	puzzID = flag.String("puzzID", "", "if set, then this will run a specific puzzle")
 
 	iterStart     = flag.Int("start", int(model.MinIterator), "if set, this will override the iterators starting value")
-	iterFinish    = flag.Int("finish", int(model.MinIterator+5), "if set, this will override the iterators final value")
+	iterFinish    = flag.Int("finish", int(model.MinIterator+10), "if set, this will override the iterators final value")
 	numIterations = flag.Int("numIterations", 1, "set this value to run through the puzzles many times")
 
 	fetchNewPuzzles = flag.Bool("refresh", true, "if set, then it will fetch new puzzles")

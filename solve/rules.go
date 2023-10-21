@@ -217,8 +217,10 @@ func (r *rules) addBlackNode(
 
 	be := newBlackExpensiveRule(row, col, v)
 	vd := model.Dimension(v)
+	r.addHorizontalRule(row, col, &be)
+	r.addVerticalRule(row, col, &be)
 	// TODO finesse how we add these rules
-	for delta := model.Dimension(1); delta < vd; delta++ {
+	for delta := model.Dimension(1); delta <= vd; delta++ {
 		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
 			r.addHorizontalRule(row, col+delta, &be)
 		}
@@ -230,6 +232,25 @@ func (r *rules) addBlackNode(
 		}
 		if row > delta && row-delta > 1 {
 			r.addVerticalRule(row-delta, col, &be)
+		}
+	}
+
+	bce := newNodeCheckerExpensiveRule(row, col, v)
+	r.addHorizontalRule(row, col, &bce)
+	r.addVerticalRule(row, col, &bce)
+	// TODO finesse how we add these rules
+	for delta := model.Dimension(1); delta <= vd; delta++ {
+		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+			r.addHorizontalRule(row, col+delta, &bce)
+		}
+		if col > delta && col-delta > 1 {
+			r.addHorizontalRule(row, col-delta, &bce)
+		}
+		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+			r.addVerticalRule(row+delta, col, &bce)
+		}
+		if row > delta && row-delta > 1 {
+			r.addVerticalRule(row-delta, col, &bce)
 		}
 	}
 
@@ -296,6 +317,8 @@ func (r *rules) addWhiteNode(
 
 	we := newWhiteExpensiveRule(row, col, v)
 	vd := model.Dimension(v)
+	r.addHorizontalRule(row, col, &we)
+	r.addVerticalRule(row, col, &we)
 	// TODO finesse how we add these rules
 	for delta := model.Dimension(1); delta < vd; delta++ {
 		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
@@ -309,6 +332,25 @@ func (r *rules) addWhiteNode(
 		}
 		if row > delta && row-delta > 1 {
 			r.addVerticalRule(row-delta, col, &we)
+		}
+	}
+
+	wce := newNodeCheckerExpensiveRule(row, col, v)
+	r.addHorizontalRule(row, col, &wce)
+	r.addVerticalRule(row, col, &wce)
+	// TODO finesse how we add these rules
+	for delta := model.Dimension(1); delta <= vd; delta++ {
+		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+			r.addHorizontalRule(row, col+delta, &wce)
+		}
+		if col > delta && col-delta > 1 {
+			r.addHorizontalRule(row, col-delta, &wce)
+		}
+		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+			r.addVerticalRule(row+delta, col, &wce)
+		}
+		if row > delta && row-delta > 1 {
+			r.addVerticalRule(row-delta, col, &wce)
 		}
 	}
 
