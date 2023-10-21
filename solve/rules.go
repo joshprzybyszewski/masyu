@@ -55,11 +55,17 @@ func (r *rules) populateRules(
 	s *state,
 ) {
 
+	var nodeMap [maxPinsPerLine][maxPinsPerLine]model.Node
+
+	for i := range s.nodes {
+		nodeMap[s.nodes[i].Row][s.nodes[i].Col] = s.nodes[i]
+	}
+
 	for i := range s.nodes {
 		if s.nodes[i].IsBlack {
-			r.addBlackNode(s.nodes[i].Row, s.nodes[i].Col, s.nodes[i].Value)
+			r.addBlackNode(s.nodes[i], &nodeMap)
 		} else {
-			r.addWhiteNode(s.nodes[i].Row, s.nodes[i].Col, s.nodes[i].Value)
+			r.addWhiteNode(s.nodes[i], &nodeMap)
 		}
 	}
 
@@ -204,9 +210,12 @@ func (r *rules) addVerticalRule(
 }
 
 func (r *rules) addBlackNode(
-	row, col model.Dimension,
-	v model.Value,
+	node model.Node,
+	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) {
+	row, col := node.Row, node.Col
+	v := node.Value
+
 	// TODO make this actually the size
 	size := model.Dimension(model.MaxPinsPerLine)
 
@@ -218,7 +227,7 @@ func (r *rules) addBlackNode(
 	r.addVerticalRule(row-1, col, &bv)
 	r.addVerticalRule(row, col, &bv)
 
-	be := newBlackExpensiveRule(row, col, v)
+	be := newBlackExpensiveRule(node, nodes)
 	vd := model.Dimension(v)
 	r.addHorizontalRule(row, col, &be)
 	r.addVerticalRule(row, col, &be)
@@ -267,9 +276,12 @@ func (r *rules) addBlackNode(
 }
 
 func (r *rules) addWhiteNode(
-	row, col model.Dimension,
-	v model.Value,
+	node model.Node,
+	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) {
+	row, col := node.Row, node.Col
+	v := node.Value
+
 	// TODO make this actually the size
 	size := model.Dimension(model.MaxPinsPerLine)
 

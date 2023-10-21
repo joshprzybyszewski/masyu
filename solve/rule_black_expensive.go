@@ -3,25 +3,192 @@ package solve
 import "github.com/joshprzybyszewski/masyu/model"
 
 func newBlackExpensiveRule(
-	nodeRow, nodeCol model.Dimension,
-	value model.Value,
+	node model.Node,
+	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) rule {
 	r := rule{
-		affects: int(value) + 4,
-		row:     nodeRow,
-		col:     nodeCol,
+		affects: int(node.Value) + 4,
+		row:     node.Row,
+		col:     node.Col,
 	}
-	r.check = r.getExpensiveBlackRule(value)
+	bounds := getBlackBounds(node, nodes)
+	r.check = r.getExpensiveBlackRule(node.Value, bounds)
 	return r
+}
+
+type bounds struct {
+	maxRight model.Dimension
+	maxDown  model.Dimension
+	maxLeft  model.Dimension
+	maxUp    model.Dimension
+}
+
+func getBlackBounds(
+	node model.Node,
+	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
+) bounds {
+	vm1 := model.Dimension(node.Value - 1)
+	b := bounds{
+		maxRight: node.Col + vm1 - 1,
+		maxDown:  node.Row + vm1 - 1,
+	}
+	if vm1 < node.Col {
+		b.maxLeft = node.Col - vm1
+	}
+	if vm1 < node.Row {
+		b.maxUp = node.Row - vm1
+	}
+	// TODO change this if-condition to be <= 2 once we get the rest of the logic in this function correct
+	if node.Value <= 2 {
+		// if node.Value > 1 {
+		return b
+	}
+
+	var otherVal model.Value
+
+	// check the right
+	for c := node.Col + 1; c <= b.maxRight; c++ {
+		if nodes[node.Row][c].Value == 0 {
+			continue
+		}
+		otherVal = nodes[node.Row][c].Value
+
+		if nodes[node.Row][c].IsBlack {
+			// if we found a black node at this pin, then we either need to stop here,
+			// or at the column before here.
+			if c-node.Col > model.Dimension(otherVal-1) {
+				b.maxRight = c - 2
+			} else {
+				b.maxRight = c - 1
+			}
+			break
+		}
+
+		// we found a white node at this pin.
+		if c-node.Col > model.Dimension(otherVal-1) ||
+			b.maxRight < node.Col+model.Dimension(otherVal-1) {
+			// the distance to get to this node is more than the white node can handle OR
+			// we cannot go far enough to satisfy this white node.
+			b.maxRight = c - 2
+		} else {
+			// if we're going to go through this white node, then we cannot go beyond the limitation
+			// that it puts on us.
+			b.maxRight = node.Col + model.Dimension(otherVal-1)
+		}
+		break
+	}
+
+	// check the left
+	for c := node.Col - 1; c > 0 && c >= b.maxLeft; c-- {
+		if nodes[node.Row][c].Value == 0 {
+			continue
+		}
+		otherVal = nodes[node.Row][c].Value
+
+		if nodes[node.Row][c].IsBlack {
+			// if we found a black node at this pin, then we either need to stop here,
+			// or at the column before here.
+			if node.Col-c > model.Dimension(otherVal-1) {
+				b.maxLeft = c + 1
+			} else {
+				b.maxLeft = c
+			}
+			break
+		}
+
+		// we found a white node at this pin.
+		if node.Col-c > model.Dimension(otherVal-1) ||
+			model.Dimension(otherVal) > node.Col ||
+			b.maxLeft > node.Col-model.Dimension(otherVal) {
+			// the distance to get to this node is more than the white node can handle OR
+			// we cannot go far enough to satisfy this white node.
+			b.maxLeft = c + 1
+		} else {
+			// if we're going to go through this white node, then we cannot go beyond the limitation
+			// that it puts on us.
+			b.maxLeft = node.Col - model.Dimension(otherVal)
+		}
+		break
+	}
+
+	// check down
+	for r := node.Row + 1; r <= b.maxDown; r++ {
+		if nodes[r][node.Col].Value == 0 {
+			continue
+		}
+		otherVal = nodes[r][node.Col].Value
+
+		if nodes[r][node.Col].IsBlack {
+			// if we found a black node at this pin, then we either need to stop here,
+			// or at the column before here.
+			if r-node.Row > model.Dimension(otherVal-1) {
+				b.maxDown = r - 2
+			} else {
+				b.maxDown = r - 1
+			}
+			break
+		}
+
+		// we found a white node at this pin.
+		if r-node.Row > model.Dimension(otherVal-1) ||
+			b.maxDown < node.Row+model.Dimension(otherVal-1) {
+			// the distance to get to this node is more than the white node can handle OR
+			// we cannot go far enough to satisfy this white node.
+			b.maxDown = r - 2
+		} else {
+			// if we're going to go through this white node, then we cannot go beyond the limitation
+			// that it puts on us.
+			b.maxDown = node.Row + model.Dimension(otherVal-1)
+		}
+		break
+	}
+
+	// check up
+	for r := node.Row - 1; r > 0 && r >= b.maxUp; r-- {
+		if nodes[r][node.Col].Value == 0 {
+			continue
+		}
+		otherVal = nodes[r][node.Col].Value
+
+		if nodes[r][node.Col].IsBlack {
+			// if we found a black node at this pin, then we either need to stop here,
+			// or at the column before here.
+			if node.Row-r > model.Dimension(otherVal-1) {
+				b.maxUp = r + 1
+			} else {
+				b.maxUp = r
+			}
+			break
+		}
+
+		// we found a white node at this pin.
+		if node.Row-r > model.Dimension(otherVal-1) ||
+			model.Dimension(otherVal) > node.Row ||
+			b.maxUp > node.Row-model.Dimension(otherVal) {
+			// the distance to get to this node is more than the white node can handle OR
+			// we cannot go far enough to satisfy this white node.
+			b.maxUp = r + 1
+		} else {
+			// if we're going to go through this white node, then we cannot go beyond the limitation
+			// that it puts on us.
+			b.maxUp = node.Row - model.Dimension(otherVal)
+		}
+		break
+	}
+
+	return b
 }
 
 func (r *rule) getExpensiveBlackRule(
 	v model.Value,
+	bounds bounds,
 ) func(*state) {
 	if v > 32 {
 		// I use 32 bits to keep track of how far it can go. If the puzzle is one
 		// of the monthly specials (41 pins) or weekly specials (36 pins), then I'm
 		// just gonna say "nope".
+		// TODO a black node on a corner can hit > 32 on 25x25. In that case, I just need to send out
+		// arms the appropriate direction.
 		panic(`unsupported puzzle`)
 	}
 	// TODO is it better to scope these vars once up here?
@@ -37,12 +204,13 @@ func (r *rule) getExpensiveBlackRule(
 		for {
 			// check right
 			if cr {
-				if s.horAvoidAt(r.row, r.col+pd) {
+				if r.col+pd > bounds.maxRight || s.horAvoidAt(r.row, r.col+pd) {
 					cr = false
 				} else {
-					// TODO if there is a white node at [r.row, r.col+pd+1],
-					// then I CANNOT place a bit here.
-					right |= horBit
+					if !s.horLineAt(r.row, r.col+pd+1) {
+						// if there's a line at the next spot, then I can't end here.
+						right |= horBit
+					}
 
 					// There is a spur coming into my path. I should not continue checking this direction
 					if s.verLineAt(r.row, r.col+pd+1) ||
@@ -50,18 +218,18 @@ func (r *rule) getExpensiveBlackRule(
 						// cannot continue
 						cr = false
 					}
-					// TODO if there is a black node at [r.row, r.col+pd+1],
-					// then I CANNOT continue
 				}
 			}
 			// check left
 			if cl {
-				if nd >= r.col || s.horAvoidAt(r.row, r.col-nd) {
+				// TODO i think this first condition might be unnecessary?
+				if nd >= r.col || r.col-nd < bounds.maxLeft || s.horAvoidAt(r.row, r.col-nd) {
 					cl = false
 				} else {
-					// TODO if there is a white node at [r.row, r.col-nd],
-					// then I CANNOT place a bit here.
-					left |= horBit
+					if nd+1 < r.col || !s.horLineAt(r.row, r.col-nd-1) {
+						// if there's a line at the next spot, then I can't end here.
+						left |= horBit
+					}
 
 					// There is a spur coming into my path. I should not continue checking this direction
 					if s.verLineAt(r.row, r.col-nd) ||
@@ -69,18 +237,17 @@ func (r *rule) getExpensiveBlackRule(
 						// cannot continue
 						cl = false
 					}
-					// TODO if there is a black node at [r.row, r.col-nd],
-					// then I CANNOT continue
 				}
 			}
 			// check down
 			if cd {
-				if s.verAvoidAt(r.row+pd, r.col) {
+				if r.row+pd > bounds.maxDown || s.verAvoidAt(r.row+pd, r.col) {
 					cd = false
 				} else {
-					// TODO if there is a white node at [r.row+pd+1, r.col],
-					// then I CANNOT place a bit here.
-					down |= verBit
+					if !s.verLineAt(r.row+pd+1, r.col) {
+						// if there's a line at the next spot, then I can't end here.
+						down |= verBit
+					}
 
 					// There is a spur coming into my path. I should not continue checking this direction
 					if s.horLineAt(r.row+pd+1, r.col) ||
@@ -94,12 +261,14 @@ func (r *rule) getExpensiveBlackRule(
 			}
 			// check up
 			if cu {
-				if nd >= r.row || s.verAvoidAt(r.row-nd, r.col) {
+				// TODO i think this first condition might be unnecessary?
+				if nd >= r.row || r.row-nd < bounds.maxUp || s.verAvoidAt(r.row-nd, r.col) {
 					cu = false
 				} else {
-					// TODO if there is a white node at [r.row-nd, r.col],
-					// then I CANNOT place a bit here.
-					up |= verBit
+					if nd+1 < r.row || !s.verLineAt(r.row-nd-1, r.col) {
+						// if there's a line at the next spot, then I can't end here.
+						up |= verBit
+					}
 
 					// There is a spur coming into my path. I should not continue checking this direction
 					if s.horLineAt(r.row-nd, r.col) ||
@@ -107,8 +276,6 @@ func (r *rule) getExpensiveBlackRule(
 						// cannot continue
 						cu = false
 					}
-					// TODO if there is a black node at [r.row-nd, r.col],
-					// then I CANNOT continue
 				}
 			}
 
@@ -123,6 +290,9 @@ func (r *rule) getExpensiveBlackRule(
 			pd++
 			nd++
 		}
+
+		// TODO consider flip flopping this to inspect "should I send out an arm r/d/l/u"?
+		// TODO send out a minimum arm if we know a minimum.
 
 		// check right and down
 		// if right&down == 0 { // TODO I think this case can be expanded
@@ -139,6 +309,7 @@ func (r *rule) getExpensiveBlackRule(
 			s.avoidHor(r.row, r.col)
 			s.avoidVer(r.row, r.col)
 
+			// TODO send out a minimum horizontal lines
 			numHor := model.Dimension(0)
 			for n, bit := model.Value(1), uint32(1); ; {
 				if bit&lu == bit {
