@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	// numWorkers = 1
-	numWorkers = 4
+	// TODO for testing; just use one worker
+	numWorkers = 1
+	// numWorkers = 4
 )
 
 type workforce struct {

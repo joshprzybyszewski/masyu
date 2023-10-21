@@ -215,6 +215,24 @@ func (r *rules) addBlackNode(
 	r.addVerticalRule(row-1, col, &bv)
 	r.addVerticalRule(row, col, &bv)
 
+	be := newBlackExpensiveRule(row, col, v)
+	vd := model.Dimension(v)
+	// TODO finesse how we add these rules
+	for delta := model.Dimension(1); delta < vd; delta++ {
+		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+			r.addHorizontalRule(row, col+delta, &be)
+		}
+		if col > delta && col-delta > 1 {
+			r.addHorizontalRule(row, col-delta, &be)
+		}
+		if col+delta < model.MaxPinsPerLine { // TODO the size, probably
+			r.addVerticalRule(row+delta, col, &be)
+		}
+		if row > delta && row-delta > 1 {
+			r.addVerticalRule(row-delta, col, &be)
+		}
+	}
+
 	/*
 		// Look at extended "avoids"
 		if col > 1 {
