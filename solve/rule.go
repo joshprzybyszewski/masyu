@@ -13,6 +13,5 @@ type rule struct {
 }
 
 func (r *rule) setInvalid(s *state) {
-	// fmt.Printf("s.String(): %s\n", s.String())
 	s.hasInvalid = true
 }

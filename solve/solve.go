@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	maxAttemptDuration = 10 * time.Second // 5 * time.Minute
+	// TODO 5 minutes is a long time.
+	maxAttemptDuration = 5 * time.Minute
 )
 
 func solveWithWorkforce(

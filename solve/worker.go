@@ -22,18 +22,9 @@ func newWorker(
 	return w
 }
 
-var nProcessess = 0
-
 func (w *worker) process(
 	ctx context.Context,
 ) {
-	// if nProcessess > 10 {
-	// 	return
-	// }
-	// fmt.Printf("process\n%s\n", w.state.String())
-	// time.Sleep(time.Millisecond)
-	// nProcessess++
-
 	ss := settle(&w.state)
 	if ss == solved {
 		w.sendAnswer(w.state.toSolution())
