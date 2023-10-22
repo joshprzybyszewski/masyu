@@ -20,25 +20,32 @@ func getWhiteBounds(
 	node model.Node,
 	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) bounds {
+	// TODO set size based on the puzzle, not our max
+	size := model.Dimension(maxPinsPerLine)
 	vm1 := model.Dimension(node.Value - 1)
 	b := bounds{
 		maxRight: node.Col + vm1 - 1,
 		maxDown:  node.Row + vm1 - 1,
 	}
+	// don't iterate past the bounds of the puzzle
+	if b.maxRight >= size-1 {
+		b.maxRight = size - 1
+	}
+	if b.maxDown >= size-1 {
+		b.maxDown = size - 1
+	}
+	// If we won't iterate past the start, then set the limit
 	if vm1 < node.Col {
 		b.maxLeft = node.Col - vm1
 	}
 	if vm1 < node.Row {
 		b.maxUp = node.Row - vm1
 	}
-	// if node.Value <= 2 {
-	// return b
-	// }
 
 	var otherVal model.Value
 
 	// check the right
-	for c := node.Col + 1; c <= b.maxRight; c++ {
+	for c := node.Col + 1; c <= b.maxRight+1; c++ {
 		if nodes[node.Row][c].Value == 0 {
 			continue
 		}
@@ -90,7 +97,7 @@ func getWhiteBounds(
 	}
 
 	// check down
-	for r := node.Row + 1; r <= b.maxDown; r++ {
+	for r := node.Row + 1; r <= b.maxDown+1; r++ {
 		if nodes[r][node.Col].Value == 0 {
 			continue
 		}

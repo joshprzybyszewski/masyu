@@ -45,7 +45,10 @@ func getBlackBounds(
 	var otherVal model.Value
 
 	// check the right
-	for c := node.Col + 1; c <= b.maxRight; c++ {
+	// TODO in the positive directions, you need to check one past the maxDown
+	// to see if there's a white node at the end of the line that would be drawn.
+	// TODO do this for the white nodes too, I think.
+	for c := node.Col + 1; c <= b.maxRight+1; c++ {
 		if nodes[node.Row][c].Value == 0 {
 			continue
 		}
@@ -110,7 +113,9 @@ func getBlackBounds(
 	}
 
 	// check down
-	for r := node.Row + 1; r <= b.maxDown; r++ {
+	// TODO in the positive directions, you need to check one past the maxDown
+	// to see if there's a white node at the end of the line that would be drawn.
+	for r := node.Row + 1; r <= b.maxDown+1; r++ {
 		if nodes[r][node.Col].Value == 0 {
 			continue
 		}
@@ -198,7 +203,8 @@ func (r *rule) getExpensiveBlackRule(
 		cr, cd, cl, cu := true, true, true, true
 		horBit := uint32(1 << 0)
 		verBit := uint32(1 << (v - 2))
-		pd, nd := model.Dimension(0), model.Dimension(1)
+		pd := model.Dimension(0)
+		nd := model.Dimension(1)
 
 		for {
 			// check right

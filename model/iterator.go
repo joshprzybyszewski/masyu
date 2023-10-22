@@ -59,9 +59,6 @@ func (i Iterator) GetDifficulty() Difficulty {
 	if i >= 17 && i <= 19 {
 		return hard
 	}
-	if i > 15 {
-		return Difficulty(i - 15)
-	}
 
 	// 2 is the easy 7x7, and then it increments by threes
 	return Difficulty((i-2)%3) + 1

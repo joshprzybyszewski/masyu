@@ -270,7 +270,11 @@ func (pf *permutationsFactory) populateNextNode(
 
 	var wn, bn model.Node
 	for _, n := range s.nodes {
-		if !isNodeSolved(s, n) {
+		if n.Value != 2 {
+			// I won't fill any nodes that aren't size 2.
+			continue
+		}
+		if !isNode2Solved(s, n) {
 			if n.IsBlack {
 				bn = n
 				break
@@ -288,35 +292,28 @@ func (pf *permutationsFactory) populateNextNode(
 		return
 	}
 
+	// TODO we'd have to do this differently.
 	if node.IsBlack {
 		// RD
 		pf.save(func(s *state) {
 			s.avoidHor(node.Row, node.Col-1)
 			s.lineHor(node.Row, node.Col)
-			s.lineHor(node.Row, node.Col+1)
-			s.avoidVer(node.Row-1, node.Col+1)
-			s.avoidVer(node.Row, node.Col+1)
+			s.avoidHor(node.Row, node.Col+1)
 
 			s.avoidVer(node.Row-1, node.Col)
 			s.lineVer(node.Row, node.Col)
-			s.lineVer(node.Row+1, node.Col)
-			s.avoidHor(node.Row+1, node.Col-1)
-			s.avoidHor(node.Row+1, node.Col)
+			s.avoidVer(node.Row+1, node.Col)
 		})
 		// DL
 		if node.Col > 1 {
 			pf.save(func(s *state) {
 				s.avoidHor(node.Row, node.Col)
 				s.lineHor(node.Row, node.Col-1)
-				s.lineHor(node.Row, node.Col-2)
-				s.avoidVer(node.Row-1, node.Col-1)
-				s.avoidVer(node.Row, node.Col-1)
+				s.avoidHor(node.Row, node.Col-2)
 
 				s.avoidVer(node.Row-1, node.Col)
 				s.lineVer(node.Row, node.Col)
-				s.lineVer(node.Row+1, node.Col)
-				s.avoidHor(node.Row+1, node.Col-1)
-				s.avoidHor(node.Row+1, node.Col)
+				s.avoidVer(node.Row+1, node.Col)
 			})
 
 			// LU
@@ -324,15 +321,11 @@ func (pf *permutationsFactory) populateNextNode(
 				pf.save(func(s *state) {
 					s.avoidHor(node.Row, node.Col)
 					s.lineHor(node.Row, node.Col-1)
-					s.lineHor(node.Row, node.Col-2)
-					s.avoidVer(node.Row-1, node.Col-1)
-					s.avoidVer(node.Row, node.Col-1)
+					s.avoidHor(node.Row, node.Col-2)
 
 					s.avoidVer(node.Row, node.Col)
 					s.lineVer(node.Row-1, node.Col)
-					s.lineVer(node.Row-2, node.Col)
-					s.avoidHor(node.Row-1, node.Col-1)
-					s.avoidHor(node.Row-1, node.Col)
+					s.avoidVer(node.Row-2, node.Col)
 				})
 			}
 		}
@@ -341,36 +334,36 @@ func (pf *permutationsFactory) populateNextNode(
 			pf.save(func(s *state) {
 				s.avoidHor(node.Row, node.Col-1)
 				s.lineHor(node.Row, node.Col)
-				s.lineHor(node.Row, node.Col+1)
-				s.avoidVer(node.Row-1, node.Col+1)
-				s.avoidVer(node.Row, node.Col+1)
+				s.avoidHor(node.Row, node.Col+1)
 
 				s.avoidVer(node.Row, node.Col)
 				s.lineVer(node.Row-1, node.Col)
-				s.lineVer(node.Row-2, node.Col)
-				s.avoidHor(node.Row-1, node.Col-1)
-				s.avoidHor(node.Row-1, node.Col)
+				s.avoidVer(node.Row-2, node.Col)
 			})
 		}
 	} else {
 		// horizontal
 		pf.save(func(s *state) {
-			s.lineHor(node.Row, node.Col)
+			s.avoidHor(node.Row, node.Col-2)
 			s.lineHor(node.Row, node.Col-1)
+			s.lineHor(node.Row, node.Col)
+			s.avoidHor(node.Row, node.Col+1)
 			s.avoidVer(node.Row-1, node.Col)
 			s.avoidVer(node.Row, node.Col)
 		})
 		// vertical
 		pf.save(func(s *state) {
-			s.lineVer(node.Row, node.Col)
+			s.avoidVer(node.Row-2, node.Col)
 			s.lineVer(node.Row-1, node.Col)
+			s.lineVer(node.Row, node.Col)
+			s.avoidVer(node.Row+1, node.Col)
 			s.avoidHor(node.Row, node.Col-1)
 			s.avoidHor(node.Row, node.Col)
 		})
 	}
 }
 
-func isNodeSolved(
+func isNode2Solved(
 	s *state,
 	n model.Node,
 ) bool {
