@@ -22,7 +22,6 @@ func getWhiteBounds(
 	node model.Node,
 	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) bounds {
-	// TODO set size based on the puzzle, not our max
 	vm1 := model.Dimension(node.Value - 1)
 	b := bounds{
 		maxRight: node.Col + vm1 - 1,

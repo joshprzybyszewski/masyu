@@ -228,7 +228,6 @@ func (r *rule) getExpensiveBlackRule(
 			}
 			// check left
 			if cl {
-				// TODO i think this first condition might be unnecessary?
 				if r.col-nd < bounds.maxLeft || s.horAvoidAt(r.row, r.col-nd) {
 					cl = false
 				} else {
@@ -265,7 +264,6 @@ func (r *rule) getExpensiveBlackRule(
 			}
 			// check up
 			if cu {
-				// TODO i think this first condition might be unnecessary?
 				if r.row-nd < bounds.maxUp || s.verAvoidAt(r.row-nd, r.col) {
 					cu = false
 				} else {
