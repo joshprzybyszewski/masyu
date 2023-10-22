@@ -30,7 +30,7 @@ func (r *rule) getExpensiveWhiteRule(
 	return func(s *state) {
 		var right, down, left, up uint32 // := 0, 0, 0, 0
 		cr, cd, cl, cu := true, true, true, true
-		posBit := uint32(1 << 0)
+		posBit := uint32(1)
 		negBit := uint32(1 << (v - 2))
 		pd, nd := model.Dimension(0), model.Dimension(1)
 
@@ -126,109 +126,87 @@ func (r *rule) getExpensiveWhiteRule(
 		}
 
 		// check right and left
-		if right&left == 0 { // TODO I think this case can be expanded
-			// if right == 0 || left == 0 { // TODO I think this case can be expanded
-			// cannot be place right and left. must go down and up.
-			du := down & up
-			if du == 0 {
+		if right&left == 0 {
+			// cannot be placed right and left. must go down and up.
+			if down&up == 0 {
 				// cannot go up and down. invalid!
 				r.setInvalid(s)
 				return
 			}
 
-			// make sure we avoid left and right
-			s.avoidHor(r.row, r.col-1)
-			s.avoidHor(r.row, r.col)
-
-			numPos := model.Dimension(0)
-			for n, bit := model.Dimension(1), uint32(1); ; {
-				if bit&du == bit {
-					// we found one option for the number of horizontal placements.
-					// If this is the only option, then taking du & !bit will be zero.
-					// If that's the case, then we know how many to set.
-					du &= (^bit)
-					if du == 0 {
-						numPos = n
-					}
-					break
-				}
-				bit <<= 1
-				n++
-			}
-			if numPos == 0 {
-				// we don't know how many in each direction it'll be.
-				// just set up and down.
-				s.lineVer(r.row-1, r.col)
-				s.lineVer(r.row, r.col)
-				return
-			}
-
-			// set a line out positive vertically, then avoid the one after it.
-			for pd = model.Dimension(0); pd < numPos; pd++ {
-				s.lineVer(r.row+pd, r.col)
-			}
-			s.avoidVer(r.row+pd, r.col)
-
-			// set a line out negative vertically, then avoid the one after it.
-			numNeg := model.Dimension(v) - numPos
-			for nd = model.Dimension(1); nd <= numNeg; nd++ {
+			negBit = uint32(1 << (v - 2))
+			for nd = 1; ; {
 				s.lineVer(r.row-nd, r.col)
+				nd++
+
+				if negBit&up != negBit {
+					// we can't stop here; must continue
+					negBit <<= 1
+					continue
+				}
+
+				if up&(^negBit) == 0 {
+					s.avoidVer(r.row-nd, r.col)
+				}
+				break
 			}
-			s.avoidVer(r.row-nd, r.col)
+
+			posBit = uint32(1)
+			for pd = 0; ; {
+				s.lineVer(r.row+pd, r.col)
+				pd++
+
+				if posBit&down == 0 {
+					// we can't stop here; must continue
+					posBit <<= 1
+					continue
+				}
+
+				if down&(^posBit) == 0 {
+					s.avoidVer(r.row+pd, r.col)
+				}
+				break
+			}
 			return
 		}
 
-		// check up and down
-		if up&down == 0 { // TODO I think this case can be expanded
-			// if up == 0 || down == 0 { // TODO I think this case can be expanded
-			// cannot be placed up and down. must go left and right.
-			lr := left & right
-			if lr == 0 {
-				// cannot go up and right. invalid!
-				r.setInvalid(s)
-				return
-			}
-
-			// make sure we avoid up and down
-			s.avoidVer(r.row-1, r.col)
-			s.avoidVer(r.row, r.col)
-
-			numPos := model.Dimension(0)
-			for n, bit := model.Dimension(1), uint32(1); ; {
-				if bit&lr == bit {
-					// we found one option for the number of horizontal placements.
-					// If this is the only option, then taking lr & !bit will be zero.
-					// If that's the case, then we know how many to set.
-					lr &= (^bit)
-					if lr == 0 {
-						numPos = n
-					}
-					break
-				}
-				bit <<= 1
-				n++
-			}
-			if numPos == 0 {
-				// we don't know how many in each direction it'll be.
-				// just set left and right.
-				s.lineHor(r.row, r.col-1)
-				s.lineHor(r.row, r.col)
-				return
-			}
-
-			// set a line out positive horizontally, then avoid the one after it.
-			for pd = model.Dimension(0); pd < numPos; pd++ {
-				s.lineHor(r.row, r.col+pd)
-			}
-			s.avoidHor(r.row, r.col+pd)
-
-			// set a line out negative horizontally, then avoid the one after it.
-			numNeg := model.Dimension(v) - numPos
-			for nd = model.Dimension(1); nd <= numNeg; nd++ {
-				s.lineHor(r.row, r.col-nd)
-			}
-			s.avoidHor(r.row, r.col-nd)
+		if up&down != 0 {
+			// it _could_ go up and down; can't infer anything to continue.
 			return
+		}
+
+		negBit = uint32(1 << (v - 2))
+		for nd = 1; ; {
+			s.lineHor(r.row, r.col-nd)
+			nd++
+
+			if negBit&left != negBit {
+				// we can't stop here; must continue
+				negBit <<= 1
+				continue
+			}
+
+			if left&(^negBit) == 0 {
+				s.avoidHor(r.row, r.col-nd)
+			}
+			break
+		}
+
+		posBit = uint32(1)
+		for pd = 0; ; {
+			s.lineHor(r.row, r.col+pd)
+			pd++
+
+			if posBit&right == 0 {
+				// we can't stop here; must continue
+				posBit <<= 1
+				continue
+			}
+
+			if right&(^posBit) == 0 {
+				s.avoidHor(r.row, r.col+pd)
+			}
+			break
 		}
 	}
 }
