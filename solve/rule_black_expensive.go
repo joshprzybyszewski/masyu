@@ -45,9 +45,6 @@ func getBlackBounds(
 	var otherVal model.Value
 
 	// check the right
-	// TODO in the positive directions, you need to check one past the maxDown
-	// to see if there's a white node at the end of the line that would be drawn.
-	// TODO do this for the white nodes too, I think.
 	for c := node.Col + 1; c <= b.maxRight+1; c++ {
 		if nodes[node.Row][c].Value == 0 {
 			continue
@@ -113,8 +110,6 @@ func getBlackBounds(
 	}
 
 	// check down
-	// TODO in the positive directions, you need to check one past the maxDown
-	// to see if there's a white node at the end of the line that would be drawn.
 	for r := node.Row + 1; r <= b.maxDown+1; r++ {
 		if nodes[r][node.Col].Value == 0 {
 			continue
@@ -228,7 +223,7 @@ func (r *rule) getExpensiveBlackRule(
 			// check left
 			if cl {
 				// TODO i think this first condition might be unnecessary?
-				if nd >= r.col || r.col-nd < bounds.maxLeft || s.horAvoidAt(r.row, r.col-nd) {
+				if r.col-nd < bounds.maxLeft || s.horAvoidAt(r.row, r.col-nd) {
 					cl = false
 				} else {
 					if nd+1 < r.col || !s.horLineAt(r.row, r.col-nd-1) {
@@ -265,7 +260,7 @@ func (r *rule) getExpensiveBlackRule(
 			// check up
 			if cu {
 				// TODO i think this first condition might be unnecessary?
-				if nd >= r.row || r.row-nd < bounds.maxUp || s.verAvoidAt(r.row-nd, r.col) {
+				if r.row-nd < bounds.maxUp || s.verAvoidAt(r.row-nd, r.col) {
 					cu = false
 				} else {
 					if nd+1 < r.row || !s.verLineAt(r.row-nd-1, r.col) {

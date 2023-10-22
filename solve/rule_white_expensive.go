@@ -184,7 +184,7 @@ func (r *rule) getExpensiveWhiteRule(
 			}
 			// check left
 			if cl {
-				if nd >= r.col || r.col-nd < bounds.maxLeft || s.horAvoidAt(r.row, r.col-nd) {
+				if r.col-nd < bounds.maxLeft || s.horAvoidAt(r.row, r.col-nd) {
 					cl = false
 				} else {
 					left |= negBit
@@ -214,7 +214,7 @@ func (r *rule) getExpensiveWhiteRule(
 			}
 			// check up
 			if cu {
-				if nd >= r.row || r.row-nd < bounds.maxUp || s.verAvoidAt(r.row-nd, r.col) {
+				if r.row-nd < bounds.maxUp || s.verAvoidAt(r.row-nd, r.col) {
 					cu = false
 				} else {
 					up |= negBit
