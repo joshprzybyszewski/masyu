@@ -255,13 +255,13 @@ func (s *state) String() string {
 			isLine, isAvoid = s.verAt(model.Dimension(r), model.Dimension(c))
 			if isLine && isAvoid {
 				sb.WriteByte(confusedSpace)
-				sb.WriteByte(confusedSpace)
+				sb.WriteByte(' ')
 			} else if isLine {
 				sb.WriteByte(verticalLineSpace)
-				sb.WriteByte(verticalLineSpace)
+				sb.WriteByte(' ')
 			} else if isAvoid {
 				sb.WriteByte(avoidSpace)
-				sb.WriteByte(avoidSpace)
+				sb.WriteByte(' ')
 			} else {
 				sb.WriteByte(' ')
 				sb.WriteByte(' ')
@@ -296,5 +296,5 @@ func (s *state) getNode(r, c model.Dimension) [2]byte {
 	if r > model.Dimension(s.size) || c > model.Dimension(s.size) {
 		return [2]byte{' ', ' '}
 	}
-	return [2]byte{'(', ')'}
+	return [2]byte{'o', ' '}
 }

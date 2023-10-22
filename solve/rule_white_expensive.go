@@ -34,14 +34,13 @@ func (r *rule) getExpensiveWhiteRule(
 		negBit := uint32(1 << (v - 2))
 		pd, nd := model.Dimension(0), model.Dimension(1)
 
+		// TODO copy the logic from the black node eval.
 		for {
 			// check right
 			if cr {
 				if s.horAvoidAt(r.row, r.col+pd) {
 					cr = false
 				} else {
-					// TODO if there is a white node at [r.row, r.col+pd+1],
-					// then I CANNOT place a bit here.
 					right |= posBit
 
 					// There is a spur coming into my path. I should not continue checking this direction
@@ -50,8 +49,6 @@ func (r *rule) getExpensiveWhiteRule(
 						// cannot continue
 						cr = false
 					}
-					// TODO if there is a black node at [r.row, r.col+pd+1],
-					// then I CANNOT continue
 				}
 			}
 			// check left
@@ -59,8 +56,6 @@ func (r *rule) getExpensiveWhiteRule(
 				if nd >= r.col || s.horAvoidAt(r.row, r.col-nd) {
 					cl = false
 				} else {
-					// TODO if there is a white node at [r.row, r.col-nd],
-					// then I CANNOT place a bit here.
 					left |= negBit
 
 					// There is a spur coming into my path. I should not continue checking this direction
@@ -69,8 +64,6 @@ func (r *rule) getExpensiveWhiteRule(
 						// cannot continue
 						cl = false
 					}
-					// TODO if there is a black node at [r.row, r.col-nd],
-					// then I CANNOT continue
 				}
 			}
 			// check down
@@ -78,8 +71,6 @@ func (r *rule) getExpensiveWhiteRule(
 				if s.verAvoidAt(r.row+pd, r.col) {
 					cd = false
 				} else {
-					// TODO if there is a white node at [r.row+pd+1, r.col],
-					// then I CANNOT place a bit here.
 					down |= posBit
 
 					// There is a spur coming into my path. I should not continue checking this direction
@@ -88,8 +79,6 @@ func (r *rule) getExpensiveWhiteRule(
 						// cannot continue
 						cd = false
 					}
-					// TODO if there is a black node at [r.row, r.col+pd+1],
-					// then I CANNOT continue
 				}
 			}
 			// check up
@@ -97,8 +86,6 @@ func (r *rule) getExpensiveWhiteRule(
 				if nd >= r.row || s.verAvoidAt(r.row-nd, r.col) {
 					cu = false
 				} else {
-					// TODO if there is a white node at [r.row-nd, r.col],
-					// then I CANNOT place a bit here.
 					up |= negBit
 
 					// There is a spur coming into my path. I should not continue checking this direction
@@ -107,8 +94,6 @@ func (r *rule) getExpensiveWhiteRule(
 						// cannot continue
 						cu = false
 					}
-					// TODO if there is a black node at [r.row-nd, r.col],
-					// then I CANNOT continue
 				}
 			}
 
@@ -125,11 +110,10 @@ func (r *rule) getExpensiveWhiteRule(
 			nd++
 		}
 
-		// check right and left
 		if right&left == 0 {
-			// cannot be placed right and left. must go down and up.
+			// cannot go right and left; must go up and down
 			if down&up == 0 {
-				// cannot go up and down. invalid!
+				// cannot go up and down? invalid!
 				r.setInvalid(s)
 				return
 			}
