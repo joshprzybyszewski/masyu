@@ -277,22 +277,21 @@ func (pf *permutationsFactory) populateNextNode(
 		if !isNode2Solved(s, n) {
 			if n.IsBlack {
 				bn = n
-				break
 			} else {
 				wn = n
+				break
 			}
 		}
 	}
-	node := bn
+	node := wn
 	if node.Row == 0 {
-		node = wn
+		node = bn
 	}
 	if node.Row == 0 {
 		// did not find an unsolved node
 		return
 	}
 
-	// TODO we'd have to do this differently.
 	if node.IsBlack {
 		// RD
 		pf.save(func(s *state) {
