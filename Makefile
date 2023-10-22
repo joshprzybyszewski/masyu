@@ -36,6 +36,6 @@ results: ## Runs the solver to update the reported results on the readme page
 
 .PHONY: lambda
 lambda: ## Builds the app so that we can serve it in a lambda
-	GOOS=linux CGO_ENABLED=0 go build -o masyu-lambda lambda/main.go
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o masyu-lambda lambda/main.go
 	zip masyu-lambda.zip masyu-lambda
 	rm masyu-lambda

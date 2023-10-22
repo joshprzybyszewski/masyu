@@ -32,6 +32,7 @@ func newWorkforce() workforce {
 	}
 
 	if len(wf.workers) > runtime.NumCPU() {
+		fmt.Printf("Had %d workers, but only %d CPU.\n", len(wf.workers), runtime.NumCPU())
 		panic(`dev error`)
 	}
 
