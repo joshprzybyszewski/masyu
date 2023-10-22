@@ -14,7 +14,7 @@ import (
 const (
 	// numWorkers = 1
 	// numWorkers = 4
-	numWorkers = 32
+	numWorkers = 6
 )
 
 type workforce struct {
