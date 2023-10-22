@@ -34,8 +34,6 @@ func (r *rule) getExpensiveWhiteRule(
 		negBit := uint32(1 << (v - 2))
 		pd, nd := model.Dimension(0), model.Dimension(1)
 
-		// TODO detect when there's a minimum distance we must send out an arm
-
 		for {
 			// check right
 			if cr {
