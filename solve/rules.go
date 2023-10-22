@@ -63,9 +63,9 @@ func (r *rules) populateRules(
 
 	for i := range s.nodes {
 		if s.nodes[i].IsBlack {
-			r.addBlackNode(s.nodes[i], &nodeMap)
+			r.addBlackNode(model.Dimension(s.size), s.nodes[i], &nodeMap)
 		} else {
-			r.addWhiteNode(s.nodes[i], &nodeMap)
+			r.addWhiteNode(model.Dimension(s.size), s.nodes[i], &nodeMap)
 		}
 	}
 
@@ -210,14 +210,12 @@ func (r *rules) addVerticalRule(
 }
 
 func (r *rules) addBlackNode(
+	size model.Dimension,
 	node model.Node,
 	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) {
 	row, col := node.Row, node.Col
 	v := node.Value
-
-	// TODO make this actually the size
-	size := model.Dimension(model.MaxPinsPerLine)
 
 	// ensure the black node is valid
 	// TODO remove newBlackValidator?
@@ -227,7 +225,7 @@ func (r *rules) addBlackNode(
 	r.addVerticalRule(row-1, col, &bv)
 	r.addVerticalRule(row, col, &bv)
 
-	be := newBlackExpensiveRule(node, nodes)
+	be := newBlackExpensiveRule(size, node, nodes)
 	vd := model.Dimension(v)
 	r.addHorizontalRule(row, col, &be)
 	r.addVerticalRule(row, col, &be)
@@ -276,14 +274,12 @@ func (r *rules) addBlackNode(
 }
 
 func (r *rules) addWhiteNode(
+	size model.Dimension,
 	node model.Node,
 	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) {
 	row, col := node.Row, node.Col
 	v := node.Value
-
-	// TODO make this actually the size
-	size := model.Dimension(model.MaxPinsPerLine)
 
 	// TODO remove newWhiteValidator?
 	wv := newWhiteValidator(row, col)
@@ -292,7 +288,7 @@ func (r *rules) addWhiteNode(
 	r.addVerticalRule(row-1, col, &wv)
 	r.addVerticalRule(row, col, &wv)
 
-	we := newWhiteExpensiveRule(node, nodes)
+	we := newWhiteExpensiveRule(size, node, nodes)
 	vd := model.Dimension(v)
 	r.addHorizontalRule(row, col, &we)
 	r.addVerticalRule(row, col, &we)

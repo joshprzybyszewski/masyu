@@ -3,6 +3,7 @@ package solve
 import "github.com/joshprzybyszewski/masyu/model"
 
 func newWhiteExpensiveRule(
+	size model.Dimension,
 	node model.Node,
 	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) rule {
@@ -11,17 +12,17 @@ func newWhiteExpensiveRule(
 		row:     node.Row,
 		col:     node.Col,
 	}
-	bounds := getWhiteBounds(node, nodes)
+	bounds := getWhiteBounds(size, node, nodes)
 	r.check = r.getExpensiveWhiteRule(node.Value, bounds)
 	return r
 }
 
 func getWhiteBounds(
+	size model.Dimension,
 	node model.Node,
 	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) bounds {
 	// TODO set size based on the puzzle, not our max
-	size := model.Dimension(maxPinsPerLine)
 	vm1 := model.Dimension(node.Value - 1)
 	b := bounds{
 		maxRight: node.Col + vm1 - 1,

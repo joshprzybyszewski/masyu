@@ -3,6 +3,7 @@ package solve
 import "github.com/joshprzybyszewski/masyu/model"
 
 func newBlackExpensiveRule(
+	size model.Dimension,
 	node model.Node,
 	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) rule {
@@ -11,7 +12,7 @@ func newBlackExpensiveRule(
 		row:     node.Row,
 		col:     node.Col,
 	}
-	bounds := getBlackBounds(node, nodes)
+	bounds := getBlackBounds(size, node, nodes)
 	r.check = r.getExpensiveBlackRule(node.Value, bounds)
 	return r
 }
@@ -24,6 +25,7 @@ type bounds struct {
 }
 
 func getBlackBounds(
+	size model.Dimension,
 	node model.Node,
 	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) bounds {
@@ -32,15 +34,19 @@ func getBlackBounds(
 		maxRight: node.Col + vm1 - 1,
 		maxDown:  node.Row + vm1 - 1,
 	}
+	// don't iterate past the bounds of the puzzle
+	if b.maxRight >= size-1 {
+		b.maxRight = size - 1
+	}
+	if b.maxDown >= size-1 {
+		b.maxDown = size - 1
+	}
 	if vm1 < node.Col {
 		b.maxLeft = node.Col - vm1
 	}
 	if vm1 < node.Row {
 		b.maxUp = node.Row - vm1
 	}
-	// if node.Value <= 2 {
-	// 	return b
-	// }
 
 	var otherVal model.Value
 
