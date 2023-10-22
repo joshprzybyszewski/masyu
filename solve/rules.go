@@ -292,7 +292,7 @@ func (r *rules) addWhiteNode(
 	r.addVerticalRule(row-1, col, &wv)
 	r.addVerticalRule(row, col, &wv)
 
-	we := newWhiteExpensiveRule(row, col, v)
+	we := newWhiteExpensiveRule(node, nodes)
 	vd := model.Dimension(v)
 	r.addHorizontalRule(row, col, &we)
 	r.addVerticalRule(row, col, &we)

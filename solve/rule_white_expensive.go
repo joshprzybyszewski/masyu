@@ -3,20 +3,144 @@ package solve
 import "github.com/joshprzybyszewski/masyu/model"
 
 func newWhiteExpensiveRule(
-	nodeRow, nodeCol model.Dimension,
-	value model.Value,
+	node model.Node,
+	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
 ) rule {
 	r := rule{
-		affects: int(value) + 4,
-		row:     nodeRow,
-		col:     nodeCol,
+		affects: int(node.Value) + 4,
+		row:     node.Row,
+		col:     node.Col,
 	}
-	r.check = r.getExpensiveWhiteRule(value)
+	bounds := getWhiteBounds(node, nodes)
+	r.check = r.getExpensiveWhiteRule(node.Value, bounds)
 	return r
+}
+
+func getWhiteBounds(
+	node model.Node,
+	nodes *[maxPinsPerLine][maxPinsPerLine]model.Node,
+) bounds {
+	vm1 := model.Dimension(node.Value - 1)
+	b := bounds{
+		maxRight: node.Col + vm1 - 1,
+		maxDown:  node.Row + vm1 - 1,
+	}
+	if vm1 < node.Col {
+		b.maxLeft = node.Col - vm1
+	}
+	if vm1 < node.Row {
+		b.maxUp = node.Row - vm1
+	}
+	if node.Value <= 2 {
+		return b
+	}
+
+	var otherVal model.Value
+
+	// check the right
+	for c := node.Col + 1; c <= b.maxRight; c++ {
+		if nodes[node.Row][c].Value == 0 {
+			continue
+		}
+		otherVal = nodes[node.Row][c].Value
+
+		if nodes[node.Row][c].IsBlack {
+			// if we found a black node at this pin, then we either need to stop here,
+			// or at the column before here.
+			if node.Value >= otherVal {
+				// our straight line is too much for this black node. stop before we get there.
+				b.maxRight = c - 2
+			} else {
+				b.maxRight = c - 1
+			}
+			break
+		}
+
+		// we found a white node at this pin.
+		if node.Value != otherVal {
+			// If we cannot continue on through this white node together
+			b.maxRight = c - 2
+		}
+		break
+	}
+
+	// check the left
+	for c := node.Col - 1; c > 0 && c >= b.maxLeft; c-- {
+		if nodes[node.Row][c].Value == 0 {
+			continue
+		}
+		otherVal = nodes[node.Row][c].Value
+
+		if nodes[node.Row][c].IsBlack {
+			// if we found a black node at this pin, then we either need to stop here,
+			// or at the column before here.
+			if node.Value >= otherVal {
+				b.maxLeft = c + 1
+			} else {
+				b.maxLeft = c
+			}
+			break
+		}
+
+		// we found a white node at this pin.
+		if node.Value != otherVal {
+			b.maxLeft = c + 1
+		}
+		break
+	}
+
+	// check down
+	for r := node.Row + 1; r <= b.maxDown; r++ {
+		if nodes[r][node.Col].Value == 0 {
+			continue
+		}
+		otherVal = nodes[r][node.Col].Value
+
+		if nodes[r][node.Col].IsBlack {
+			if node.Value >= otherVal {
+				b.maxDown = r - 2
+			} else {
+				b.maxDown = r - 1
+			}
+			break
+		}
+
+		// we found a white node at this pin.
+		if node.Value != otherVal {
+			b.maxDown = r - 2
+		}
+		break
+	}
+
+	// check up
+	for r := node.Row - 1; r > 0 && r >= b.maxUp; r-- {
+		if nodes[r][node.Col].Value == 0 {
+			continue
+		}
+		otherVal = nodes[r][node.Col].Value
+
+		if nodes[r][node.Col].IsBlack {
+			if node.Value >= otherVal {
+				b.maxUp = r + 1
+			} else {
+				b.maxUp = r
+			}
+			break
+		}
+
+		// we found a white node at this pin.
+		if node.Value != otherVal {
+			b.maxUp = r + 1
+		}
+		break
+	}
+
+	return b
 }
 
 func (r *rule) getExpensiveWhiteRule(
 	v model.Value,
+	bounds bounds,
 ) func(*state) {
 	if v > 32 {
 		// I use 32 bits to keep track of how far it can go. If the puzzle is one
@@ -34,11 +158,10 @@ func (r *rule) getExpensiveWhiteRule(
 		negBit := uint32(1 << (v - 2))
 		pd, nd := model.Dimension(0), model.Dimension(1)
 
-		// TODO copy the logic from the black node eval.
 		for {
 			// check right
 			if cr {
-				if s.horAvoidAt(r.row, r.col+pd) {
+				if r.col+pd > bounds.maxRight || s.horAvoidAt(r.row, r.col+pd) {
 					cr = false
 				} else {
 					right |= posBit
@@ -53,7 +176,7 @@ func (r *rule) getExpensiveWhiteRule(
 			}
 			// check left
 			if cl {
-				if nd >= r.col || s.horAvoidAt(r.row, r.col-nd) {
+				if nd >= r.col || r.col-nd < bounds.maxLeft || s.horAvoidAt(r.row, r.col-nd) {
 					cl = false
 				} else {
 					left |= negBit
@@ -68,7 +191,7 @@ func (r *rule) getExpensiveWhiteRule(
 			}
 			// check down
 			if cd {
-				if s.verAvoidAt(r.row+pd, r.col) {
+				if r.row+pd > bounds.maxDown || s.verAvoidAt(r.row+pd, r.col) {
 					cd = false
 				} else {
 					down |= posBit
@@ -83,7 +206,7 @@ func (r *rule) getExpensiveWhiteRule(
 			}
 			// check up
 			if cu {
-				if nd >= r.row || s.verAvoidAt(r.row-nd, r.col) {
+				if nd >= r.row || r.row-nd < bounds.maxUp || s.verAvoidAt(r.row-nd, r.col) {
 					cu = false
 				} else {
 					up |= negBit
