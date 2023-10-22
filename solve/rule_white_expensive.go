@@ -31,9 +31,9 @@ func getWhiteBounds(
 	if vm1 < node.Row {
 		b.maxUp = node.Row - vm1
 	}
-	if node.Value <= 2 {
-		return b
-	}
+	// if node.Value <= 2 {
+	// return b
+	// }
 
 	var otherVal model.Value
 
