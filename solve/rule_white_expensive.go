@@ -153,6 +153,7 @@ func (r *rule) getExpensiveWhiteRule(
 	// var cr, cd, cl, cu bool
 	return func(s *state) {
 		var right, down, left, up uint32 // := 0, 0, 0, 0
+		var goal uint32
 		cr, cd, cl, cu := true, true, true, true
 		posBit := uint32(1)
 		negBit := uint32(1 << (v - 2))
@@ -235,7 +236,8 @@ func (r *rule) getExpensiveWhiteRule(
 
 		if right&left == 0 {
 			// cannot go right and left; must go up and down
-			if down&up == 0 {
+			goal = down & up
+			if goal == 0 {
 				// cannot go up and down? invalid!
 				r.setInvalid(s)
 				return
@@ -246,13 +248,13 @@ func (r *rule) getExpensiveWhiteRule(
 				s.lineVer(r.row-nd, r.col)
 				nd++
 
-				if negBit&up != negBit {
+				if negBit&goal != negBit {
 					// we can't stop here; must continue
-					negBit <<= 1
+					negBit >>= 1
 					continue
 				}
 
-				if up&(^negBit) == 0 {
+				if goal&(^negBit) == 0 {
 					s.avoidVer(r.row-nd, r.col)
 				}
 				break
@@ -263,13 +265,13 @@ func (r *rule) getExpensiveWhiteRule(
 				s.lineVer(r.row+pd, r.col)
 				pd++
 
-				if posBit&down == 0 {
+				if posBit&goal == 0 {
 					// we can't stop here; must continue
 					posBit <<= 1
 					continue
 				}
 
-				if down&(^posBit) == 0 {
+				if goal&(^posBit) == 0 {
 					s.avoidVer(r.row+pd, r.col)
 				}
 				break
@@ -282,18 +284,19 @@ func (r *rule) getExpensiveWhiteRule(
 			return
 		}
 
+		goal = right & left
 		negBit = uint32(1 << (v - 2))
 		for nd = 1; ; {
 			s.lineHor(r.row, r.col-nd)
 			nd++
 
-			if negBit&left != negBit {
+			if negBit&goal != negBit {
 				// we can't stop here; must continue
-				negBit <<= 1
+				negBit >>= 1
 				continue
 			}
 
-			if left&(^negBit) == 0 {
+			if goal&(^negBit) == 0 {
 				s.avoidHor(r.row, r.col-nd)
 			}
 			break
@@ -304,13 +307,13 @@ func (r *rule) getExpensiveWhiteRule(
 			s.lineHor(r.row, r.col+pd)
 			pd++
 
-			if posBit&right == 0 {
+			if posBit&goal == 0 {
 				// we can't stop here; must continue
 				posBit <<= 1
 				continue
 			}
 
-			if right&(^posBit) == 0 {
+			if goal&(^posBit) == 0 {
 				s.avoidHor(r.row, r.col+pd)
 			}
 			break
