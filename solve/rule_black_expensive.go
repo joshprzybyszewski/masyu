@@ -38,9 +38,7 @@ func getBlackBounds(
 	if vm1 < node.Row {
 		b.maxUp = node.Row - vm1
 	}
-	// TODO change this if-condition to be <= 2 once we get the rest of the logic in this function correct
 	if node.Value <= 2 {
-		// if node.Value > 1 {
 		return b
 	}
 
@@ -256,8 +254,6 @@ func (r *rule) getExpensiveBlackRule(
 						// cannot continue
 						cd = false
 					}
-					// TODO if there is a black node at [r.row, r.col+pd+1],
-					// then I CANNOT continue
 				}
 			}
 			// check up
@@ -295,19 +291,19 @@ func (r *rule) getExpensiveBlackRule(
 		if right&(up|down) == 0 {
 			// must go left
 			s.avoidHor(r.row, r.col)
-			bit := uint32(1)
+			horBit = uint32(1)
 			goal = left & (up | down)
 			for nd = 1; ; {
 				s.lineHor(r.row, r.col-nd)
 				nd++
 
-				if bit&goal != bit {
+				if horBit&goal != horBit {
 					// we can't stop here; must continue
-					bit <<= 1
+					horBit <<= 1
 					continue
 				}
 
-				if goal&(^bit) == 0 {
+				if goal&(^horBit) == 0 {
 					s.avoidHor(r.row, r.col-nd)
 				}
 				break
@@ -315,19 +311,19 @@ func (r *rule) getExpensiveBlackRule(
 		} else if left&(up|down) == 0 {
 			// must go right
 			s.avoidHor(r.row, r.col-1)
-			bit := uint32(1)
+			horBit = uint32(1)
 			goal = right & (up | down)
 			for pd = 0; ; {
 				s.lineHor(r.row, r.col+pd)
 				pd++
 
-				if bit&goal == 0 {
+				if horBit&goal == 0 {
 					// we can't stop here; must continue
-					bit <<= 1
+					horBit <<= 1
 					continue
 				}
 
-				if goal&(^bit) == 0 {
+				if goal&(^horBit) == 0 {
 					s.avoidHor(r.row, r.col+pd)
 				}
 				break
@@ -337,19 +333,19 @@ func (r *rule) getExpensiveBlackRule(
 		if down&(right|left) == 0 {
 			// must go up
 			s.avoidVer(r.row, r.col)
-			bit := uint32(1 << (v - 2))
+			verBit = uint32(1 << (v - 2))
 			goal = up & (right | left)
 			for nd = 1; ; {
 				s.lineVer(r.row-nd, r.col)
 				nd++
 
-				if bit&goal != bit {
+				if verBit&goal != verBit {
 					// we can't stop here; must continue
-					bit >>= 1
+					verBit >>= 1
 					continue
 				}
 
-				if goal&(^bit) == 0 {
+				if goal&(^verBit) == 0 {
 					s.avoidVer(r.row-nd, r.col)
 				}
 				break
@@ -357,238 +353,24 @@ func (r *rule) getExpensiveBlackRule(
 		} else if up&(right|left) == 0 {
 			// must go down
 			s.avoidVer(r.row-1, r.col)
-			bit := uint32(1 << (v - 2))
+			verBit = uint32(1 << (v - 2))
 			goal = down & (right | left)
 			for pd = 0; ; {
 				s.lineVer(r.row+pd, r.col)
 				pd++
 
-				if bit&goal == 0 {
+				if verBit&goal == 0 {
 					// we can't stop here; must continue
-					bit >>= 1
+					verBit >>= 1
 					continue
 				}
 
-				if goal&(^bit) == 0 {
+				if goal&(^verBit) == 0 {
 					s.avoidVer(r.row+pd, r.col)
 				}
 				break
 			}
 		}
 
-		/*
-			// check right and down
-			// if right&down == 0 { // TODO I think this case can be expanded
-			if right == 0 && down == 0 { // TODO I think this case can be expanded
-				// cannot be place right and down. must go left and up.
-				lu := left & up
-				if lu == 0 {
-					// cannot go left and up. invalid!
-					r.setInvalid(s)
-					return
-				}
-
-				// make sure we avoid right and down
-				s.avoidHor(r.row, r.col)
-				s.avoidVer(r.row, r.col)
-
-				// TODO send out a minimum horizontal lines
-				numHor := model.Dimension(0)
-				for n, bit := model.Value(1), uint32(1); ; {
-					if bit&lu == bit {
-						// we found one option for the number of horizontal placements.
-						// If this is the only option, then taking lu & !bit will be zero.
-						// If that's the case, then we know how many to set.
-						lu &= (^bit)
-						if lu == 0 {
-							numHor = model.Dimension(n)
-						}
-						break
-					}
-					bit <<= 1
-					n++
-				}
-				if numHor == 0 {
-					// we don't know how many in each direction it'll be.
-					// just set left and up.
-					s.lineHor(r.row, r.col-1)
-					s.lineVer(r.row-1, r.col)
-					return
-				}
-
-				// set a line out horizontally, then avoid the one after it.
-				for nd = model.Dimension(1); nd <= numHor; nd++ {
-					s.lineHor(r.row, r.col-nd)
-				}
-				s.avoidHor(r.row, r.col-nd)
-
-				// set a line out vertically, then avoid the one after it.
-				numVer := model.Dimension(v) - numHor
-				for nd = model.Dimension(1); nd <= numVer; nd++ {
-					s.lineVer(r.row-nd, r.col)
-				}
-				s.avoidVer(r.row-nd, r.col)
-				return
-			}
-
-			// check down and left
-			// if down&left == 0 { // TODO I think this case can be expanded
-			if down == 0 && left == 0 { // TODO I think this case can be expanded
-				// cannot be placed down and left. must go up and right.
-				ur := up & right
-				if ur == 0 {
-					// cannot go up and right. invalid!
-					r.setInvalid(s)
-					return
-				}
-
-				// make sure we avoid down and left
-				s.avoidVer(r.row, r.col)
-				s.avoidHor(r.row, r.col-1)
-
-				numHor := model.Dimension(0)
-				for n, bit := model.Value(1), uint32(1); ; {
-					if bit&ur == bit {
-						// we found one option for the number of horizontal placements.
-						// If this is the only option, then taking ur & !bit will be zero.
-						// If that's the case, then we know how many to set.
-						ur &= (^bit)
-						if ur == 0 {
-							numHor = model.Dimension(n)
-						}
-						break
-					}
-					bit <<= 1
-					n++
-				}
-				if numHor == 0 {
-					// we don't know how many in each direction it'll be.
-					// just set up and right.
-					s.lineVer(r.row-1, r.col)
-					s.lineHor(r.row, r.col)
-					return
-				}
-
-				// set a line out horizontally, then avoid the one after it.
-				for pd = model.Dimension(0); pd < numHor; pd++ {
-					s.lineHor(r.row, r.col+pd)
-				}
-				s.avoidHor(r.row, r.col+pd)
-
-				// set a line out vertically, then avoid the one after it.
-				numVer := model.Dimension(v) - numHor
-				for nd = model.Dimension(1); nd <= numVer; nd++ {
-					s.lineVer(r.row-nd, r.col)
-				}
-				s.avoidVer(r.row-nd, r.col)
-				return
-			}
-
-			// check left and up
-			// if left&up == 0 { // TODO I think this case can be expanded
-			if left == 0 && up == 0 { // TODO I think this case can be expanded
-				// cannot be placed left and up. must go right and down.
-				rd := right & down
-				if rd == 0 {
-					// cannot go right and down. invalid!
-					r.setInvalid(s)
-					return
-				}
-
-				// make sure we avoid left and up
-				s.avoidHor(r.row, r.col-1)
-				s.avoidVer(r.row-1, r.col)
-
-				numHor := model.Dimension(0)
-				for n, bit := model.Value(1), uint32(1); ; {
-					if bit&rd == bit {
-						// we found one option for the number of horizontal placements.
-						// If this is the only option, then taking rd & !bit will be zero.
-						// If that's the case, then we know how many to set.
-						rd &= (^bit)
-						if rd == 0 {
-							numHor = model.Dimension(n)
-						}
-						break
-					}
-					bit <<= 1
-					n++
-				}
-				if numHor == 0 {
-					// we don't know how many in each direction it'll be.
-					// just set right and down.
-					s.lineHor(r.row, r.col)
-					s.lineVer(r.row, r.col)
-					return
-				}
-
-				// set a line out horizontally, then avoid the one after it.
-				for pd = model.Dimension(0); pd < numHor; pd++ {
-					s.lineHor(r.row, r.col+pd)
-				}
-				s.avoidHor(r.row, r.col+pd)
-
-				// set a line out vertically, then avoid the one after it.
-				numVer := model.Dimension(v) - numHor
-				for pd = model.Dimension(0); pd < numVer; pd++ {
-					s.lineVer(r.row+pd, r.col)
-				}
-				s.avoidVer(r.row+pd, r.col)
-				return
-			}
-
-			// check up and right
-			// if up&right == 0 { // TODO I think this case can be expanded
-			if up == 0 && right == 0 { // TODO I think this case can be expanded
-				// cannot be placed up and right. must go down and left.
-				dl := down & left
-				if dl == 0 {
-					// cannot go right and down. invalid!
-					r.setInvalid(s)
-					return
-				}
-
-				// make sure we avoid up and right
-				s.avoidVer(r.row-1, r.col)
-				s.avoidHor(r.row, r.col)
-
-				numHor := model.Dimension(0)
-				for n, bit := model.Value(1), uint32(1); ; {
-					if bit&dl == bit {
-						// we found one option for the number of horizontal placements.
-						// If this is the only option, then taking dl & !bit will be zero.
-						// If that's the case, then we know how many to set.
-						dl &= (^bit)
-						if dl == 0 {
-							numHor = model.Dimension(n)
-						}
-						break
-					}
-					bit <<= 1
-					n++
-				}
-				if numHor == 0 {
-					// we don't know how many in each direction it'll be.
-					// just set down and left.
-					s.lineVer(r.row, r.col)
-					s.lineHor(r.row, r.col-1)
-					return
-				}
-
-				// set a line out horizontally, then avoid the one after it.
-				for nd = model.Dimension(1); nd <= numHor; nd++ {
-					s.lineHor(r.row, r.col-nd)
-				}
-				s.avoidHor(r.row, r.col-nd)
-
-				// set a line out vertically, then avoid the one after it.
-				numVer := model.Dimension(v) - numHor
-				for pd = model.Dimension(0); pd < numVer; pd++ {
-					s.lineVer(r.row+pd, r.col)
-				}
-				s.avoidVer(r.row+pd, r.col)
-				return
-			}
-		*/
 	}
 }

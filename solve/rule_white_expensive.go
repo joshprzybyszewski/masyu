@@ -179,8 +179,8 @@ func (r *rule) getExpensiveWhiteRule(
 		}
 
 		// check up and down
-		// if up&down == 0 { // TODO I think this case can be expanded
-		if up == 0 || down == 0 { // TODO I think this case can be expanded
+		if up&down == 0 { // TODO I think this case can be expanded
+			// if up == 0 || down == 0 { // TODO I think this case can be expanded
 			// cannot be placed up and down. must go left and right.
 			lr := left & right
 			if lr == 0 {
