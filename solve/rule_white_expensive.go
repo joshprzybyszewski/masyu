@@ -155,9 +155,6 @@ func (r *rule) getExpensiveWhiteRule(
 		// just gonna say "nope".
 		panic(`unsupported puzzle`)
 	}
-	// TODO is it better to scope these vars once up here?
-	// var right, down, left, up uint32
-	// var cr, cd, cl, cu bool
 	return func(s *state) {
 		var right, down, left, up uint32 // := 0, 0, 0, 0
 		var goal uint32

@@ -4,7 +4,7 @@ help: ## Prints out the options available in this makefile
 
 .PHONY: profile
 profile: ## Run the solver and grab a CPU/memory profile using pprof
-	go run main.go -profile -refresh=false -start=11 -finish=18 -numIterations=5
+	go run main.go -profile -refresh=false -start=11 -finish=16 -numIterations=10
 	pprof -web cpu.pprof
 	pprof -web mem.pprof
 
