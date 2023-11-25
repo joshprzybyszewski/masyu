@@ -19,11 +19,8 @@ func newNodeCheckerExpensiveRule(
 func (r *rule) getExpensiveNodeCheckerRule(
 	v model.Value,
 ) func(*state) {
-	// TODO is it better to scope these vars once up here?
-	// var cr, cd, cl, cu bool
 	return func(s *state) {
-		// cr, cd, cl, cu := true, true, true, true
-		pd, nd := model.Dimension(0), model.Dimension(1)
+		var pd, nd model.Dimension
 		var total model.Value
 
 		for pd = 0; s.horLineAt(r.row, r.col+pd); pd++ {

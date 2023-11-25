@@ -12,8 +12,10 @@ func newWhiteExpensiveRule(
 		row:     node.Row,
 		col:     node.Col,
 	}
-	bounds := getWhiteBounds(size, node, nodes)
-	r.check = r.getExpensiveWhiteRule(node.Value, bounds)
+	r.check = r.getExpensiveWhiteRule(
+		node.Value,
+		getWhiteBounds(size, node, nodes),
+	)
 	return r
 }
 

@@ -16,9 +16,9 @@ type path struct {
 }
 
 type affectsApply struct {
-	affects int
-
 	fn applyFn
+
+	affects int
 }
 
 type rules struct {
