@@ -193,7 +193,10 @@ func (r *rule) getExpensiveBlackRule(
 		// just gonna say "nope".
 		// TODO a black node on a corner can hit > 32 on 25x25. In that case, I just need to send out
 		// arms the appropriate direction.
-		panic(`unsupported puzzle`)
+		// panic(`unsupported puzzle`)
+		return func(s *state) {
+			// TODO
+		}
 	}
 	return func(s *state) {
 		var right, down, left, up uint32 // := 0, 0, 0, 0
